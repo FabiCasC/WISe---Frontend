@@ -83,8 +83,8 @@ export interface ClassService {
 export type Rand = () => number
 
 /** Palabras sin letras ambiguas, fáciles de dictar en voz alta en clase. */
-const CODE_WORDS = ['LUNA', 'MARTE', 'ROVER', 'COMETA', 'ORBITA', 'NOVA', 'SOLAR', 'CRATER', 'SONDA', 'ASTRO']
-const NICK_WORDS = ['Rover', 'Sonda', 'Cometa', 'Satélite', 'Órbita', 'Nébula', 'Lander', 'Astro', 'Pulsar', 'Quasar']
+const CODE_WORDS = ['MOON', 'MARS', 'ROVER', 'COMET', 'ORBIT', 'NOVA', 'SOLAR', 'CRATER', 'PROBE', 'ASTRO']
+const NICK_WORDS = ['Rover', 'Probe', 'Comet', 'Satellite', 'Orbit', 'Nebula', 'Lander', 'Astro', 'Pulsar', 'Quasar']
 
 const pick = <T,>(list: T[], rand: Rand): T => list[Math.floor(rand() * list.length) % list.length]
 const twoDigits = (rand: Rand) => String(10 + Math.floor(rand() * 90))

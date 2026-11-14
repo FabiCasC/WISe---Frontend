@@ -65,7 +65,7 @@ export default function App() {
   // Una URL directa a un nivel bloqueado lleva al nivel que sí está abierto.
   useEffect(() => {
     if (route.name === 'play' && !isLevelUnlocked(progress, route.gameId, route.levelId)) {
-      navigate(`#/jugar/${route.gameId}/${nextPlayableLevel(progress, route.gameId)}`)
+      navigate(`#/play/${route.gameId}/${nextPlayableLevel(progress, route.gameId)}`)
     }
   }, [route, progress])
 
@@ -73,7 +73,7 @@ export default function App() {
   useEffect(() => {
     if (!storageOk) {
       setToast(
-        'Este navegador bloquea el guardado local: podrás jugar, pero el progreso no se conservará.',
+        'This browser blocks local saving: you can play, but your progress will not be kept.',
       )
     }
   }, [storageOk])
@@ -92,7 +92,7 @@ export default function App() {
         levelId && isLevelUnlocked(progress, mission.gameId, levelId)
           ? levelId
           : nextPlayableLevel(progress, mission.gameId)
-      navigate(`#/jugar/${mission.gameId}/${lvl}`)
+      navigate(`#/play/${mission.gameId}/${lvl}`)
     },
     [progress],
   )
@@ -111,8 +111,8 @@ export default function App() {
       const mission = getMission(result.gameId)
       setToast(
         result.completed
-          ? `¡Nivel completado en ${mission?.title ?? result.gameId}!`
-          : 'Partida cerrada sin completar. Puedes reintentar cuando quieras.',
+          ? `Level complete in ${mission?.title ?? result.gameId}!`
+          : 'Game closed before finishing. You can try again any time.',
       )
       exitGame()
     },
@@ -127,7 +127,7 @@ export default function App() {
   const leaveClass = useCallback(() => {
     saveMembership(null)
     setMembership(null)
-    setToast('Saliste de la clase. Tu progreso sigue aquí, en modo personal.')
+    setToast('You left the class. Your progress is still here, in solo mode.')
     navigate('#/')
   }, [])
 
@@ -137,8 +137,8 @@ export default function App() {
     <>
       <Sky reducedMotion={progress.settings.reducedMotion} />
 
-      <a className="skip-link" href={page.name === 'landing' ? '#juegos' : '#main'}>
-        {page.name === 'landing' ? 'Saltar a los juegos' : 'Saltar al contenido'}
+      <a className="skip-link" href={page.name === 'landing' ? '#games' : '#main'}>
+        {page.name === 'landing' ? 'Skip to the games' : 'Skip to content'}
       </a>
 
       <div className="shell">
@@ -213,7 +213,7 @@ export default function App() {
           onChange={updateSettings}
           onReset={() => {
             reset()
-            setToast('Progreso reiniciado.')
+            setToast('Progress reset.')
           }}
           onClose={() => setSettingsOpen(false)}
         />
@@ -226,9 +226,9 @@ export default function App() {
             type="button"
             className="btn btn--sm btn--quiet"
             onClick={() => setToast(null)}
-            aria-label="Cerrar aviso"
+            aria-label="Close message"
           >
-            Cerrar
+            Close
           </button>
         </div>
       )}

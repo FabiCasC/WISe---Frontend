@@ -80,7 +80,7 @@ export default function Modal({ title, subtitle, onClose, children, footer }: Mo
             type="button"
             className="btn btn--quiet btn--icon modal__close"
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label="Close"
           >
             <IconClose />
           </button>

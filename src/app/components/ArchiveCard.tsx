@@ -41,15 +41,15 @@ export default function ArchiveCard({
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button type="button" className="btn btn--primary" onClick={() => onPlay(mission)}>
               <IconPlay />
-              Jugar «{mission.title}»
+              Play “{mission.title}”
             </button>
             <button type="button" className="btn btn--quiet" onClick={onClose}>
-              Seguir explorando
+              Keep exploring
             </button>
           </div>
         ) : (
           <button type="button" className="btn btn--quiet" onClick={onClose}>
-            Seguir explorando
+            Keep exploring
           </button>
         )
       }
@@ -59,39 +59,39 @@ export default function ArchiveCard({
       </div>
 
       <div className="field">
-        <div className="field__label">Qué es</div>
+        <div className="field__label">What it is</div>
         <div className="field__value">{item.note}</div>
       </div>
 
       <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))' }}>
         <div className="field">
-          <div className="field__label">Dónde está</div>
+          <div className="field__label">Where it is</div>
           <div className="field__value">{PLACE_LABEL[item.place]}</div>
         </div>
         <div className="field">
-          <div className="field__label">Año</div>
+          <div className="field__label">Year</div>
           <div className="field__value">{item.year}</div>
         </div>
         <div className="field">
-          <div className="field__label">Estado</div>
+          <div className="field__label">Status</div>
           <div className="field__value">{STATUS_LABEL[item.status]}</div>
         </div>
       </div>
 
       {mission ? (
         <div className="field" style={{ borderColor: 'rgba(109,226,242,.35)' }}>
-          <div className="field__label">Tiene juego</div>
+          <div className="field__label">Has a game</div>
           <div className="field__value">
-            Este equipo es protagonista de «{mission.title}». Su ficha científica completa,
-            con fuentes, está en la sección de misiones jugables.
+            This machine stars in “{mission.title}”. Its full science card, with
+            sources, is in the playable missions section.
           </div>
         </div>
       ) : (
         <div className="field field--warn">
-          <div className="field__label">Ficha breve</div>
+          <div className="field__label">Short entry</div>
           <div className="field__value">
-            Entrada del archivo, todavía sin juego ni ficha científica completa. Los datos
-            están pendientes de contraste con fuente oficial antes de la entrega.
+            An archive entry with no game or full science card yet. Its data still has
+            to be checked against an official source before release.
           </div>
         </div>
       )}

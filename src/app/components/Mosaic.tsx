@@ -93,17 +93,17 @@ const BLOB_SPOTS = [
 ]
 
 const FILTERS: Array<{ id: 'todo' | Place; label: string }> = [
-  { id: 'todo', label: 'Todo' },
-  { id: 'luna', label: 'Luna' },
-  { id: 'marte', label: 'Marte' },
+  { id: 'todo', label: 'All' },
+  { id: 'luna', label: 'Moon' },
+  { id: 'marte', label: 'Mars' },
   { id: 'venus', label: 'Venus' },
-  { id: 'asteroide', label: 'Asteroides' },
-  { id: 'cometa', label: 'Cometas' },
-  { id: 'titan', label: 'Titán' },
-  { id: 'mercurio', label: 'Mercurio' },
-  { id: 'gigante', label: 'Gigantes' },
-  { id: 'orbita', label: 'Órbita' },
-  { id: 'profundo', label: 'Lejos' },
+  { id: 'asteroide', label: 'Asteroids' },
+  { id: 'cometa', label: 'Comets' },
+  { id: 'titan', label: 'Titan' },
+  { id: 'mercurio', label: 'Mercury' },
+  { id: 'gigante', label: 'Giants' },
+  { id: 'orbita', label: 'Orbit' },
+  { id: 'profundo', label: 'Far away' },
 ]
 
 /** Dónde se intercalan los juegos entre las fichas del archivo. */
@@ -165,9 +165,9 @@ export default function Mosaic({ progress, reducedMotion, onPlay, onItem }: Prop
   }
 
   return (
-    <section className="mosaic" id="archivo" aria-label="Archivo orbital">
+    <section className="mosaic" id="archivo" aria-label="Orbital archive">
       <div className="mosaic__bar">
-        <div className="mosaic__tabs" role="tablist" aria-label="Filtrar el archivo">
+        <div className="mosaic__tabs" role="tablist" aria-label="Filter the archive">
           {FILTERS.map((f) => (
             <button
               key={f.id}
@@ -184,10 +184,10 @@ export default function Mosaic({ progress, reducedMotion, onPlay, onItem }: Prop
         <p className="mosaic__hint">
           {gameCount > 0 && (
             <>
-              <strong>{gameCount} juegos</strong> ·{' '}
+              <strong>{gameCount} games</strong> ·{' '}
             </>
           )}
-          {itemCount} equipos · toca cualquier ficha
+          {itemCount} machines · tap any tile
         </p>
       </div>
 
@@ -218,9 +218,9 @@ export default function Mosaic({ progress, reducedMotion, onPlay, onItem }: Prop
           ['--rot' as string]: `${BLOB_SPOTS[spot].rot}deg`,
         }}
       >
-        <span className="mosaic__blob-word">ÓRBITA</span>
+        <span className="mosaic__blob-word">ORBITA</span>
         <span className="mosaic__blob-sub">ARCADE</span>
-        <span className="mosaic__blob-badge">archivo</span>
+        <span className="mosaic__blob-badge">archive</span>
       </div>
     </section>
   )

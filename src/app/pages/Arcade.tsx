@@ -23,16 +23,16 @@ export default function Arcade({ progress, onPlay, onItem }: Props) {
       {/* ====================================================== DESTACADOS
           Franja a sangre: el fondo cubre todo el bloque, así no queda aire
           muerto alrededor de las tarjetas. */}
-      <section className="arcade-top" id="juegos">
+      <section className="arcade-top" id="games">
         <div className="arcade-top__aurora" aria-hidden="true" />
 
         <div className="arcade-top__inner">
           <div className="arcade-top__head">
-            <h1 className="arcade-top__title">Elige tu misión</h1>
+            <h1 className="arcade-top__title">Choose your mission</h1>
             <div className="arcade-top__meta">
-              <span className="chip chip--accent">{MISSIONS.length} juegos listos</span>
-              <span className="chip">{levelsDone}/9 niveles</span>
-              <span className="chip">{ARCHIVE_STATS.total} equipos en el archivo</span>
+              <span className="chip chip--accent">{MISSIONS.length} games ready</span>
+              <span className="chip">{levelsDone}/9 levels</span>
+              <span className="chip">{ARCHIVE_STATS.total} machines in the archive</span>
             </div>
           </div>
 

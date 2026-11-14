@@ -149,7 +149,7 @@ describe('getGeneralLevel', () => {
 
   it('indica el requisito del siguiente nivel', () => {
     expect(nextGeneralLevel(createEmptyProgress())?.level).toBe(2)
-    expect(nextGeneralLevel(play(...fullGame('spirit')))?.unlocks).toMatch(/Reto especial/)
+    expect(nextGeneralLevel(play(...fullGame('spirit')))?.unlocks).toMatch(/Special challenge/)
   })
 })
 

@@ -4,15 +4,7 @@ import { IconCopy, IconTeacher } from '../components/Art'
 import SiteFooter from '../components/SiteFooter'
 import { navigate } from '../hooks/useHashRoute'
 
-const GRADES = [
-  '4.º de primaria',
-  '5.º de primaria',
-  '6.º de primaria',
-  '1.º de secundaria',
-  '2.º de secundaria',
-  '3.º de secundaria',
-  'Otro',
-]
+const GRADES = ['4th grade', '5th grade', '6th grade', '7th grade', '8th grade', '9th grade', 'Other']
 
 /** Enlace absoluto a una ruta de hash, para copiar y compartir. */
 export function absoluteLink(hash: string): string {
@@ -43,12 +35,12 @@ export function CopyField({ label, value, hint }: { label: string; value: string
         <input id={id} className="copyfield__input" value={value} readOnly onFocus={(e) => e.target.select()} />
         <button type="button" className="btn btn--sm btn--secondary" onClick={copy}>
           <IconCopy />
-          {copied ? 'Copiado' : 'Copiar'}
+          {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
       {hint && <p className="copyfield__hint">{hint}</p>}
       <span className="sr-only" role="status">
-        {copied ? 'Copiado al portapapeles' : ''}
+        {copied ? 'Copied to clipboard' : ''}
       </span>
     </div>
   )
@@ -64,7 +56,7 @@ export default function Teacher({ service }: { service: ClassService }) {
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     if (!name.trim()) {
-      setError('Ponle un nombre a la clase, por ejemplo “5.º B Ciencias”.')
+      setError('Give your class a name, for example “5B Science”.')
       return
     }
     setError(null)
@@ -72,7 +64,7 @@ export default function Teacher({ service }: { service: ClassService }) {
     try {
       setCreated(await service.createClass({ name, grade }))
     } catch {
-      setError('No se pudo crear la clase. Inténtalo de nuevo.')
+      setError('The class could not be created. Please try again.')
     } finally {
       setBusy(false)
     }
@@ -86,25 +78,25 @@ export default function Teacher({ service }: { service: ClassService }) {
             <IconTeacher size={26} />
           </span>
           <div>
-            <h1 className="page__title">Modo profesor</h1>
+            <h1 className="page__title">Teacher mode</h1>
             <p className="page__lede">
-              Crea una clase, comparte el código y mira cómo avanza tu grupo. Sin cuentas: no te
-              pedimos tu nombre ni correo, y tus alumnos solo reciben un apodo.
+              Create a class, share the code and watch your group progress. No accounts: we never
+              ask for your name or email, and your students only get a nickname.
             </p>
           </div>
         </div>
 
         {!created ? (
           <form className="card form" onSubmit={submit} noValidate>
-            <h2 className="card__title">Crear clase</h2>
+            <h2 className="card__title">Create a class</h2>
 
             <div className="form__field">
-              <label htmlFor="class-name">Nombre de la clase</label>
+              <label htmlFor="class-name">Class name</label>
               <input
                 id="class-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="5.º B Ciencias"
+                placeholder="5B Science"
                 maxLength={60}
                 autoComplete="off"
                 aria-invalid={error ? true : undefined}
@@ -113,7 +105,7 @@ export default function Teacher({ service }: { service: ClassService }) {
             </div>
 
             <div className="form__field">
-              <label htmlFor="class-grade">Grado</label>
+              <label htmlFor="class-grade">Grade</label>
               <select id="class-grade" value={grade} onChange={(e) => setGrade(e.target.value)}>
                 {GRADES.map((g) => (
                   <option key={g}>{g}</option>
@@ -128,29 +120,29 @@ export default function Teacher({ service }: { service: ClassService }) {
             )}
 
             <button type="submit" className="btn btn--primary btn--lg" disabled={busy}>
-              {busy ? 'Creando…' : 'Crear clase'}
+              {busy ? 'Creating…' : 'Create class'}
             </button>
           </form>
         ) : (
           <div className="card created" role="status">
-            <p className="created__label">Código de la clase</p>
+            <p className="created__label">Class code</p>
             <p className="created__code">{created.code}</p>
             <p className="created__help">
-              Tus alumnos lo escriben en la portada, en “Únete a tu clase”.
+              Students type it on the home page, in “Join your class”.
             </p>
 
             <CopyField
-              label="Enlace para tus alumnos (el código ya va incluido)"
-              value={absoluteLink(`#/clase/${created.code}`)}
+              label="Link for your students (the code is already included)"
+              value={absoluteLink(`#/class/${created.code}`)}
             />
 
             <div className="callout callout--warn">
-              <strong>Guarda tu enlace privado del panel.</strong> Es la única forma de ver los
-              resultados de esta clase. Si lo pierdes, no se puede recuperar.
+              <strong>Save your private dashboard link.</strong> It is the only way to see this
+              class’s results. If you lose it, it cannot be recovered.
             </div>
 
             <CopyField
-              label="Tu enlace privado del panel (no lo compartas)"
+              label="Your private dashboard link (do not share it)"
               value={absoluteLink(`#/panel/${created.teacherToken}`)}
             />
 
@@ -160,16 +152,16 @@ export default function Teacher({ service }: { service: ClassService }) {
                 className="btn btn--primary btn--lg"
                 onClick={() => navigate(`#/panel/${created.teacherToken}`)}
               >
-                Abrir el panel
+                Open the dashboard
               </button>
               <button type="button" className="btn btn--quiet" onClick={() => setCreated(null)}>
-                Crear otra clase
+                Create another class
               </button>
             </div>
 
             <p className="created__note">
-              Versión de prueba: mientras no esté conectado el servidor, la clase se guarda solo
-              en este navegador.
+              Test version: until the server is connected, the class is saved only in this
+              browser.
             </p>
           </div>
         )}

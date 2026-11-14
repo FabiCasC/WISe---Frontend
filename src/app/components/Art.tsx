@@ -6,7 +6,7 @@ import type { GameId } from '../../shared/types'
 
 export function BrandGlyph({ className = 'brandmark__glyph' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 64 64" role="img" aria-label="Órbita Arcade">
+    <svg className={className} viewBox="0 0 64 64" role="img" aria-label="Orbita Arcade">
       <defs>
         <radialGradient id="bg-core" cx="38%" cy="32%">
           <stop offset="0" stopColor="#ffffff" />

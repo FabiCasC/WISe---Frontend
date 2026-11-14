@@ -13,7 +13,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   volume: 0.6,
   reducedMotion: false,
   practice: false,
-  lang: 'es',
+  lang: 'en',
 }
 
 export const GAME_IDS: GameId[] = ['opportunity', 'lunar-signals', 'spirit']
@@ -137,23 +137,23 @@ export interface GeneralLevelSpec {
 }
 
 export const GENERAL_LEVELS: GeneralLevelSpec[] = [
-  { level: 1, requirement: 'Entrar al portal', unlocks: '' },
-  { level: 2, requirement: 'Completar 1 nivel de cualquier juego', unlocks: '' },
-  { level: 3, requirement: 'Completar 2 niveles en total', unlocks: '' },
+  { level: 1, requirement: 'Enter the portal', unlocks: '' },
+  { level: 2, requirement: 'Complete 1 level of any game', unlocks: '' },
+  { level: 3, requirement: 'Complete 2 levels in total', unlocks: '' },
   {
     level: 4,
-    requirement: 'Completar un juego entero (sus 3 niveles)',
-    unlocks: 'Primer juego avanzado',
+    requirement: 'Complete a whole game (all 3 levels)',
+    unlocks: 'First advanced game',
   },
   {
     level: 5,
-    requirement: 'Completar dos juegos enteros',
-    unlocks: 'Reto especial y más juegos avanzados',
+    requirement: 'Complete two whole games',
+    unlocks: 'Special challenge and more advanced games',
   },
   {
     level: 6,
-    requirement: 'Completar los tres juegos',
-    unlocks: 'Misión final y realidad virtual (próximamente)',
+    requirement: 'Complete all three games',
+    unlocks: 'Final mission and virtual reality (coming soon)',
   },
 ]
 

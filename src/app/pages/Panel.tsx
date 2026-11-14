@@ -32,7 +32,7 @@ export default function Panel({ token, service }: { token: string; service: Clas
   if (data === undefined) {
     return (
       <section className="section wrap page">
-        <p role="status">Cargando el panel…</p>
+        <p role="status">Loading the dashboard…</p>
       </section>
     )
   }
@@ -42,13 +42,13 @@ export default function Panel({ token, service }: { token: string; service: Clas
       <>
         <section className="section wrap page">
           <div className="card">
-            <h1 className="page__title">No encontramos esta clase</h1>
+            <h1 className="page__title">We could not find this class</h1>
             <p className="page__lede">
-              Revisa que el enlace esté completo. En esta versión de prueba la clase solo existe
-              en el navegador donde se creó.
+              Check that the link is complete. In this test version the class only exists in the
+              browser where it was created.
             </p>
-            <a className="btn btn--primary" href="#/profesor">
-              Crear una clase
+            <a className="btn btn--primary" href="#/teacher">
+              Create a class
             </a>
           </div>
         </section>
@@ -69,7 +69,7 @@ export default function Panel({ token, service }: { token: string; service: Clas
           <div>
             <h1 className="page__title">{data.name}</h1>
             <p className="page__lede">
-              {data.grade} · código <strong className="code-inline">{data.code}</strong>
+              {data.grade} · code <strong className="code-inline">{data.code}</strong>
             </p>
           </div>
         </div>
@@ -77,42 +77,42 @@ export default function Panel({ token, service }: { token: string; service: Clas
         <div className="kpis">
           <div className="kpi">
             <span className="kpi__value">{rows.length}</span>
-            <span className="kpi__label">Alumnos</span>
+            <span className="kpi__label">Students</span>
           </div>
           <div className="kpi">
             <span className="kpi__value">{average ? average.generalLevel.toLocaleString('es') : '—'}</span>
-            <span className="kpi__label">Nivel promedio (de {MAX_GENERAL_LEVEL})</span>
+            <span className="kpi__label">Average level (of {MAX_GENERAL_LEVEL})</span>
           </div>
           <div className="kpi">
             <span className="kpi__value">{average ? average.totalScore.toLocaleString('es') : '—'}</span>
-            <span className="kpi__label">Puntaje promedio</span>
+            <span className="kpi__label">Average score</span>
           </div>
           <div className="kpi">
-            <span className="kpi__value kpi__value--soon">Pronto</span>
-            <span className="kpi__label">Concepto con más errores</span>
+            <span className="kpi__value kpi__value--soon">Soon</span>
+            <span className="kpi__label">Hardest concept</span>
           </div>
         </div>
 
         {rows.length === 0 ? (
           <div className="card">
-            <h2 className="card__title">Todavía no hay alumnos</h2>
+            <h2 className="card__title">No students yet</h2>
             <p className="page__lede">
-              Comparte el código <strong className="code-inline">{data.code}</strong> o este enlace:
+              Share the code <strong className="code-inline">{data.code}</strong> or this link:
             </p>
-            <CopyField label="Enlace para tus alumnos" value={absoluteLink(`#/clase/${data.code}`)} />
+            <CopyField label="Link for your students" value={absoluteLink(`#/class/${data.code}`)} />
           </div>
         ) : (
-          <div className="tablewrap" tabIndex={0} role="region" aria-label="Resultados por alumno">
+          <div className="tablewrap" tabIndex={0} role="region" aria-label="Results by student">
             <table className="table">
-              <caption className="sr-only">Resultados de la clase {data.name}</caption>
+              <caption className="sr-only">Results for class {data.name}</caption>
               <thead>
                 <tr>
-                  <th scope="col">Apodo</th>
-                  <th scope="col">Nivel general</th>
-                  <th scope="col">Puntaje total</th>
-                  <th scope="col">Juegos completos</th>
-                  <th scope="col">Aciertos a la primera</th>
-                  <th scope="col">Conceptos dominados</th>
+                  <th scope="col">Nickname</th>
+                  <th scope="col">General level</th>
+                  <th scope="col">Total score</th>
+                  <th scope="col">Games completed</th>
+                  <th scope="col">Right first time</th>
+                  <th scope="col">Concepts mastered</th>
                 </tr>
               </thead>
               <tbody>
@@ -123,11 +123,11 @@ export default function Panel({ token, service }: { token: string; service: Clas
                       <span className="lvpill">{r.generalLevel}</span>
                     </td>
                     <td className="num">{r.totalScore.toLocaleString('es')}</td>
-                    <td className="num">{r.gamesCompleted} de 3</td>
+                    <td className="num">{r.gamesCompleted} of 3</td>
                     <td className="num">
-                      {r.firstTryCorrect} de {r.attempts}
+                      {r.firstTryCorrect} of {r.attempts}
                     </td>
-                    <td className="muted">Pronto</td>
+                    <td className="muted">Soon</td>
                   </tr>
                 ))}
               </tbody>
@@ -136,8 +136,8 @@ export default function Panel({ token, service }: { token: string; service: Clas
         )}
 
         <p className="created__note">
-          Se actualiza solo. Solo se guardan apodos y resultados de juego: nunca nombres, correos
-          ni edades.
+          Updates on its own. Only nicknames and game results are stored: never names, emails
+          or ages.
         </p>
       </section>
       <SiteFooter />

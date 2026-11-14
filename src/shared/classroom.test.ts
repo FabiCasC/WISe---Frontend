@@ -37,7 +37,7 @@ function win(patch: Partial<GameResult> = {}): GameResult {
 
 describe('códigos y apodos', () => {
   it('genera un código PALABRA-NN', () => {
-    expect(generateClassCode(seq(0, 0.5))).toBe('LUNA-55')
+    expect(generateClassCode(seq(0, 0.5))).toBe('MOON-55')
     expect(generateClassCode()).toMatch(/^[A-Z]+-\d{2}$/)
   })
 
@@ -46,23 +46,23 @@ describe('códigos y apodos', () => {
   })
 
   it.each([
-    ['luna27', 'LUNA-27'],
-    [' Luna 27 ', 'LUNA-27'],
-    ['luna-27', 'LUNA-27'],
+    ['moon27', 'MOON-27'],
+    [' Moon 27 ', 'MOON-27'],
+    ['moon-27', 'MOON-27'],
     ['Órbita-11', 'ORBITA-11'],
   ])('normaliza "%s" → %s', (input, out) => {
     expect(normalizeClassCode(input)).toBe(out)
   })
 
-  it.each(['', 'luna', '27', 'LUNA-2', 'LU-27'])('rechaza "%s"', (input) => {
+  it.each(['', 'moon', '27', 'MOON-2', 'MO-27'])('rechaza "%s"', (input) => {
     expect(normalizeClassCode(input)).toBeNull()
   })
 })
 
 describe('crear y unirse a una clase', () => {
   it('crea la clase con código y token privado', () => {
-    const { db, room } = createClassIn(empty(), { name: ' 5.º B ', grade: '5.º primaria' })
-    expect(room.name).toBe('5.º B')
+    const { db, room } = createClassIn(empty(), { name: ' 5th B ', grade: '5th grade' })
+    expect(room.name).toBe('5th B')
     expect(room.teacherToken).toHaveLength(24)
     expect(db.classes[room.code]).toBe(room)
     expect(findByToken(db, room.teacherToken)?.code).toBe(room.code)
@@ -75,7 +75,7 @@ describe('crear y unirse a una clase', () => {
   })
 
   it('el alumno entra con un apodo y sin datos personales', () => {
-    const { db, room } = createClassIn(empty(), { name: 'Ciencias', grade: '6.º' })
+    const { db, room } = createClassIn(empty(), { name: 'Science', grade: '6th' })
     const res = joinClassIn(db, room.code.toLowerCase(), 'player-1')
     expect(res.ok).toBe(true)
     if (!res.ok) return
@@ -95,7 +95,7 @@ describe('crear y unirse a una clase', () => {
 
   it('distingue código mal escrito de clase inexistente', () => {
     expect(joinClassIn(empty(), 'hola', 'p')).toEqual({ ok: false, error: 'codigo-invalido' })
-    expect(joinClassIn(empty(), 'LUNA-99', 'p')).toEqual({ ok: false, error: 'clase-no-existe' })
+    expect(joinClassIn(empty(), 'MOON-99', 'p')).toEqual({ ok: false, error: 'clase-no-existe' })
   })
 })
 

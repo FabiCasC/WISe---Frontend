@@ -38,22 +38,22 @@ export function createPlaceholder(gameId: GameId) {
     const text = document.createElement('p')
     text.className = 'stub__text'
     text.textContent =
-      'Módulo reservado. El contenedor, el ciclo de vida y el guardado ya funcionan: ' +
-      'la pareja responsable construye el juego dentro de esta carpeta sin tocar el portal.'
+      'Reserved module. The container, lifecycle and saving already work: ' +
+      'the team in charge builds the game inside this folder without touching the portal.'
 
     const specs = document.createElement('div')
     specs.className = 'stub__specs'
 
     const rows: Array<[string, string]> = [
-      ['Nivel', level ? `${level.id} · ${level.name} — ${level.goal}` : String(ctx.levelId)],
+      ['Level', level ? `${level.id} · ${level.name} — ${level.goal}` : String(ctx.levelId)],
       ['Idea', level?.idea ?? '—'],
-      ['Equipo', mission?.crew ?? '—'],
-      ['Semilla', ctx.seed],
+      ['Team', mission?.crew ?? '—'],
+      ['Seed', ctx.seed],
       [
-        'Ajustes',
-        `volumen ${Math.round(ctx.settings.volume * 100)}% · ` +
-          `${ctx.settings.reducedMotion ? 'movimiento reducido' : 'movimiento completo'} · ` +
-          `${ctx.settings.practice ? 'práctica' : 'normal'}`,
+        'Settings',
+        `volume ${Math.round(ctx.settings.volume * 100)}% · ` +
+          `${ctx.settings.reducedMotion ? 'reduced motion' : 'full motion'} · ` +
+          `${ctx.settings.practice ? 'practice' : 'normal'}`,
       ],
     ]
 
@@ -71,7 +71,7 @@ export function createPlaceholder(gameId: GameId) {
     const clock = document.createElement('div')
     clock.className = 'stub__spec'
     const clockLabel = document.createElement('b')
-    clockLabel.textContent = 'Reloj'
+    clockLabel.textContent = 'Clock'
     const clockValue = document.createElement('span')
     clock.append(clockLabel, clockValue)
     specs.append(clock)
@@ -81,7 +81,7 @@ export function createPlaceholder(gameId: GameId) {
     finish.type = 'button'
     finish.className = 'btn btn--primary'
     finish.style.marginTop = '8px'
-    finish.textContent = 'Simular partida completada'
+    finish.textContent = 'Simulate a completed game'
     finish.addEventListener('click', () => {
       ctx.onComplete({
         gameId,
@@ -99,8 +99,8 @@ export function createPlaceholder(gameId: GameId) {
     note.style.fontSize = '12px'
     note.style.color = 'var(--text-faint)'
     note.textContent =
-      'El botón de arriba es una prueba de integración: sella el recuerdo en el ' +
-      'pasaporte con puntuación 0 para comprobar el circuito completo.'
+      'The button above is an integration test: it completes the level with a ' +
+      'score of 0 to check the whole flow.'
 
     root.append(ring, title, text, specs, finish, note)
     container.append(root)
@@ -114,7 +114,7 @@ export function createPlaceholder(gameId: GameId) {
       const s = Math.floor(elapsedMs / 1000)
       clockValue.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(
         s % 60,
-      ).padStart(2, '0')}${paused ? ' (en pausa)' : ''}`
+      ).padStart(2, '0')}${paused ? ' (paused)' : ''}`
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
