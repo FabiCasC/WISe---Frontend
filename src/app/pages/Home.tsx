@@ -11,7 +11,8 @@ import {
   totalLevelsCompleted,
 } from '../../shared/progress'
 import type { GameId, LevelId, Progress } from '../../shared/types'
-import { IconInfo, IconLock, IconPlay, IconTeacher, IconVR } from '../components/Art'
+import { IconInfo, IconLock } from '../components/Art'
+import { Barcode, ChromeShape, ChromeWord, Crosshair, type ChromeKind } from '../components/Chrome'
 import JoinBox from '../components/JoinBox'
 import SiteFooter from '../components/SiteFooter'
 
@@ -22,38 +23,79 @@ interface Props {
   onDossier: (gameId: GameId) => void
 }
 
+/** Mission codes shown as poster labels on each game card. */
+const CODE: Record<GameId, string> = {
+  opportunity: 'MER-B · 2004',
+  'lunar-signals': 'APOLLO 15 · 1971',
+  spirit: 'MER-A · 2004',
+}
+
+const SOON_SHAPE: ChromeKind[] = ['blob', 'star', 'drop', 'ring']
+
+const pad = (n: number) => String(n).padStart(2, '0')
+
 /**
- * Portada: arriba, una banda para unirse a la clase con código (al estilo de
- * los portales de clase); abajo, la rejilla de juegos de un clic (al estilo
- * de los portales de juegos). Diseño plano con colores de la NASA.
+ * Home: a Y2K "liquid chrome" poster. The hero joins a class with a code
+ * (class-portal style); below, a one-click grid of games (games-portal
+ * style). All readable text sits on solid paper or panels.
  */
 export default function Home({ progress, membership, onPlay, onDossier }: Props) {
   const level = getGeneralLevel(progress)
+  const next = nextGeneralLevel(progress)
 
   return (
     <>
-      {/* ======================================================== UNIRSE */}
-      <section className="band" aria-labelledby="band-title">
-        <div className="band__inner">
-          <h1 className="band__title" id="band-title">
-            Aprende jugando con misiones reales de la NASA
-          </h1>
-          <p className="band__lede">
-            Juegos cortos para explorar la Luna y Marte como lo hicieron los rovers y los
-            astronautas. Sin cuenta y gratis.
-          </p>
+      {/* ============================================================ HERO */}
+      <section className="poster" aria-labelledby="hero-title">
+        <div className="poster__frame">
+          <span className="poster__mark poster__mark--tl">
+            <Crosshair size={26} />
+          </span>
+          <span className="poster__side poster__side--l" aria-hidden="true">
+            14112026
+          </span>
+          <span className="poster__side poster__side--r" aria-hidden="true">
+            14112026
+          </span>
 
-          <div className="joincard">
+          <div className="poster__sky" aria-hidden="true">
+            <span className="poster__cloud poster__cloud--1" />
+            <span className="poster__cloud poster__cloud--2" />
+            <span className="poster__cloud poster__cloud--3" />
+          </div>
+
+          <ChromeShape kind="ring" size={170} className="float float--ring" />
+          <ChromeShape kind="star" size={96} className="float float--star" />
+          <ChromeShape kind="drop" size={110} className="float float--drop" />
+          <ChromeShape kind="blob" size={150} className="float float--blob" />
+          <span className="poster__spark poster__spark--l" aria-hidden="true">
+            ✦
+          </span>
+          <span className="poster__spark poster__spark--r" aria-hidden="true">
+            ✦
+          </span>
+
+          <h1 className="poster__title" id="hero-title">
+            <span className="poster__serif" aria-hidden="true">
+              Learn by
+            </span>
+            <span className="poster__script">
+              <ChromeWord text="playing" />
+            </span>
+            <span className="sr-only">Learn by playing with real NASA missions</span>
+          </h1>
+
+          <div className="poster__join">
             {membership ? (
-              <div className="joincard__member">
-                <p className="joincard__label">Estás en la clase {membership.code}</p>
-                <p className="joincard__nick">{membership.nickname}</p>
-                <div className="joincard__row">
-                  <a className="btn btn--primary btn--lg" href="#juegos">
-                    <IconPlay /> Seguir jugando
+              <div className="joined">
+                <p className="label">You are in class {membership.code}</p>
+                <p className="joined__nick">{membership.nickname}</p>
+                <div className="joined__row">
+                  <a className="pill pill--solid" href="#games">
+                    Keep playing ↗
                   </a>
-                  <a className="btn btn--quiet" href="#/clase">
-                    Ver mi clase
+                  <a className="pill" href="#/class">
+                    My class
                   </a>
                 </div>
               </div>
@@ -61,68 +103,96 @@ export default function Home({ progress, membership, onPlay, onDossier }: Props)
               <JoinBox />
             )}
           </div>
-
-          <div className="band__links">
-            <a className="band__link" href="#juegos">
-              <IconPlay size={18} /> Jugar solo
-            </a>
-            <a className="band__link" href="#/profesor">
-              <IconTeacher size={18} /> Soy profesor: crear una clase
-            </a>
-          </div>
         </div>
+
+        <p className="poster__caption">Orbita Arcade — real NASA missions</p>
+
+        <div className="poster__meta">
+          <Crosshair />
+          <span className="pill pill--tiny">14112026</span>
+          <span className="reg" aria-hidden="true">
+            R
+          </span>
+          <Barcode seed="orbita" />
+          <span className="label">WISE · Space Apps</span>
+          <Barcode seed="arcade" />
+          <span className="reg" aria-hidden="true">
+            R
+          </span>
+          <span className="pill pill--tiny">LVL {pad(level)}</span>
+          <Crosshair />
+        </div>
+
+        <p className="poster__lede">
+          Short games about the machines humanity left on the Moon and Mars. You win by using
+          real science — the instruments, the energy and the light — just like the missions
+          did. No account, no quiz, no names.{' '}
+          <a href="#games">Play solo</a> · <a href="#/teacher">I am a teacher</a>
+        </p>
       </section>
 
-      {/* ========================================================= NIVEL */}
-      <div className="wrap">
-        <section className="levelbar" id="nivel" aria-labelledby="levelbar-title">
-          <h2 className="levelbar__badge" id="levelbar-title">
-            Nivel {level}
-            <span className="levelbar__of"> de {MAX_GENERAL_LEVEL}</span>
+      {/* =========================================================== LEVEL */}
+      <section className="wrap levelrow" id="level" aria-labelledby="level-title">
+        <div className="levelrow__head">
+          <span className="label">General level</span>
+          <h2 className="levelrow__num" id="level-title">
+            {pad(level)}
+            <span className="levelrow__of">/{pad(MAX_GENERAL_LEVEL)}</span>
           </h2>
-          <ol className="levelbar__track" aria-hidden="true">
-            {GENERAL_LEVELS.map((l) => (
-              <li key={l.level} className={l.level <= level ? 'is-on' : ''} />
-            ))}
-          </ol>
-          <p className="levelbar__next">
-            {nextGeneralLevel(progress)
-              ? `Siguiente: ${nextGeneralLevel(progress)!.requirement.toLowerCase()}`
-              : '¡Completaste las tres misiones!'}
-            <span className="levelbar__count"> · {totalLevelsCompleted(progress)}/9 niveles</span>
-          </p>
-        </section>
-      </div>
+        </div>
+        <ol className="levelrow__track" aria-hidden="true">
+          {GENERAL_LEVELS.map((l) => (
+            <li key={l.level} className={l.level <= level ? 'is-on' : ''}>
+              <span>{pad(l.level)}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="levelrow__next">
+          {next ? `Next: ${next.requirement.toLowerCase()}` : 'All three missions complete.'}
+          <span className="levelrow__count"> · {totalLevelsCompleted(progress)}/9 levels</span>
+        </p>
+      </section>
 
-      {/* ========================================================= JUEGOS */}
-      <section className="wrap games" id="juegos" aria-labelledby="games-title">
-        <h2 className="games__title" id="games-title">
-          Juegos
-        </h2>
+      {/* =========================================================== GAMES */}
+      <section className="wrap games" id="games" aria-labelledby="games-title">
+        <div className="games__head">
+          <h2 className="games__title" id="games-title">
+            The games
+          </h2>
+          <span className="pill pill--tiny">N° {pad(MISSIONS.length)}</span>
+          <span className="games__rule" aria-hidden="true" />
+          <span className="label">One click to play</span>
+        </div>
 
         <ul className="games__grid">
           {MISSIONS.map((m) => (
             <li key={m.gameId}>
-              <GameTile mission={m} progress={progress} onPlay={onPlay} onDossier={onDossier} />
+              <GameCard mission={m} progress={progress} onPlay={onPlay} onDossier={onDossier} />
             </li>
           ))}
-          {UPCOMING.map((card) => {
+          {UPCOMING.map((card, i) => {
             const open = card.unlockAt !== null && level >= card.unlockAt
+            const status =
+              card.unlockAt === null
+                ? 'Coming soon'
+                : open
+                  ? 'Unlocked — coming soon'
+                  : `Unlocks at level ${card.unlockAt}`
             return (
               <li key={card.id}>
-                <article className={`gtile gtile--soon${card.icon === 'vr' ? ' gtile--vr' : ''}`}>
-                  <div className="gtile__img gtile__img--soon" aria-hidden="true">
-                    {card.icon === 'vr' ? <IconVR size={48} /> : <IconLock size={40} />}
+                <article className="mcard mcard--soon" aria-label={`${card.title}. ${status}`}>
+                  <div className="mcard__media mcard__media--soon" aria-hidden="true">
+                    <ChromeShape kind={SOON_SHAPE[i % SOON_SHAPE.length]} size={120} className="float float--card" />
+                    {card.unlockAt !== null && !open && (
+                      <span className="mcard__lock">
+                        <IconLock size={14} />
+                      </span>
+                    )}
                   </div>
-                  <div className="gtile__body">
-                    <h3 className="gtile__name">{card.title}</h3>
-                    <p className="gtile__meta">
-                      {card.unlockAt === null
-                        ? 'Próximamente'
-                        : open
-                          ? '¡Desbloqueado! Muy pronto'
-                          : `Se desbloquea en nivel ${card.unlockAt}`}
-                    </p>
+                  <div className="mcard__body">
+                    <p className="label">{card.icon === 'vr' ? 'VR' : `Level ${card.unlockAt}`}</p>
+                    <h3 className="mcard__title">{card.title}</h3>
+                    <p className="mcard__meta">{status}</p>
                   </div>
                 </article>
               </li>
@@ -131,7 +201,7 @@ export default function Home({ progress, membership, onPlay, onDossier }: Props)
         </ul>
 
         <p className="games__more">
-          ¿Quieres conocer más naves? <a href="#/arcade">Explora el archivo de equipos espaciales</a>
+          Want more spacecraft? <a href="#/arcade">Browse the archive ↗</a>
         </p>
       </section>
 
@@ -140,8 +210,7 @@ export default function Home({ progress, membership, onPlay, onDossier }: Props)
   )
 }
 
-/** Ficha de juego: imagen grande de un clic, nombre y niveles debajo. */
-function GameTile({
+function GameCard({
   mission,
   progress,
   onPlay,
@@ -156,51 +225,52 @@ function GameTile({
   const next = nextPlayableLevel(progress, mission.gameId)
 
   return (
-    <article className="gtile">
+    <article className="mcard">
       <button
         type="button"
-        className="gtile__img"
+        className="mcard__media"
         onClick={() => onPlay(mission, next)}
-        aria-label={`Jugar ${mission.title}, nivel ${next}`}
+        aria-label={`Play ${mission.title}, level ${next}`}
       >
         <img src={mission.art} alt="" loading="lazy" decoding="async" />
-        <span className="gtile__tag">{mission.bodyLabel}</span>
-        <span className="gtile__play" aria-hidden="true">
-          <IconPlay size={22} /> Jugar
+        <span className="mcard__code">{CODE[mission.gameId]}</span>
+        <span className="mcard__play" aria-hidden="true">
+          Play ↗
         </span>
       </button>
 
-      <div className="gtile__body">
-        <h3 className="gtile__name">{mission.title}</h3>
-        <div className="gtile__row">
-          <div className="gtile__levels" role="group" aria-label={`Niveles de ${mission.title}`}>
+      <div className="mcard__body">
+        <p className="label">{mission.bodyLabel}</p>
+        <h3 className="mcard__title">{mission.title}</h3>
+        <div className="mcard__row">
+          <div className="mcard__levels" role="group" aria-label={`${mission.title} levels`}>
             {mission.levels.map((l) => {
               const isDone = done.includes(l.id)
               const open = isLevelUnlocked(progress, mission.gameId, l.id)
-              const state = isDone ? 'completado' : open ? 'disponible' : 'bloqueado'
+              const state = isDone ? 'completed' : open ? 'available' : 'locked'
               return (
                 <button
                   key={l.id}
                   type="button"
-                  className={`lv is-${state}`}
+                  className={`lvl is-${state}`}
                   disabled={!open}
                   onClick={() => onPlay(mission, l.id)}
-                  aria-label={`Nivel ${l.id}, ${l.name}: ${state}`}
+                  aria-label={`Level ${l.id}, ${l.name}: ${state}`}
                   title={`${l.id}. ${l.name}`}
                 >
-                  {open ? l.id : <IconLock size={12} />}
+                  {open ? pad(l.id) : <IconLock size={12} />}
                 </button>
               )
             })}
           </div>
           <button
             type="button"
-            className="gtile__info"
+            className="mcard__info"
             onClick={() => onDossier(mission.gameId)}
-            aria-label={`Ficha científica de ${mission.title}`}
-            title="Ficha científica"
+            aria-label={`Science card for ${mission.title}`}
+            title="Science card"
           >
-            <IconInfo size={18} />
+            <IconInfo size={17} />
           </button>
         </div>
       </div>

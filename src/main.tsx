@@ -4,7 +4,7 @@ import App from './app/App'
 import './styles/tokens.css'
 import './styles/app.css'
 import './styles/home.css'
-import './styles/nasa.css'
+import './styles/cosmic.css'
 
 const host = document.getElementById('root')
 

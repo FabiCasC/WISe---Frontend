@@ -1,147 +1,149 @@
 /* =========================================================================
-   ÓRBITA ARCADE · TOKENS
+   ORBITA ARCADE · TOKENS — "Liquid chrome" (Y2K)
    -------------------------------------------------------------------------
-   Paleta inspirada en los colores de la NASA (sin usar sus logotipos):
-     Azul NASA   #0B3D91  barra superior, banda de inicio, botón secundario
-     Rojo        #D42A16  botón principal y acentos (rojo NASA oscurecido
-                          para que el texto blanco cumpla AA: 5.1:1)
-     Amarillo    #FFC21A  nivel general, insignias, "nuevo"
-     Azul cielo  #1F6FEB  enlaces y foco
-     Tinta       #0B1B3F  texto sobre fondo claro
-   Diseño plano: sin degradados, brillos ni efectos de vidrio.
-
-   Modo claro por defecto (fondo blanco azulado). Con prefers-color-scheme:
-   dark, el fondo pasa a negro espacial y los acentos se aclaran.
-   Las variables *-rgb son tripletas para transparencias:
-     rgb(var(--accent-rgb) / 0.3)
+   Paper   #EEF0EE  page background (silver-white poster paper)
+   Ink     #121417  text, primary button (black pill)
+   Sky     #C9D8E3 → #F1F5F7  hero panel
+   Chrome  white → steel → dark band → white (see --chrome)
+   Accent  #1D4F86  links and focus
+   Flat UI, thin hairlines, pill shapes. Chrome is decoration only:
+   every readable text sits on paper or a solid surface (AA).
+   Dark mode: night paper #0E1116, light ink, same chrome.
+   *-rgb variables are triplets for alpha: rgb(var(--accent-rgb) / 0.3)
    ========================================================================= */
 
 :root {
   color-scheme: light;
 
-  /* --- Paleta base (no cambia con el tema) ---------------------------- */
-  --c-nasa: #0b3d91;
-  --c-nasa-deep: #082c6c;
-  --c-red: #d42a16;
-  --c-red-bright: #fc3d21;
-  --c-yellow: #ffc21a;
-  --c-sky: #1f6feb;
-  --c-ink: #0b1b3f;
-  --c-space: #0a0f24;
-  --c-white: #ffffff;
+  /* --- Base palette ---------------------------------------------------- */
+  --c-paper: #eef0ee;
+  --c-ink: #121417;
+  --c-sky-top: #c9d8e3;
+  --c-sky-bottom: #f1f5f7;
+  --c-steel: #6e7b8b;
+  --c-accent: #1d4f86;
+  --chrome: linear-gradient(180deg, #ffffff 0%, #e4ebf1 26%, #9aa7b6 44%, #3f4a57 50%, #c9d3dc 56%, #ffffff 78%, #dfe6ec 100%);
 
-  /* Nombres anteriores, mapeados a la paleta nueva (los usan los juegos). */
-  --c-navy: var(--c-nasa);
-  --c-dusk: var(--c-sky);
-  --c-aqua: var(--c-sky);
-  --c-thistle: var(--c-yellow);
-  --c-alice: #f3f6fb;
+  /* Legacy names still used by the games and older styles. */
+  --c-navy: #121417;
+  --c-nasa: #121417;
+  --c-nasa-deep: #000000;
+  --c-red: #121417;
+  --c-yellow: #dfe6ec;
+  --c-sky: #1d4f86;
+  --c-space: #0e1116;
+  --c-dusk: #6e7b8b;
+  --c-aqua: #1d4f86;
+  --c-thistle: #dfe6ec;
+  --c-alice: #eef0ee;
 
-  --ink-rgb: 10 15 36;
-  --thistle-rgb: 255 194 26;
-  --dusk-rgb: 31 111 235;
+  --ink-rgb: 14 17 22;
+  --thistle-rgb: 223 230 236;
+  --dusk-rgb: 110 123 139;
 
-  /* --- Superficies ---------------------------------------------------- */
-  --bg-rgb: 243 246 251;
-  --surface-rgb: 255 255 255;
-  --space-900: #e8eef8;
-  --space-800: #f3f6fb;
-  --space-700: #f3f6fb;
-  --bg: #f3f6fb;
-  --panel: #ffffff;
-  --panel-soft: #ffffff;
-  --panel-glass: #ffffff;
-  --hairline: #c9d3e6;
-  --hairline-soft: #dfe5f0;
+  /* --- Surfaces -------------------------------------------------------- */
+  --bg-rgb: 238 240 238;
+  --surface-rgb: 247 248 247;
+  --space-900: #e6e9e6;
+  --space-800: #eef0ee;
+  --space-700: #eef0ee;
+  --bg: #eef0ee;
+  --panel: #f7f8f7;
+  --panel-soft: #f7f8f7;
+  --panel-glass: #f7f8f7;
+  --hairline: #b9c0c6;
+  --hairline-soft: #d6dbdf;
 
-  /* --- Texto ---------------------------------------------------------- */
-  --fg-rgb: 11 27 63;
-  --text: #0b1b3f;
-  --text-dim: #33415f;
-  --text-faint: #4a5878;
+  /* --- Text ------------------------------------------------------------ */
+  --fg-rgb: 18 20 23;
+  --text: #121417;
+  --text-dim: #343a42;
+  --text-faint: #4f5866;
 
-  /* --- Acentos -------------------------------------------------------- */
-  --accent-rgb: 212 42 22;
-  --action: var(--c-red);
-  --action-hi: var(--c-red);
-  --action-deep: #b22312;
+  /* --- Accents --------------------------------------------------------- */
+  --accent-rgb: 29 79 134;
+  --action: #121417;
+  --action-hi: #121417;
+  --action-deep: #000000;
   --on-accent: #ffffff;
-  --secondary: var(--c-nasa);
-  --on-secondary: #ffffff;
-  --badge: var(--c-yellow);
-  --on-badge: var(--c-ink);
-  --link: #1a5fd0;
+  --secondary: #dfe6ec;
+  --on-secondary: #121417;
+  --badge: #dfe6ec;
+  --on-badge: #121417;
+  --link: #1d4f86;
 
-  /* Identidad de cada misión y estados. */
   --moon: #c8ceda;
   --mars: #e68a68;
   --amber: #f2a65a;
-  --violet: var(--c-yellow);
-  --ok: #1e8e4e;
-  --warn: #b7791f;
+  --violet: #dfe6ec;
+  --ok: #1e7a4a;
+  --warn: #9a6a12;
 
-  /* --- Tipografía ------------------------------------------------------ */
-  --font-display: 'Nunito', 'Trebuchet MS', system-ui, sans-serif;
-  --font-ui: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* --- Type ------------------------------------------------------------ */
+  --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+  --font-script: 'Yellowtail', 'Brush Script MT', cursive;
+  --font-display: 'Instrument Serif', 'Times New Roman', serif;
+  --font-ui: 'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif;
 
-  /* --- Geometría -------------------------------------------------------- */
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
+  /* --- Geometry -------------------------------------------------------- */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
   --r-xl: 22px;
   --tap: 44px;
 
-  /* --- Sombras (sin brillos) -------------------------------------------- */
   --glow-action: none;
   --glow-badge: none;
-  --shadow-card: 0 2px 0 #d5dcea, 0 6px 16px -10px rgb(11 27 63 / 0.35);
-  --shadow-modal: 0 30px 80px -30px rgb(11 27 63 / 0.6);
+  --shadow-card: none;
+  --shadow-modal: 0 30px 80px -30px rgb(14 17 22 / 0.45);
 
-  /* --- Movimiento -------------------------------------------------------- */
+  /* --- Motion ---------------------------------------------------------- */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast: 140ms;
   --dur: 260ms;
-  --dur-slow: 480ms;
-
-  /* Factor global de movimiento. El toggle de accesibilidad lo pone a 0. */
+  --dur-slow: 520ms;
   --motion: 1;
 
   --maxw: 1200px;
 }
 
-/* --- Modo oscuro: negro espacial, acentos más claros ---------------------- */
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
 
-    --c-alice: #0a0f24;
-    --bg-rgb: 10 15 36;
-    --surface-rgb: 17 24 51;
-    --space-900: #070b1b;
-    --space-800: #0a0f24;
-    --space-700: #0a0f24;
-    --bg: #0a0f24;
-    --panel: #111833;
-    --panel-soft: #111833;
-    --panel-glass: #111833;
-    --hairline: #2a3766;
-    --hairline-soft: #1f2a52;
+    --c-paper: #0e1116;
+    --c-sky-top: #1b2533;
+    --c-sky-bottom: #0e1116;
+    --c-alice: #0e1116;
 
-    --fg-rgb: 230 236 248;
-    --text: #e6ecf8;
-    --text-dim: #c5d0e6;
-    --text-faint: #a7b4cf;
+    --bg-rgb: 14 17 22;
+    --surface-rgb: 22 26 33;
+    --space-900: #0a0c10;
+    --space-800: #0e1116;
+    --space-700: #0e1116;
+    --bg: #0e1116;
+    --panel: #161a21;
+    --panel-soft: #161a21;
+    --panel-glass: #161a21;
+    --hairline: #3a434f;
+    --hairline-soft: #2a313b;
 
-    --accent-rgb: 255 106 82;
-    --action: #ff6a52;
-    --action-hi: #ff6a52;
-    --action-deep: #ff8670;
-    --on-accent: #0a0f24;
+    --fg-rgb: 233 237 242;
+    --text: #e9edf2;
+    --text-dim: #c9d0d9;
+    --text-faint: #a9b3bf;
+
+    --accent-rgb: 138 180 255;
+    --action: #e9edf2;
+    --action-hi: #e9edf2;
+    --action-deep: #ffffff;
+    --on-accent: #0e1116;
+    --secondary: #2a313b;
+    --on-secondary: #e9edf2;
+    --badge: #2a313b;
+    --on-badge: #e9edf2;
     --link: #8ab4ff;
-
-    --shadow-card: 0 2px 0 #050816, 0 8px 20px -12px rgb(0 0 0 / 0.8);
-    --shadow-modal: 0 30px 80px -30px rgb(0 0 0 / 0.9);
   }
 }
 

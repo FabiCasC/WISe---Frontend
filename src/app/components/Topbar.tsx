@@ -2,7 +2,7 @@ import { BRAND } from '../../content/brand'
 import type { Membership } from '../../shared/classroom'
 import { MAX_GENERAL_LEVEL, getGeneralLevel } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
-import { BrandGlyph, IconGear, IconStar } from './Art'
+import { IconGear } from './Art'
 
 interface Props {
   isHome: boolean
@@ -11,62 +11,61 @@ interface Props {
   onSettings: () => void
 }
 
+const pad = (n: number) => String(n).padStart(2, '0')
+
+/** Poster-style top row: tiny uppercase labels, outlined pills and arrows. */
 export default function Topbar({ isHome, progress, membership, onSettings }: Props) {
   const level = getGeneralLevel(progress)
-  // En la portada las anclas son locales; desde otra página la ruta lleva el id.
+  // On the home page anchors are local; elsewhere the route carries the id.
   const to = (id: string) => (isHome ? `#${id}` : `#/${id}`)
 
   return (
     <header className="topbar">
       <div className="topbar__inner">
-        <a className="brandmark" href="#/" aria-label={`${BRAND.full}, inicio`}>
-          <BrandGlyph />
-          <span className="brandmark__text">
-            <span className="brandmark__name">{BRAND.wordmark}</span>
-            <span className="brandmark__sub">{BRAND.wordmarkSub}</span>
+        <a className="brandmark" href="#/" aria-label={`${BRAND.full}, home`}>
+          <span className="brandmark__name">{BRAND.full}</span>
+          <span className="pill pill--tiny brandmark__tag" aria-hidden="true">
+            WISE26
+          </span>
+          <span className="brandmark__arrow" aria-hidden="true">
+            ↗
           </span>
         </a>
 
         <span className="topbar__spacer" />
 
-        <nav className="topbar__nav" aria-label="Secciones">
-          <a className="navlink" href={to('juegos')}>
-            Juegos
+        <nav className="topbar__nav" aria-label="Sections">
+          <a className="navlink" href={to('games')}>
+            Games
           </a>
-          <a className="navlink" href="#/profesor">
-            Profesores
+          <a className="navlink" href="#/teacher">
+            Teachers
+          </a>
+          <a className="navlink" href="#/arcade">
+            Archive
           </a>
         </nav>
 
         {membership && (
           <a
-            className="classpill"
-            href="#/clase"
-            aria-label={`Clase ${membership.code}, tu apodo es ${membership.nickname}`}
+            className="pill classpill"
+            href="#/class"
+            aria-label={`Class ${membership.code}, your nickname is ${membership.nickname}`}
           >
             <span className="classpill__code">{membership.code}</span>
-            <span className="classpill__nick">{membership.nickname}</span>
+            <span>{membership.nickname}</span>
           </a>
         )}
 
         <a
-          className="levelpill"
-          href={to('nivel')}
-          aria-label={`Nivel general ${level} de ${MAX_GENERAL_LEVEL}`}
+          className="pill pill--solid levelpill"
+          href={to('level')}
+          aria-label={`General level ${level} of ${MAX_GENERAL_LEVEL}`}
         >
-          <IconStar size={15} />
-          <span>
-            Nivel <b>{level}</b>
-            <span className="levelpill__of">/{MAX_GENERAL_LEVEL}</span>
-          </span>
+          LVL {pad(level)}/{pad(MAX_GENERAL_LEVEL)}
         </a>
 
-        <button
-          type="button"
-          className="btn btn--quiet btn--icon"
-          onClick={onSettings}
-          aria-label="Ajustes"
-        >
+        <button type="button" className="iconbtn" onClick={onSettings} aria-label="Settings">
           <IconGear />
         </button>
       </div>
