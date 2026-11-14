@@ -10,3 +10,4 @@ dist-ssr
 
 # Cache de TypeScript
 *.tsbuildinfo
+health
