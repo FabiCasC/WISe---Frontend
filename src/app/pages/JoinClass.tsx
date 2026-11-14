@@ -70,7 +70,7 @@ export default function JoinClass({ code, membership, playerId, service, onJoine
               (code {membership.code}). Every level you complete reaches your teacher.
             </p>
             <div className="welcome__actions">
-              <a className="btn btn--primary btn--xl" href="#/games">
+              <a className="btn btn--primary btn--xl" href="#/arcade">
                 <IconPlay size={22} />
                 Start playing
               </a>

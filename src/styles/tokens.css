@@ -1,103 +1,100 @@
 /* =========================================================================
-   ORBITA ARCADE · TOKENS — "Liquid chrome" (Y2K)
+   ORBITA ARCADE · TOKENS — "Interstellar"
    -------------------------------------------------------------------------
-   Paper   #EEF0EE  page background (silver-white poster paper)
-   Ink     #121417  text, primary button (black pill)
-   Sky     #C9D8E3 → #F1F5F7  hero panel
-   Chrome  white → steel → dark band → white (see --chrome)
-   Accent  #1D4F86  links and focus
-   Flat UI, thin hairlines, pill shapes. Chrome is decoration only:
-   every readable text sits on paper or a solid surface (AA).
-   Dark mode: night paper #0E1116, light ink, same chrome.
+   Deep space black, warm starlight text and the gold of a black hole's
+   accretion disk as the one accent (buttons, rank, highlights). Flat UI:
+   no glass, no glows on text. The hero is always dark (it is the sky);
+   the rest follows prefers-color-scheme, dark by default.
+     Space   #05060A    Panel #0D1017    Starlight #ECE6D8
+     Gold    #F3B54A (text on it: #120C04, 10.9:1)
    *-rgb variables are triplets for alpha: rgb(var(--accent-rgb) / 0.3)
    ========================================================================= */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* --- Base palette ---------------------------------------------------- */
-  --c-paper: #eef0ee;
-  --c-ink: #121417;
-  --c-sky-top: #c9d8e3;
-  --c-sky-bottom: #f1f5f7;
-  --c-steel: #6e7b8b;
-  --c-accent: #1d4f86;
-  --chrome: linear-gradient(180deg, #ffffff 0%, #e4ebf1 26%, #9aa7b6 44%, #3f4a57 50%, #c9d3dc 56%, #ffffff 78%, #dfe6ec 100%);
+  /* --- Fixed palette (same in both themes) ----------------------------- */
+  --c-space: #05060a;
+  --c-void: #000000;
+  --c-gold: #f3b54a;
+  --c-gold-deep: #c98a1c;
+  --c-amber: #ff8f3c;
+  --c-ink: #120c04;
+  --c-starlight: #ece6d8;
 
   /* Legacy names still used by the games and older styles. */
-  --c-navy: #121417;
-  --c-nasa: #121417;
+  --c-navy: #05060a;
+  --c-nasa: #05060a;
   --c-nasa-deep: #000000;
-  --c-red: #121417;
-  --c-yellow: #dfe6ec;
-  --c-sky: #1d4f86;
-  --c-space: #0e1116;
-  --c-dusk: #6e7b8b;
-  --c-aqua: #1d4f86;
-  --c-thistle: #dfe6ec;
-  --c-alice: #eef0ee;
+  --c-red: #f3b54a;
+  --c-yellow: #f3b54a;
+  --c-sky: #ffc96b;
+  --c-dusk: #9f998a;
+  --c-aqua: #ffc96b;
+  --c-thistle: #f3b54a;
+  --c-alice: #05060a;
 
-  --ink-rgb: 14 17 22;
-  --thistle-rgb: 223 230 236;
-  --dusk-rgb: 110 123 139;
+  --ink-rgb: 5 6 10;
+  --thistle-rgb: 243 181 74;
+  --dusk-rgb: 159 153 138;
 
-  /* --- Surfaces -------------------------------------------------------- */
-  --bg-rgb: 238 240 238;
-  --surface-rgb: 247 248 247;
-  --space-900: #e6e9e6;
-  --space-800: #eef0ee;
-  --space-700: #eef0ee;
-  --bg: #eef0ee;
-  --panel: #f7f8f7;
-  --panel-soft: #f7f8f7;
-  --panel-glass: #f7f8f7;
-  --hairline: #b9c0c6;
-  --hairline-soft: #d6dbdf;
+  /* --- Surfaces --------------------------------------------------------- */
+  --bg-rgb: 5 6 10;
+  --surface-rgb: 13 16 23;
+  --space-900: #000000;
+  --space-800: #05060a;
+  --space-700: #05060a;
+  --bg: #05060a;
+  --panel: #0d1017;
+  --panel-2: #141925;
+  --panel-soft: #0d1017;
+  --panel-glass: #0d1017;
+  --hairline: #2a3142;
+  --hairline-soft: #1a2030;
 
-  /* --- Text ------------------------------------------------------------ */
-  --fg-rgb: 18 20 23;
-  --text: #121417;
-  --text-dim: #343a42;
-  --text-faint: #4f5866;
+  /* --- Text ------------------------------------------------------------- */
+  --fg-rgb: 236 230 216;
+  --text: #ece6d8;
+  --text-dim: #c4bdad;
+  --text-faint: #a39d8e;
 
-  /* --- Accents --------------------------------------------------------- */
-  --accent-rgb: 29 79 134;
-  --action: #121417;
-  --action-hi: #121417;
-  --action-deep: #000000;
-  --on-accent: #ffffff;
-  --secondary: #dfe6ec;
-  --on-secondary: #121417;
-  --badge: #dfe6ec;
-  --on-badge: #121417;
-  --link: #1d4f86;
+  /* --- Accents ---------------------------------------------------------- */
+  --accent-rgb: 243 181 74;
+  --action: #f3b54a;
+  --action-hi: #f3b54a;
+  --action-deep: #c98a1c;
+  --on-accent: #120c04;
+  --secondary: #141925;
+  --on-secondary: #ece6d8;
+  --badge: #f3b54a;
+  --on-badge: #120c04;
+  --link: #ffc96b;
 
   --moon: #c8ceda;
   --mars: #e68a68;
-  --amber: #f2a65a;
-  --violet: #dfe6ec;
-  --ok: #1e7a4a;
-  --warn: #9a6a12;
+  --amber: #ff8f3c;
+  --violet: #f3b54a;
+  --ok: #7fd6a3;
+  --warn: #ffb648;
 
-  /* --- Type ------------------------------------------------------------ */
-  --font-serif: 'Instrument Serif', 'Times New Roman', serif;
-  --font-script: 'Yellowtail', 'Brush Script MT', cursive;
-  --font-display: 'Instrument Serif', 'Times New Roman', serif;
-  --font-ui: 'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  /* --- Type -------------------------------------------------------------- */
+  --font-display: 'Nunito', 'Trebuchet MS', system-ui, sans-serif;
+  --font-ui: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
 
-  /* --- Geometry -------------------------------------------------------- */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 14px;
+  /* --- Geometry ---------------------------------------------------------- */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
   --r-xl: 22px;
   --tap: 44px;
 
   --glow-action: none;
   --glow-badge: none;
-  --shadow-card: none;
-  --shadow-modal: 0 30px 80px -30px rgb(14 17 22 / 0.45);
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 14px 30px -20px rgb(0 0 0 / 0.9);
+  --shadow-modal: 0 30px 80px -30px rgb(0 0 0 / 0.9);
 
-  /* --- Motion ---------------------------------------------------------- */
+  /* --- Motion ------------------------------------------------------------ */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast: 140ms;
@@ -105,45 +102,33 @@
   --dur-slow: 520ms;
   --motion: 1;
 
-  --maxw: 1200px;
+  --maxw: 1240px;
 }
 
-@media (prefers-color-scheme: dark) {
+/* --- Light theme: cool gray paper, the hero stays a dark sky ------------- */
+@media (prefers-color-scheme: light) {
   :root {
-    color-scheme: dark;
-
-    --c-paper: #0e1116;
-    --c-sky-top: #1b2533;
-    --c-sky-bottom: #0e1116;
-    --c-alice: #0e1116;
-
-    --bg-rgb: 14 17 22;
-    --surface-rgb: 22 26 33;
-    --space-900: #0a0c10;
-    --space-800: #0e1116;
-    --space-700: #0e1116;
-    --bg: #0e1116;
-    --panel: #161a21;
-    --panel-soft: #161a21;
-    --panel-glass: #161a21;
-    --hairline: #3a434f;
-    --hairline-soft: #2a313b;
-
-    --fg-rgb: 233 237 242;
-    --text: #e9edf2;
-    --text-dim: #c9d0d9;
-    --text-faint: #a9b3bf;
-
-    --accent-rgb: 138 180 255;
-    --action: #e9edf2;
-    --action-hi: #e9edf2;
-    --action-deep: #ffffff;
-    --on-accent: #0e1116;
-    --secondary: #2a313b;
-    --on-secondary: #e9edf2;
-    --badge: #2a313b;
-    --on-badge: #e9edf2;
-    --link: #8ab4ff;
+    color-scheme: light;
+    --bg-rgb: 237 240 245;
+    --surface-rgb: 255 255 255;
+    --space-800: #edf0f5;
+    --space-700: #edf0f5;
+    --bg: #edf0f5;
+    --panel: #ffffff;
+    --panel-2: #f3f5f9;
+    --panel-soft: #ffffff;
+    --panel-glass: #ffffff;
+    --hairline: #c8cfdb;
+    --hairline-soft: #dfe4ec;
+    --fg-rgb: 12 16 24;
+    --text: #0c1018;
+    --text-dim: #2e3644;
+    --text-faint: #4b5566;
+    --secondary: #e3e8f0;
+    --on-secondary: #0c1018;
+    --link: #8a5300;
+    --shadow-card: 0 1px 0 #d7dde7, 0 10px 24px -18px rgb(12 16 24 / 0.45);
+    --shadow-modal: 0 30px 80px -30px rgb(12 16 24 / 0.5);
   }
 }
 

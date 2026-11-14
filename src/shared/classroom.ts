@@ -12,23 +12,28 @@
  * localStorage de este navegador: sirve para una demo en un solo equipo.
  * El cliente de API implementará la misma interfaz `ClassService`.
  */
-import { GAME_IDS, getGeneralLevel, totalLevelsCompleted, totalScore } from './progress'
-import type { GameResult, Progress } from './types'
+import { gamesPlayed, isLearned, learnedConcepts, totalLevelsCompleted, totalScore } from './progress'
+import type { ConceptStat, GameResult, Progress } from './types'
 
 // ---------------------------------------------------------------------------
 // Tipos
 // ---------------------------------------------------------------------------
 
 export interface StudentStats {
-  generalLevel: number
   totalScore: number
-  /** Juegos con sus 3 niveles completados. */
-  gamesCompleted: number
+  /** Juegos con al menos un nivel completado. */
+  gamesPlayed: number
   levelsCompleted: number
+  /** Conceptos aprendidos (más aciertos que errores). */
+  conceptsLearned: number
   /** Partidas ganadas sin ninguna mala decisión. */
   firstTryCorrect: number
   /** Partidas terminadas (ganadas o perdidas). */
   attempts: number
+  /** Niveles completados por juego: { 'opportunity': [1, 2] }. */
+  games: Record<string, number[]>
+  /** Aciertos y errores por concepto. */
+  concepts: Record<string, ConceptStat>
 }
 
 export interface StudentEntry {
@@ -59,12 +64,23 @@ export interface DashboardRow extends StudentStats {
   nickname: string
 }
 
+/** Un concepto visto por la clase: cuántos alumnos lo encontraron y cuántos lo aprendieron. */
+export interface ClassConcept {
+  id: string
+  seenBy: number
+  learnedBy: number
+  /** 0..100 */
+  percent: number
+}
+
 export interface Dashboard {
   code: string
   name: string
   grade: string
   rows: DashboardRow[]
-  average: { generalLevel: number; totalScore: number } | null
+  average: { conceptsLearned: number; totalScore: number } | null
+  /** Conceptos de la clase, del más difícil al más fácil. */
+  concepts: ClassConcept[]
 }
 
 export type JoinError = 'codigo-invalido' | 'clase-no-existe'
@@ -132,7 +148,16 @@ export function normalizeClassCode(input: string): string | null {
 // ---------------------------------------------------------------------------
 
 export function emptyStats(): StudentStats {
-  return { generalLevel: 1, totalScore: 0, gamesCompleted: 0, levelsCompleted: 0, firstTryCorrect: 0, attempts: 0 }
+  return {
+    totalScore: 0,
+    gamesPlayed: 0,
+    levelsCompleted: 0,
+    conceptsLearned: 0,
+    firstTryCorrect: 0,
+    attempts: 0,
+    games: {},
+    concepts: {},
+  }
 }
 
 /**
@@ -142,28 +167,51 @@ export function emptyStats(): StudentStats {
  */
 export function statsAfterResult(prev: StudentStats, progress: Progress, result: GameResult): StudentStats {
   return {
-    generalLevel: getGeneralLevel(progress),
     totalScore: totalScore(progress),
-    gamesCompleted: GAME_IDS.filter((id) => new Set(progress.games[id].levelsCompleted).size >= 3).length,
+    gamesPlayed: gamesPlayed(progress),
     levelsCompleted: totalLevelsCompleted(progress),
+    conceptsLearned: learnedConcepts(progress).length,
+    games: Object.fromEntries(
+      Object.entries(progress.games)
+        .filter(([, g]) => g.levelsCompleted.length > 0)
+        .map(([id, g]) => [id, [...g.levelsCompleted]]),
+    ),
+    concepts: { ...progress.concepts },
     attempts: prev.attempts + 1,
     firstTryCorrect: prev.firstTryCorrect + (result.completed && result.firstAnswerCorrect ? 1 : 0),
   }
 }
 
 export function buildDashboard(room: ClassRoom): Dashboard {
+  // Old entries (v1) lack the new fields: fill them so the panel never breaks.
   const rows: DashboardRow[] = Object.values(room.students)
-    .map((s) => ({ nickname: s.nickname, ...s.stats }))
-    .sort((a, b) => b.generalLevel - a.generalLevel || b.totalScore - a.totalScore || a.nickname.localeCompare(b.nickname))
+    .map((s) => ({ nickname: s.nickname, ...emptyStats(), ...s.stats }))
+    .sort(
+      (a, b) =>
+        b.conceptsLearned - a.conceptsLearned || b.totalScore - a.totalScore || a.nickname.localeCompare(b.nickname),
+    )
 
   const average = rows.length
     ? {
-        generalLevel: Math.round((rows.reduce((s, r) => s + r.generalLevel, 0) / rows.length) * 10) / 10,
+        conceptsLearned: Math.round((rows.reduce((s, r) => s + r.conceptsLearned, 0) / rows.length) * 10) / 10,
         totalScore: Math.round(rows.reduce((s, r) => s + r.totalScore, 0) / rows.length),
       }
     : null
 
-  return { code: room.code, name: room.name, grade: room.grade, rows, average }
+  const seen = new Map<string, { seenBy: number; learnedBy: number }>()
+  for (const r of rows) {
+    for (const [id, stat] of Object.entries(r.concepts)) {
+      const c = seen.get(id) ?? { seenBy: 0, learnedBy: 0 }
+      c.seenBy += 1
+      if (isLearned(stat)) c.learnedBy += 1
+      seen.set(id, c)
+    }
+  }
+  const concepts: ClassConcept[] = [...seen.entries()]
+    .map(([id, c]) => ({ id, ...c, percent: Math.round((c.learnedBy / c.seenBy) * 100) }))
+    .sort((a, b) => a.percent - b.percent || b.seenBy - a.seenBy)
+
+  return { code: room.code, name: room.name, grade: room.grade, rows, average, concepts }
 }
 
 // ---------------------------------------------------------------------------

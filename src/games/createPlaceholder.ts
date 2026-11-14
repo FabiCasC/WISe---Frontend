@@ -1,3 +1,4 @@
+import { getGame } from '../content/games'
 import { getMission } from '../content/missions'
 import type { GameContext, GameController, GameId } from '../shared/types'
 
@@ -16,6 +17,7 @@ import type { GameContext, GameController, GameId } from '../shared/types'
 export function createPlaceholder(gameId: GameId) {
   return function mountGame(container: HTMLElement, ctx: GameContext): GameController {
     const mission = getMission(gameId)
+    const firstConcept = getGame(gameId)?.concepts[0]?.id
     const level = mission?.levels.find((l) => l.id === ctx.levelId)
     const startedAt = performance.now()
 
@@ -91,6 +93,8 @@ export function createPlaceholder(gameId: GameId) {
         completed: true,
         evidenceIds: mission?.evidence.map((e) => e.id) ?? [],
         firstAnswerCorrect: false,
+        // Integration test only: reports the game's first concept as learned.
+        decisions: firstConcept ? [{ concept: firstConcept, correct: true }] : [],
       })
     })
 

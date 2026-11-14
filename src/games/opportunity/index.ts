@@ -36,6 +36,11 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         completed: r.completado,
         evidenceIds: r.evidencias,
         firstAnswerCorrect: r.sinErroresDecision,
+        // Contrato v2: el nivel 2 enseña a pulir con el RAT antes de analizar.
+        decisions:
+          ctx.levelId === 2 && !ctx.settings.practice
+            ? [{ concept: 'pulir-antes-de-analizar', correct: r.sinErroresDecision }]
+            : [],
       }
       ctx.onComplete(result)
     },

@@ -30,7 +30,7 @@ export default function SiteFooter() {
           <div>
             <div className="footer__title">Scope</div>
             <ul className="footer__list">
-              <li>Three games · three levels each</li>
+              <li>Every game teaches concepts; levels vary by game</li>
               <li>Solo play and local co-op on PC</li>
               <li>Touch controls, pause and restart</li>
               <li>No accounts: in class, each student uses a nickname</li>

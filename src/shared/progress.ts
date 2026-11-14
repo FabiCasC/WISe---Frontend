@@ -1,6 +1,8 @@
 import {
   PROGRESS_SCHEMA_VERSION,
+  type ConceptStat,
   type GameId,
+  type GameProgress,
   type GameResult,
   type GameSettings,
   type LevelId,
@@ -16,55 +18,95 @@ export const DEFAULT_SETTINGS: GameSettings = {
   lang: 'en',
 }
 
-export const GAME_IDS: GameId[] = ['opportunity', 'lunar-signals', 'spirit']
+const EMPTY_GAME: GameProgress = { levelsCompleted: [], bestScore: {} }
 
 export function createEmptyProgress(): Progress {
   return {
     schemaVersion: PROGRESS_SCHEMA_VERSION,
-    games: {
-      opportunity: { levelsCompleted: [], bestScore: {} },
-      'lunar-signals': { levelsCompleted: [], bestScore: {} },
-      spirit: { levelsCompleted: [], bestScore: {} },
-    },
+    games: {},
     memories: [],
     evidence: [],
+    concepts: {},
     settings: { ...DEFAULT_SETTINGS },
     updatedAt: new Date().toISOString(),
   }
 }
 
+/** Progress of one game; a game never played reads as empty. */
+export function gameProgress(progress: Progress, gameId: GameId): GameProgress {
+  return progress.games[gameId] ?? EMPTY_GAME
+}
+
+const isObject = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v)
+
 /**
- * Lectura defensiva: si el JSON esta corrupto, el schema cambio o el
- * almacenamiento esta bloqueado (modo privado de Safari), se vuelve a un
- * progreso vacio. Nunca lanza: jugar debe seguir siendo posible.
+ * Builds a valid v2 progress from whatever was stored. v1 (three fixed
+ * games, no concepts) migrates keeping levels, scores, evidence and
+ * settings. Anything unreadable falls back to empty. Pure: easy to test.
+ */
+export function migrateProgress(raw: unknown): Progress {
+  const base = createEmptyProgress()
+  if (!isObject(raw)) return base
+  const version = raw.schemaVersion
+  if (version !== 1 && version !== PROGRESS_SCHEMA_VERSION) return base
+
+  const games: Record<GameId, GameProgress> = {}
+  if (isObject(raw.games)) {
+    for (const [id, g] of Object.entries(raw.games)) {
+      if (!isObject(g)) continue
+      const levels = Array.isArray(g.levelsCompleted)
+        ? [...new Set(g.levelsCompleted.filter((n): n is number => Number.isInteger(n) && n > 0))].sort((a, b) => a - b)
+        : []
+      const bestScore: Record<number, number> = {}
+      if (isObject(g.bestScore)) {
+        for (const [lvl, score] of Object.entries(g.bestScore)) {
+          if (typeof score === 'number' && Number.isFinite(score)) bestScore[Number(lvl)] = score
+        }
+      }
+      if (levels.length || Object.keys(bestScore).length) games[id] = { levelsCompleted: levels, bestScore }
+    }
+  }
+
+  const concepts: Record<string, ConceptStat> = {}
+  if (version === PROGRESS_SCHEMA_VERSION && isObject(raw.concepts)) {
+    for (const [id, c] of Object.entries(raw.concepts)) {
+      if (isObject(c) && typeof c.correct === 'number' && typeof c.wrong === 'number') {
+        concepts[id] = { correct: c.correct, wrong: c.wrong }
+      }
+    }
+  }
+
+  const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [])
+
+  return {
+    ...base,
+    games,
+    memories: strings(raw.memories),
+    evidence: strings(raw.evidence),
+    concepts,
+    settings: { ...base.settings, ...(isObject(raw.settings) ? (raw.settings as Partial<GameSettings>) : {}), lang: 'en' },
+  }
+}
+
+/**
+ * Defensive read: corrupt JSON, an unknown schema or blocked storage
+ * (Safari private mode) fall back to empty progress. It never throws:
+ * playing must always be possible.
  */
 export function loadProgress(): Progress {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return createEmptyProgress()
-    const parsed = JSON.parse(raw) as Partial<Progress>
-    if (parsed?.schemaVersion !== PROGRESS_SCHEMA_VERSION) return createEmptyProgress()
-    const base = createEmptyProgress()
-    return {
-      ...base,
-      ...parsed,
-      games: { ...base.games, ...(parsed.games ?? {}) },
-      memories: Array.isArray(parsed.memories) ? parsed.memories : [],
-      evidence: Array.isArray(parsed.evidence) ? parsed.evidence : [],
-      settings: { ...base.settings, ...(parsed.settings ?? {}) },
-    }
+    return raw ? migrateProgress(JSON.parse(raw)) : createEmptyProgress()
   } catch {
     return createEmptyProgress()
   }
 }
 
-/** Un guardado fallido jamas debe impedir jugar: devuelve false y sigue. */
+/** A failed save must never stop the game: it returns false and moves on. */
 export function saveProgress(progress: Progress): boolean {
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ...progress, updatedAt: new Date().toISOString() }),
-    )
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...progress, updatedAt: new Date().toISOString() }))
     return true
   } catch {
     return false
@@ -75,18 +117,18 @@ export function resetProgress(): Progress {
   try {
     localStorage.removeItem(STORAGE_KEY)
   } catch {
-    /* almacenamiento bloqueado: seguimos en memoria */
+    /* blocked storage: keep going in memory */
   }
   return createEmptyProgress()
 }
 
-/** Aplica un GameResult al progreso. Funcion pura: facil de probar con Vitest. */
+/** Applies a GameResult. Pure function: easy to test with Vitest. */
 export function applyResult(progress: Progress, result: GameResult): Progress {
-  const game = progress.games[result.gameId]
-  if (!game) return progress
+  if (typeof result.gameId !== 'string' || !result.gameId) return progress
+  const game = gameProgress(progress, result.gameId)
 
-  const levelsCompleted: LevelId[] = result.completed
-    ? Array.from(new Set([...game.levelsCompleted, result.levelId])).sort() as LevelId[]
+  const levelsCompleted = result.completed
+    ? [...new Set([...game.levelsCompleted, result.levelId])].sort((a, b) => a - b)
     : game.levelsCompleted
 
   const previousBest = game.bestScore[result.levelId] ?? 0
@@ -99,106 +141,100 @@ export function applyResult(progress: Progress, result: GameResult): Progress {
       ? [...progress.memories, result.gameId]
       : progress.memories
 
-  const evidence = Array.from(new Set([...progress.evidence, ...result.evidenceIds]))
+  const evidence = [...new Set([...progress.evidence, ...result.evidenceIds])]
+
+  // Decisions count even in a lost game: a wrong choice is exactly what the
+  // teacher needs to see.
+  const concepts = { ...progress.concepts }
+  for (const d of result.decisions ?? []) {
+    if (!d || typeof d.concept !== 'string') continue
+    const prev = concepts[d.concept] ?? { correct: 0, wrong: 0 }
+    concepts[d.concept] = d.correct ? { ...prev, correct: prev.correct + 1 } : { ...prev, wrong: prev.wrong + 1 }
+  }
 
   return {
     ...progress,
     games: { ...progress.games, [result.gameId]: { levelsCompleted, bestScore } },
     memories,
     evidence,
+    concepts,
   }
 }
 
 export function totalScore(progress: Progress): number {
-  return GAME_IDS.reduce((sum, id) => {
-    const scores = Object.values(progress.games[id]?.bestScore ?? {})
-    return sum + scores.reduce((a: number, b) => a + (b ?? 0), 0)
-  }, 0)
+  return Object.values(progress.games).reduce(
+    (sum, g) => sum + Object.values(g.bestScore).reduce((a, b) => a + (b ?? 0), 0),
+    0,
+  )
 }
 
 export function completedLevels(progress: Progress, gameId: GameId): number {
-  return progress.games[gameId]?.levelsCompleted.length ?? 0
+  return gameProgress(progress, gameId).levelsCompleted.length
+}
+
+/** Distinct levels completed across all games. */
+export function totalLevelsCompleted(progress: Progress): number {
+  return Object.values(progress.games).reduce((n, g) => n + new Set(g.levelsCompleted).size, 0)
+}
+
+/** Games with at least one completed level. */
+export function gamesPlayed(progress: Progress): number {
+  return Object.values(progress.games).filter((g) => g.levelsCompleted.length > 0).length
 }
 
 // ---------------------------------------------------------------------------
-// Nivel general (1 a 6)
+// Concepts and rank
 // ---------------------------------------------------------------------------
 
-export type GeneralLevel = 1 | 2 | 3 | 4 | 5 | 6
-
-export const MAX_GENERAL_LEVEL: GeneralLevel = 6
-
-export interface GeneralLevelSpec {
-  level: GeneralLevel
-  /** Qué hay que lograr para llegar a este nivel. */
-  requirement: string
-  /** Qué se abre al alcanzarlo (vacío si nada). */
-  unlocks: string
+/** A concept counts as learned once it was applied right at least as often as wrong. */
+export function isLearned(stat: ConceptStat | undefined): boolean {
+  return !!stat && stat.correct > 0 && stat.correct >= stat.wrong
 }
 
-export const GENERAL_LEVELS: GeneralLevelSpec[] = [
-  { level: 1, requirement: 'Enter the portal', unlocks: '' },
-  { level: 2, requirement: 'Complete 1 level of any game', unlocks: '' },
-  { level: 3, requirement: 'Complete 2 levels in total', unlocks: '' },
-  {
-    level: 4,
-    requirement: 'Complete a whole game (all 3 levels)',
-    unlocks: 'First advanced game',
-  },
-  {
-    level: 5,
-    requirement: 'Complete two whole games',
-    unlocks: 'Special challenge and more advanced games',
-  },
-  {
-    level: 6,
-    requirement: 'Complete all three games',
-    unlocks: 'Final mission and virtual reality (coming soon)',
-  },
+export function learnedConcepts(progress: Progress): string[] {
+  return Object.entries(progress.concepts)
+    .filter(([, s]) => isLearned(s))
+    .map(([id]) => id)
+}
+
+export interface Rank {
+  name: string
+  /** Concepts needed to reach this rank. */
+  min: number
+}
+
+/** Ranks grow with concepts learned, not with games unlocked. */
+export const RANKS: Rank[] = [
+  { name: 'Cadet', min: 0 },
+  { name: 'Pilot', min: 3 },
+  { name: 'Specialist', min: 8 },
+  { name: 'Commander', min: 15 },
+  { name: 'Flight Director', min: 25 },
 ]
 
-/** Niveles distintos completados en un juego (tolera duplicados del almacenamiento). */
-function uniqueLevels(progress: Progress, gameId: GameId): number {
-  return new Set(progress.games[gameId]?.levelsCompleted ?? []).size
+export function getRank(progress: Progress): Rank {
+  const n = learnedConcepts(progress).length
+  return [...RANKS].reverse().find((r) => n >= r.min) ?? RANKS[0]
 }
 
-/**
- * Nivel general del jugador. Función pura: solo mira QUÉ niveles están
- * completados, nunca cuántas veces se jugaron. Repetir un nivel no sube el
- * nivel general; solo puede mejorar su mejor puntuación.
- */
-export function getGeneralLevel(progress: Progress): GeneralLevel {
-  const perGame = GAME_IDS.map((id) => uniqueLevels(progress, id))
-  const fullGames = perGame.filter((n) => n >= 3).length
-  const levels = perGame.reduce((a, b) => a + b, 0)
-
-  if (fullGames >= 3) return 6
-  if (fullGames >= 2) return 5
-  if (fullGames >= 1) return 4
-  if (levels >= 2) return 3
-  if (levels >= 1) return 2
-  return 1
+export function nextRank(progress: Progress): Rank | null {
+  const n = learnedConcepts(progress).length
+  return RANKS.find((r) => r.min > n) ?? null
 }
 
-/** Niveles completados en total, sin repetidos (máximo 9). */
-export function totalLevelsCompleted(progress: Progress): number {
-  return GAME_IDS.reduce((sum, id) => sum + uniqueLevels(progress, id), 0)
-}
+// ---------------------------------------------------------------------------
+// Levels inside one game (games never lock each other)
+// ---------------------------------------------------------------------------
 
-/** Requisito del siguiente nivel general, o null si ya se alcanzó el 6. */
-export function nextGeneralLevel(progress: Progress): GeneralLevelSpec | null {
-  const level = getGeneralLevel(progress)
-  return GENERAL_LEVELS.find((l) => l.level === level + 1) ?? null
-}
-
-/** Un nivel se abre cuando el anterior del mismo juego está completado. */
+/** Inside a game, a level opens when the previous one is completed. */
 export function isLevelUnlocked(progress: Progress, gameId: GameId, levelId: LevelId): boolean {
-  if (levelId === 1) return true
-  return progress.games[gameId]?.levelsCompleted.includes((levelId - 1) as LevelId) ?? false
+  if (levelId <= 1) return true
+  return gameProgress(progress, gameId).levelsCompleted.includes(levelId - 1)
 }
 
-/** Primer nivel sin completar (o el 1 si ya están todos). Siempre está abierto. */
-export function nextPlayableLevel(progress: Progress, gameId: GameId): LevelId {
-  const done = progress.games[gameId]?.levelsCompleted ?? []
-  return (([1, 2, 3] as LevelId[]).find((l) => !done.includes(l)) ?? 1) as LevelId
+/** First level not completed yet (or 1 when all are done). Always open. */
+export function nextPlayableLevel(progress: Progress, gameId: GameId, levelCount = 3): LevelId {
+  const done = gameProgress(progress, gameId).levelsCompleted
+  for (let l = 1; l <= levelCount; l++) if (!done.includes(l)) return l
+  return 1
 }

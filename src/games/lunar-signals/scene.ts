@@ -30,7 +30,8 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
   const style = el('style')
   style.textContent = STYLES
 
-  const intro = COPY.intro[ctx.levelId]
+  // LevelId pasó a ser number en el contrato v2; este juego tiene los niveles 1 a 3.
+  const intro = COPY.intro[ctx.levelId as keyof typeof COPY.intro] ?? COPY.intro[1]
   const head = el('header', 'ls-head')
   head.append(el('h2', 'ls-title', intro.title), el('p', 'ls-text', intro.text))
 

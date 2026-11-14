@@ -41,8 +41,8 @@ export default function JoinBox({ initial = '' }: { initial?: string }) {
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-err` : `${id}-hint`}
         />
-        <button type="submit" className="pill pill--solid joinbox__btn">
-          Join ↗
+        <button type="submit" className="btn btn--primary joinbox__btn">
+          Join
         </button>
       </div>
       {error ? (

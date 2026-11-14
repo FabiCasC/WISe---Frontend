@@ -2,14 +2,17 @@ import { describe, expect, it } from 'vitest'
 import {
   applyResult,
   createEmptyProgress,
-  getGeneralLevel,
+  gamesPlayed,
+  getRank,
   isLevelUnlocked,
+  learnedConcepts,
+  migrateProgress,
   nextPlayableLevel,
-  nextGeneralLevel,
+  nextRank,
   totalLevelsCompleted,
   totalScore,
 } from './progress'
-import type { GameId, GameResult, LevelId, Progress } from './types'
+import type { GameResult, Progress } from './types'
 
 function result(patch: Partial<GameResult> = {}): GameResult {
   return {
@@ -24,162 +27,145 @@ function result(patch: Partial<GameResult> = {}): GameResult {
   }
 }
 
-describe('applyResult', () => {
-  it('sella el recuerdo y registra el nivel al completar', () => {
-    const next = applyResult(createEmptyProgress(), result())
+const play = (...results: GameResult[]): Progress => results.reduce(applyResult, createEmptyProgress())
 
+describe('applyResult', () => {
+  it('records the level, the score and the evidence when a level is won', () => {
+    const next = play(result())
     expect(next.memories).toEqual(['spirit'])
     expect(next.games.spirit.levelsCompleted).toEqual([1])
     expect(next.games.spirit.bestScore[1]).toBe(100)
     expect(next.evidence).toContain('ev-silica')
   })
 
-  it('no sella nada si la partida se perdió', () => {
-    const next = applyResult(createEmptyProgress(), result({ completed: false }))
-
+  it('records nothing when the game is lost', () => {
+    const next = play(result({ completed: false }))
     expect(next.memories).toEqual([])
     expect(next.games.spirit.levelsCompleted).toEqual([])
   })
 
-  it('conserva la mejor puntuación, no la última', () => {
-    let progress = applyResult(createEmptyProgress(), result({ score: 420 }))
-    progress = applyResult(progress, result({ score: 180 }))
-
-    expect(progress.games.spirit.bestScore[1]).toBe(420)
+  it('keeps the best score, not the last one, and a single stamp', () => {
+    const p = play(result({ score: 420 }), result({ score: 180 }), result({ score: 300 }))
+    expect(p.games.spirit.bestScore[1]).toBe(420)
+    expect(p.games.spirit.levelsCompleted).toEqual([1])
+    expect(p.memories).toEqual(['spirit'])
   })
 
-  it('no duplica el recuerdo al repetir el mismo juego', () => {
-    let progress = applyResult(createEmptyProgress(), result({ levelId: 1 }))
-    progress = applyResult(progress, result({ levelId: 2 }))
-
-    expect(progress.memories).toEqual(['spirit'])
-    expect(progress.games.spirit.levelsCompleted).toEqual([1, 2])
+  it('works with any game id and any number of levels', () => {
+    const p = play(result({ gameId: 'hubble-focus', levelId: 7, score: 50 }))
+    expect(p.games['hubble-focus'].levelsCompleted).toEqual([7])
+    expect(totalScore(p)).toBe(50)
   })
 
-  it('suma la mejor puntuación de cada nivel de cada juego', () => {
-    let progress = applyResult(createEmptyProgress(), result({ levelId: 1, score: 300 }))
-    progress = applyResult(progress, result({ levelId: 2, score: 250 }))
-    progress = applyResult(
-      progress,
+  it('adds up the best score of every level of every game', () => {
+    const p = play(
+      result({ levelId: 1, score: 300 }),
+      result({ levelId: 2, score: 250 }),
       result({ gameId: 'opportunity', levelId: 1, score: 150, evidenceIds: [] }),
     )
-
-    expect(totalScore(progress)).toBe(700)
+    expect(totalScore(p)).toBe(700)
+    expect(totalLevelsCompleted(p)).toBe(3)
+    expect(gamesPlayed(p)).toBe(2)
   })
 
-  it('ignora un resultado de un juego desconocido sin romperse', () => {
+  it('ignores a result without a game id', () => {
     const base = createEmptyProgress()
-    // @ts-expect-error se simula un módulo que envía un gameId inválido
-    const next = applyResult(base, result({ gameId: 'inexistente' }))
-
-    expect(next).toBe(base)
+    expect(applyResult(base, result({ gameId: '' }))).toBe(base)
   })
 })
 
-// ---------------------------------------------------------------------------
-// Nivel general
-// ---------------------------------------------------------------------------
-
-function win(gameId: GameId, levelId: LevelId, score = 100): GameResult {
-  return {
-    gameId,
-    levelId,
-    score,
-    durationMs: 60_000,
-    completed: true,
-    evidenceIds: [],
-    firstAnswerCorrect: true,
-  }
-}
-
-function play(...results: GameResult[]): Progress {
-  return results.reduce(applyResult, createEmptyProgress())
-}
-
-const fullGame = (id: GameId) => [win(id, 1), win(id, 2), win(id, 3)]
-
-describe('getGeneralLevel', () => {
-  it('N1: al entrar sin haber jugado', () => {
-    expect(getGeneralLevel(createEmptyProgress())).toBe(1)
+describe('concepts', () => {
+  it('counts right and wrong decisions per concept, even in a lost game', () => {
+    const p = play(
+      result({ decisions: [{ concept: 'arena-gasta-energia', correct: false }], completed: false }),
+      result({ decisions: [{ concept: 'arena-gasta-energia', correct: true }, { concept: 'silice-agua-caliente', correct: true }] }),
+    )
+    expect(p.concepts['arena-gasta-energia']).toEqual({ correct: 1, wrong: 1 })
+    expect(learnedConcepts(p).sort()).toEqual(['arena-gasta-energia', 'silice-agua-caliente'])
   })
 
-  it('N2: un nivel completado en cualquier juego', () => {
-    expect(getGeneralLevel(play(win('lunar-signals', 2)))).toBe(2)
+  it('a concept with more mistakes than successes is not learned yet', () => {
+    const p = play(
+      result({ decisions: [{ concept: 'agua-no-es-vida', correct: false }, { concept: 'agua-no-es-vida', correct: false }] }),
+      result({ decisions: [{ concept: 'agua-no-es-vida', correct: true }] }),
+    )
+    expect(learnedConcepts(p)).toEqual([])
   })
 
-  it('N3: dos niveles completados en total, aunque sean de juegos distintos', () => {
-    expect(getGeneralLevel(play(win('spirit', 1), win('opportunity', 1)))).toBe(3)
-  })
-
-  it('se queda en N3 con varios niveles sueltos sin cerrar un juego', () => {
-    const p = play(win('spirit', 1), win('spirit', 2), win('opportunity', 1), win('lunar-signals', 3))
-    expect(totalLevelsCompleted(p)).toBe(4)
-    expect(getGeneralLevel(p)).toBe(3)
-  })
-
-  it('N4: un juego completo', () => {
-    expect(getGeneralLevel(play(...fullGame('spirit')))).toBe(4)
-  })
-
-  it('N5: dos juegos completos', () => {
-    expect(getGeneralLevel(play(...fullGame('spirit'), ...fullGame('opportunity')))).toBe(5)
-  })
-
-  it('N6: los tres juegos completos, y no hay nivel siguiente', () => {
-    const p = play(...fullGame('spirit'), ...fullGame('opportunity'), ...fullGame('lunar-signals'))
-    expect(getGeneralLevel(p)).toBe(6)
-    expect(nextGeneralLevel(p)).toBeNull()
-  })
-
-  it('perder una partida no sube el nivel', () => {
-    const p = play({ ...win('spirit', 1), completed: false })
-    expect(getGeneralLevel(p)).toBe(1)
-  })
-
-  it('repetir el mismo nivel no sube el nivel general', () => {
-    const p = play(win('spirit', 1), win('spirit', 1), win('spirit', 1))
-    expect(getGeneralLevel(p)).toBe(2)
-  })
-
-  it('tolera niveles duplicados guardados por versiones antiguas', () => {
-    const p = createEmptyProgress()
-    p.games.spirit.levelsCompleted = [1, 1, 1]
-    expect(getGeneralLevel(p)).toBe(2)
-  })
-
-  it('indica el requisito del siguiente nivel', () => {
-    expect(nextGeneralLevel(createEmptyProgress())?.level).toBe(2)
-    expect(nextGeneralLevel(play(...fullGame('spirit')))?.unlocks).toMatch(/Special challenge/)
+  it('games without decisions still work (field is optional)', () => {
+    expect(play(result()).concepts).toEqual({})
   })
 })
 
-describe('repetir un nivel', () => {
-  it('actualiza el mejor puntaje y mantiene un solo sello', () => {
-    const p = play(win('opportunity', 1, 120), win('opportunity', 1, 340), win('opportunity', 1, 90))
-    expect(p.games.opportunity.bestScore[1]).toBe(340)
-    expect(p.games.opportunity.levelsCompleted).toEqual([1])
-    expect(p.memories).toEqual(['opportunity'])
-    expect(totalScore(p)).toBe(340)
+describe('rank', () => {
+  const learn = (n: number) =>
+    play(result({ decisions: Array.from({ length: n }, (_, i) => ({ concept: `c${i}`, correct: true })) }))
+
+  it('starts as Cadet and grows with concepts learned', () => {
+    expect(getRank(createEmptyProgress()).name).toBe('Cadet')
+    expect(getRank(learn(3)).name).toBe('Pilot')
+    expect(getRank(learn(8)).name).toBe('Specialist')
+    expect(nextRank(learn(8))?.name).toBe('Commander')
+    expect(nextRank(learn(30))).toBeNull()
   })
 })
 
-describe('niveles bloqueados', () => {
-  it('solo el nivel 1 está abierto al empezar', () => {
+describe('levels inside a game', () => {
+  it('only level 1 is open at first; games never lock each other', () => {
     const p = createEmptyProgress()
     expect(isLevelUnlocked(p, 'spirit', 1)).toBe(true)
     expect(isLevelUnlocked(p, 'spirit', 2)).toBe(false)
-    expect(nextPlayableLevel(p, 'spirit')).toBe(1)
+    expect(isLevelUnlocked(p, 'any-new-game', 1)).toBe(true)
   })
 
-  it('completar un nivel abre el siguiente solo en ese juego', () => {
-    const p = play(win('spirit', 1))
+  it('completing a level opens the next one of that game only', () => {
+    const p = play(result())
     expect(isLevelUnlocked(p, 'spirit', 2)).toBe(true)
-    expect(isLevelUnlocked(p, 'spirit', 3)).toBe(false)
     expect(isLevelUnlocked(p, 'opportunity', 2)).toBe(false)
-    expect(nextPlayableLevel(p, 'spirit')).toBe(2)
+    expect(nextPlayableLevel(p, 'spirit', 3)).toBe(2)
   })
 
-  it('con el juego completo se vuelve a sugerir el nivel 1', () => {
-    expect(nextPlayableLevel(play(...fullGame('spirit')), 'spirit')).toBe(1)
+  it('suggests level 1 again when every level is done, for any level count', () => {
+    const p = play(...[1, 2, 3, 4, 5, 6, 7].map((levelId) => result({ gameId: 'hubble-focus', levelId })))
+    expect(nextPlayableLevel(p, 'hubble-focus', 7)).toBe(1)
+  })
+})
+
+describe('migrateProgress', () => {
+  it('migrates v1 progress keeping levels, scores and settings', () => {
+    const v1 = {
+      schemaVersion: 1,
+      games: {
+        opportunity: { levelsCompleted: [1, 2, 2], bestScore: { 1: 300, 2: 120 } },
+        'lunar-signals': { levelsCompleted: [], bestScore: {} },
+        spirit: { levelsCompleted: [], bestScore: {} },
+      },
+      memories: ['opportunity'],
+      evidence: ['ev-blueberries'],
+      settings: { volume: 0.2, reducedMotion: true, practice: false, lang: 'es' },
+    }
+    const p = migrateProgress(v1)
+    expect(p.schemaVersion).toBe(2)
+    expect(p.games.opportunity).toEqual({ levelsCompleted: [1, 2], bestScore: { 1: 300, 2: 120 } })
+    expect(p.games['lunar-signals']).toBeUndefined()
+    expect(p.concepts).toEqual({})
+    expect(p.settings.volume).toBe(0.2)
+    expect(p.settings.reducedMotion).toBe(true)
+    expect(totalScore(p)).toBe(420)
+  })
+
+  it('falls back to empty progress on garbage or unknown versions', () => {
+    expect(migrateProgress('nope').games).toEqual({})
+    expect(migrateProgress({ schemaVersion: 99, games: { x: {} } }).games).toEqual({})
+    expect(migrateProgress(null).concepts).toEqual({})
+  })
+
+  it('keeps v2 concepts and drops malformed ones', () => {
+    const p = migrateProgress({
+      schemaVersion: 2,
+      games: {},
+      concepts: { ok: { correct: 2, wrong: 0 }, bad: { correct: 'x' } },
+    })
+    expect(p.concepts).toEqual({ ok: { correct: 2, wrong: 0 } })
   })
 })

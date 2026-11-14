@@ -8,6 +8,7 @@ import type {
   GameSettings,
   LevelId,
 } from '../shared/types'
+import { getGame } from '../content/games'
 import { getMission } from '../content/missions'
 import { IconBack, IconPause, IconPlay } from './components/Art'
 
@@ -15,6 +16,7 @@ import { IconBack, IconPause, IconPlay } from './components/Art'
  * Carga perezosa de cada módulo: el bundle de un juego solo viaja al
  * navegador cuando el jugador abre ese portal.
  */
+/** One loader per playable game. New games: add a line here and an entry in content/games.ts. */
 const LOADERS: Record<GameId, () => Promise<GameModule>> = {
   opportunity: () => import('../games/opportunity'),
   'lunar-signals': () => import('../games/lunar-signals'),
@@ -44,6 +46,7 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
   const [paused, setPaused] = useState(false)
 
   const mission = getMission(gameId)
+  const title = getGame(gameId)?.title ?? mission?.title ?? gameId
 
   // Callbacks estables: evitan remontar el juego cuando el padre re-renderiza.
   const onResultRef = useRef(onResult)
@@ -81,7 +84,9 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
 
     const start = teardownRef.current.then(async () => {
       try {
-        const mod = await LOADERS[gameId]()
+        const load = LOADERS[gameId]
+        if (!load) throw new Error('This game is not available yet.')
+        const mod = await load()
         if (cancelled) return
 
         const controller = await mod.mountGame(container, context)
@@ -158,15 +163,15 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
   const level = mission?.levels.find((l) => l.id === levelId)
 
   return (
-    <section className="arena" aria-label={`Game: ${mission?.title ?? gameId}`}>
+    <section className="arena" aria-label={`Game: ${title}`}>
       <header className="arena__bar">
         <button type="button" className="btn btn--quiet" onClick={() => onExitRef.current()}>
           <IconBack />
-          Portal
+          Arcade
         </button>
 
         <div className="arena__id">
-          <span className="arena__name">{mission?.title ?? gameId}</span>
+          <span className="arena__name">{title}</span>
           <span className="arena__level">
             Level {levelId}
             {level ? ` · ${level.name}` : ''}
