@@ -192,7 +192,10 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
       </header>
 
       <div className="arena__stage">
-        <div className="arena__mount" ref={mountRef} />
+        <div
+          className={gameId === 'spirit' ? 'arena__mount arena__mount--spirit' : 'arena__mount'}
+          ref={mountRef}
+        />
 
         {status === 'loading' && (
           <div className="stub" style={{ position: 'absolute' }}>
