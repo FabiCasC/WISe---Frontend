@@ -3,8 +3,8 @@ import type { Membership } from '../../shared/classroom'
 import { getRank, learnedConcepts, nextRank } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
 import { IconPlay, IconStar, IconTeacher } from '../components/Art'
-import BlackHole from '../components/BlackHole'
 import { GameWall } from '../components/GameWall'
+import Horizons from '../components/Horizons'
 import JoinBox from '../components/JoinBox'
 import SiteFooter from '../components/SiteFooter'
 
@@ -30,15 +30,15 @@ export default function Home({ progress, membership, onOpenGame }: Props) {
     <>
       {/* ============================================================ BAND */}
       <section className="band" aria-labelledby="band-title">
-        <BlackHole />
+        <Horizons />
         <div className="band__inner">
-          <p className="band__eyebrow">Real NASA missions · {GAMES.length} games</p>
           <h1 className="band__title" id="band-title">
             Learn by playing real NASA missions
           </h1>
           <p className="band__lede">
-            Short games where you win by using real science: instruments, energy and light, the
-            way the rovers and astronauts did. No account, no quizzes, free.
+            Humanity left machines on the Moon and Mars. In {GAMES.length} short games you use
+            their real science, the instruments, the energy and the light, to find out what they
+            discovered. No account, no quizzes.
           </p>
 
           <div className="joincard">
@@ -69,6 +69,15 @@ export default function Home({ progress, membership, onOpenGame }: Props) {
             </a>
           </div>
         </div>
+
+        <p className="band__caption band__caption--moon">
+          <strong>Moon, 1971.</strong> Apollo 15 left its descent stage, a laser reflector and a
+          seismometer.
+        </p>
+        <p className="band__caption band__caption--mars">
+          <strong>Mars, 2004.</strong> Opportunity, its landing platform and Spirit are still
+          there.
+        </p>
       </section>
 
       {/* ============================================================ RANK */}

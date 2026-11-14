@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { conceptLabel, getGame } from '../../content/games'
 import type { ClassService, Dashboard, DashboardRow } from '../../shared/classroom'
 import { isLearned } from '../../shared/progress'
+import { IconCheck, IconCross } from '../components/Art'
 import SiteFooter from '../components/SiteFooter'
 import { absoluteLink, CopyField } from './Teacher'
 
@@ -68,10 +69,8 @@ export default function Panel({ token, service }: { token: string; service: Clas
       <section className="section wrap mlog">
         <div className="mlog__head">
           <div>
-            <p className="mlog__eyebrow">
-              Mission log · {data.grade}
-            </p>
             <h1 className="mlog__title">{data.name}</h1>
+            <p className="mlog__sub">Mission log · {data.grade}</p>
           </div>
           <div className="mlog__code">
             <span>Class code</span>
@@ -229,12 +228,16 @@ function StudentDetail({ row }: { row: DashboardRow }) {
                   .filter((c) => row.concepts[c.id])
                   .map((c) =>
                     isLearned(row.concepts[c.id]) ? (
-                      <span key={c.id} className="tag">
-                        ✓ {c.label}
+                      <span key={c.id} className="tag tag--ok">
+                        <IconCheck size={13} />
+                        <span className="sr-only">Learned: </span>
+                        {c.label}
                       </span>
                     ) : (
                       <span key={c.id} className="tag tag--miss">
-                        ✗ {c.label}
+                        <IconCross size={13} />
+                        <span className="sr-only">Not yet: </span>
+                        {c.label}
                       </span>
                     ),
                   )}

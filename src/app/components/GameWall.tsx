@@ -3,7 +3,7 @@ import { DESTINATIONS, type GameEntry } from '../../content/games'
 import { getMission } from '../../content/missions'
 import { gameProgress, isLearned, isLevelUnlocked, nextPlayableLevel } from '../../shared/progress'
 import type { LevelId, Progress } from '../../shared/types'
-import { IconLock, IconPlay } from './Art'
+import { IconCheck, IconLock, IconPlay } from './Art'
 import Modal from './Modal'
 import WallIcon from './WallIcon'
 
@@ -133,7 +133,7 @@ export function GameSheet({
       }
     >
       <div className="sheet__cover" style={{ ['--c' as string]: dest.color }} aria-hidden="true">
-        <WallIcon name={game.icon} />
+        {game.art ? <img src={game.art} alt="" decoding="async" /> : <WallIcon name={game.icon} />}
       </div>
 
       <div>
@@ -166,7 +166,9 @@ export function GameSheet({
             const learned = isLearned(progress.concepts[c.id])
             return (
               <li key={c.id} className={learned ? 'is-learned' : ''}>
-                <span aria-hidden="true">{learned ? '✓' : '◆'}</span>
+                <span className="sheet__mark" aria-hidden="true">
+                  {learned && <IconCheck size={14} />}
+                </span>
                 {c.label}
                 {learned && <span className="sr-only"> (learned)</span>}
               </li>

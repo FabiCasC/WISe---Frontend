@@ -119,6 +119,22 @@ export function IconLink({ size = 15 }: IconProps) {
   )
 }
 
+export function IconCheck({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m5 12.5 4.5 4.5L19 7.5" {...stroke} strokeWidth={2.6} />
+    </svg>
+  )
+}
+
+export function IconCross({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" {...stroke} strokeWidth={2.6} />
+    </svg>
+  )
+}
+
 export function IconLock({ size = 16 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
