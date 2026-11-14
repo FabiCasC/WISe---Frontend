@@ -8,9 +8,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit false --emitDeclarationOnly false || tsc -b",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "assets": "node scripts/optimize-assets.mjs"
+    "assets": "node scripts/optimize-assets.mjs",
+    "health": "node scripts/pr-health.mjs"
   },
   "dependencies": {
     "phaser": "3.80.1",

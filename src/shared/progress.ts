@@ -1,9 +1,11 @@
 import {
   PROGRESS_SCHEMA_VERSION,
+  type ArcadeId,
   type GameId,
   type GameResult,
   type GameSettings,
   type LevelId,
+  type MissionId,
   type Progress,
 } from './types'
 
@@ -16,7 +18,18 @@ export const DEFAULT_SETTINGS: GameSettings = {
   lang: 'es',
 }
 
-export const GAME_IDS: GameId[] = ['opportunity', 'lunar-signals', 'spirit']
+/**
+ * Las TRES misiones narrativas. El nivel general y el pasaporte se calculan
+ * solo con esta lista: anadir un minijuego aqui cambiaria la progresion
+ * educativa del portal.
+ */
+export const GAME_IDS: MissionId[] = ['opportunity', 'lunar-signals', 'spirit']
+
+/** Minijuegos de la sala arcade. Guardan progreso, no dan nivel general. */
+export const ARCADE_GAME_IDS: ArcadeId[] = ['dust-run', 'gusev-maze', 'orbital-grid', 'sun-shade']
+
+/** Todo lo jugable. Sirve para rutas, puntuacion total y guardado. */
+export const ALL_GAME_IDS: GameId[] = [...GAME_IDS, ...ARCADE_GAME_IDS]
 
 export function createEmptyProgress(): Progress {
   return {
@@ -25,6 +38,10 @@ export function createEmptyProgress(): Progress {
       opportunity: { levelsCompleted: [], bestScore: {} },
       'lunar-signals': { levelsCompleted: [], bestScore: {} },
       spirit: { levelsCompleted: [], bestScore: {} },
+      'dust-run': { levelsCompleted: [], bestScore: {} },
+      'gusev-maze': { levelsCompleted: [], bestScore: {} },
+      'orbital-grid': { levelsCompleted: [], bestScore: {} },
+      'sun-shade': { levelsCompleted: [], bestScore: {} },
     },
     memories: [],
     evidence: [],
@@ -94,8 +111,11 @@ export function applyResult(progress: Progress, result: GameResult): Progress {
     ? { ...game.bestScore, [result.levelId]: Math.max(previousBest, result.score) }
     : game.bestScore
 
+  // El pasaporte guarda recuerdos de MISIONES. Un minijuego del arcade
+  // puntua y guarda nivel, pero no sella una ficha de mision.
+  const isMission = (GAME_IDS as GameId[]).includes(result.gameId)
   const memories =
-    result.completed && !progress.memories.includes(result.gameId)
+    result.completed && isMission && !progress.memories.includes(result.gameId)
       ? [...progress.memories, result.gameId]
       : progress.memories
 
@@ -110,7 +130,7 @@ export function applyResult(progress: Progress, result: GameResult): Progress {
 }
 
 export function totalScore(progress: Progress): number {
-  return GAME_IDS.reduce((sum, id) => {
+  return ALL_GAME_IDS.reduce((sum, id) => {
     const scores = Object.values(progress.games[id]?.bestScore ?? {})
     return sum + scores.reduce((a: number, b) => a + (b ?? 0), 0)
   }, 0)
@@ -118,4 +138,87 @@ export function totalScore(progress: Progress): number {
 
 export function completedLevels(progress: Progress, gameId: GameId): number {
   return progress.games[gameId]?.levelsCompleted.length ?? 0
+}
+
+// ---------------------------------------------------------------------------
+// Nivel general (1 a 6)
+// ---------------------------------------------------------------------------
+
+export type GeneralLevel = 1 | 2 | 3 | 4 | 5 | 6
+
+export const MAX_GENERAL_LEVEL: GeneralLevel = 6
+
+export interface GeneralLevelSpec {
+  level: GeneralLevel
+  /** Qué hay que lograr para llegar a este nivel. */
+  requirement: string
+  /** Qué se abre al alcanzarlo (vacío si nada). */
+  unlocks: string
+}
+
+export const GENERAL_LEVELS: GeneralLevelSpec[] = [
+  { level: 1, requirement: 'Entrar al portal', unlocks: '' },
+  { level: 2, requirement: 'Completar 1 nivel de cualquier juego', unlocks: '' },
+  { level: 3, requirement: 'Completar 2 niveles en total', unlocks: '' },
+  {
+    level: 4,
+    requirement: 'Completar un juego entero (sus 3 niveles)',
+    unlocks: 'Primer juego avanzado',
+  },
+  {
+    level: 5,
+    requirement: 'Completar dos juegos enteros',
+    unlocks: 'Reto especial y más juegos avanzados',
+  },
+  {
+    level: 6,
+    requirement: 'Completar los tres juegos',
+    unlocks: 'Misión final y realidad virtual (próximamente)',
+  },
+]
+
+/** Niveles distintos completados en un juego (tolera duplicados del almacenamiento). */
+function uniqueLevels(progress: Progress, gameId: GameId): number {
+  return new Set(progress.games[gameId]?.levelsCompleted ?? []).size
+}
+
+/**
+ * Nivel general del jugador. Función pura: solo mira QUÉ niveles están
+ * completados, nunca cuántas veces se jugaron. Repetir un nivel no sube el
+ * nivel general; solo puede mejorar su mejor puntuación.
+ */
+export function getGeneralLevel(progress: Progress): GeneralLevel {
+  const perGame = GAME_IDS.map((id) => uniqueLevels(progress, id))
+  const fullGames = perGame.filter((n) => n >= 3).length
+  const levels = perGame.reduce((a, b) => a + b, 0)
+
+  if (fullGames >= 3) return 6
+  if (fullGames >= 2) return 5
+  if (fullGames >= 1) return 4
+  if (levels >= 2) return 3
+  if (levels >= 1) return 2
+  return 1
+}
+
+/** Niveles completados en total, sin repetidos (máximo 9). */
+export function totalLevelsCompleted(progress: Progress): number {
+  return GAME_IDS.reduce((sum, id) => sum + uniqueLevels(progress, id), 0)
+}
+
+/** Requisito del siguiente nivel general, o null si ya se alcanzó el 6. */
+export function nextGeneralLevel(progress: Progress): GeneralLevelSpec | null {
+  const level = getGeneralLevel(progress)
+  return GENERAL_LEVELS.find((l) => l.level === level + 1) ?? null
+}
+
+/** Un nivel se abre cuando el anterior del mismo juego está completado. */
+export function isLevelUnlocked(progress: Progress, gameId: GameId, levelId: LevelId): boolean {
+  if (levelId === 1) return true
+  return progress.games[gameId]?.levelsCompleted.includes((levelId - 1) as LevelId) ?? false
+}
+
+/** Primer nivel sin completar (o el 1 si ya están todos). Siempre está abierto. */
+export function nextPlayableLevel(progress: Progress, gameId: GameId): LevelId {
+  const done = progress.games[gameId]?.levelsCompleted ?? []
+  return (([1, 2, 3] as LevelId[]).find((l) => !done.includes(l)) ?? 1) as LevelId
 }

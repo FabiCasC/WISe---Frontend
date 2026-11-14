@@ -1,8 +1,10 @@
+import { ARCADE } from '../../content/arcade'
 import { ARCHIVE_STATS, type ArchiveItem } from '../../content/archive'
 import { MISSIONS, type MissionCard } from '../../content/missions'
 import { GAME_IDS } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
 import GameTile from '../components/GameTile'
+import MiniCard from '../components/MiniCard'
 import Mosaic from '../components/Mosaic'
 import SiteFooter from '../components/SiteFooter'
 
@@ -30,7 +32,9 @@ export default function Arcade({ progress, onPlay, onItem }: Props) {
           <div className="arcade-top__head">
             <h1 className="arcade-top__title">Elige tu misión</h1>
             <div className="arcade-top__meta">
-              <span className="chip chip--accent">{MISSIONS.length} juegos listos</span>
+              <span className="chip chip--accent">
+                {MISSIONS.length + ARCADE.length} juegos listos
+              </span>
               <span className="chip">{levelsDone}/9 niveles</span>
               <span className="chip">{ARCHIVE_STATS.total} equipos en el archivo</span>
             </div>
@@ -55,6 +59,25 @@ export default function Arcade({ progress, onPlay, onItem }: Props) {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ========================================================= SALA ARCADE */}
+      <section className="section wrap catalog" id="arcade" aria-labelledby="arcade-title">
+        <div className="catalog__head">
+          <h2 className="section__title" id="arcade-title">
+            Sala arcade
+          </h2>
+          <p className="section__note">
+            Partidas cortas para calentar. Cada una esconde un hecho real de las
+            misiones: lo verás al terminar.
+          </p>
+        </div>
+
+        <div className="catalog__grid">
+          {ARCADE.map((card) => (
+            <MiniCard key={card.gameId} card={card} progress={progress} />
+          ))}
         </div>
       </section>
 
