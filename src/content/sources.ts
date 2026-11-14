@@ -30,6 +30,14 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://science.nasa.gov/mission/mer-spirit/',
     accessed: null, // TODO equipo: verificar el día del evento
   },
+    'opportunity-guadalupe': {
+    id: 'opportunity-guadalupe',
+    title: 'Focus on Guadalupe (PIA05479) — mosaico de la cámara microscópica de Opportunity, 2004-03-02',
+    publisher: 'NASA Science · Crédito: NASA/JPL-Caltech/Cornell',
+    url: 'https://science.nasa.gov/resource/focus-on-guadalupe/',
+    accessed: '2026-11-14',
+  },
+
   'apollo-15': {
     id: 'apollo-15',
     title: 'Apollo 15 — Mission Overview',
