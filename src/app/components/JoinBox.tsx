@@ -6,7 +6,7 @@ import { navigate } from '../hooks/useHashRoute'
  * Recuadro "Escribe el código de tu clase". Solo valida el formato y lleva a
  * #/clase/<CÓDIGO>, que es quien realmente une al alumno.
  */
-export default function JoinBox({ initial = '', compact = false }: { initial?: string; compact?: boolean }) {
+export default function JoinBox({ initial = '' }: { initial?: string }) {
   const [value, setValue] = useState(initial)
   const [error, setError] = useState<string | null>(null)
   const id = useId()
@@ -25,7 +25,7 @@ export default function JoinBox({ initial = '', compact = false }: { initial?: s
   return (
     <form className="joinbox" onSubmit={submit} noValidate>
       <label className="joinbox__label" htmlFor={id}>
-        ¿Tu profe te dio un código?
+        Únete a tu clase
       </label>
       <div className="joinbox__row">
         <input
@@ -33,7 +33,7 @@ export default function JoinBox({ initial = '', compact = false }: { initial?: s
           className="joinbox__input"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="LUNA-27"
+          placeholder="Código, ej. LUNA-27"
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
@@ -42,7 +42,7 @@ export default function JoinBox({ initial = '', compact = false }: { initial?: s
           aria-describedby={error ? `${id}-err` : `${id}-hint`}
         />
         <button type="submit" className="btn btn--primary joinbox__btn">
-          {compact ? 'Entrar' : 'Entrar a la clase'}
+          Unirme
         </button>
       </div>
       {error ? (
@@ -51,7 +51,7 @@ export default function JoinBox({ initial = '', compact = false }: { initial?: s
         </p>
       ) : (
         <p className="joinbox__hint" id={`${id}-hint`}>
-          No necesitas cuenta ni tu nombre: recibirás un apodo espacial.
+          Escribe el código que te dio tu profe. Recibirás un apodo espacial, sin dar tu nombre.
         </p>
       )}
     </form>

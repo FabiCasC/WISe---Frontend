@@ -1,5 +1,3 @@
-import { Fragment, useMemo } from 'react'
-import { ARCHIVE, type ArchiveItem } from '../../content/archive'
 import { UPCOMING } from '../../content/catalog'
 import { MISSIONS, type MissionCard } from '../../content/missions'
 import type { Membership } from '../../shared/classroom'
@@ -7,16 +5,14 @@ import {
   GENERAL_LEVELS,
   MAX_GENERAL_LEVEL,
   getGeneralLevel,
+  isLevelUnlocked,
   nextGeneralLevel,
+  nextPlayableLevel,
   totalLevelsCompleted,
-  totalScore,
 } from '../../shared/progress'
 import type { GameId, LevelId, Progress } from '../../shared/types'
-import { IconStar, IconTeacher, IconUsers } from '../components/Art'
-import GameCard, { UpcomingTile } from '../components/GameCard'
+import { IconInfo, IconLock, IconPlay, IconTeacher, IconVR } from '../components/Art'
 import JoinBox from '../components/JoinBox'
-import MissionPatch from '../components/MissionPatch'
-import { ArchiveTile, shuffled } from '../components/Mosaic'
 import SiteFooter from '../components/SiteFooter'
 
 interface Props {
@@ -24,97 +20,118 @@ interface Props {
   membership: Membership | null
   onPlay: (mission: MissionCard, levelId: LevelId) => void
   onDossier: (gameId: GameId) => void
-  onItem: (item: ArchiveItem) => void
 }
 
-/** Cada cuántas fichas del archivo se intercala una tarjeta "por venir". */
-const UPCOMING_EVERY = 9
-
 /**
- * Portada estilo Friv con identidad de misión espacial: una sola pared de
- * fichas. Todo es una ficha: el parche, tu nivel, el código de clase, el
- * acceso del profesor, los tres juegos, los juegos por venir y los equipos
- * reales del archivo.
+ * Portada: arriba, una banda para unirse a la clase con código (al estilo de
+ * los portales de clase); abajo, la rejilla de juegos de un clic (al estilo
+ * de los portales de juegos). Diseño plano con colores de la NASA.
  */
-export default function Home({ progress, membership, onPlay, onDossier, onItem }: Props) {
+export default function Home({ progress, membership, onPlay, onDossier }: Props) {
   const level = getGeneralLevel(progress)
-  const items = useMemo(() => shuffled(ARCHIVE), [])
 
   return (
     <>
-      <section className="wall" id="juegos" aria-labelledby="wall-title">
-        <h1 className="sr-only" id="wall-title">
-          Órbita Arcade: aprende jugando con misiones reales de la NASA
-        </h1>
+      {/* ======================================================== UNIRSE */}
+      <section className="band" aria-labelledby="band-title">
+        <div className="band__inner">
+          <h1 className="band__title" id="band-title">
+            Aprende jugando con misiones reales de la NASA
+          </h1>
+          <p className="band__lede">
+            Juegos cortos para explorar la Luna y Marte como lo hicieron los rovers y los
+            astronautas. Sin cuenta y gratis.
+          </p>
 
-        <div className="wall__grid">
-          {/* ------------------------------------------------ PARCHE */}
-          <div className="wt wt--patch">
-            <MissionPatch size={132} />
-            <div className="wt-patch__text">
-              <p className="wt-patch__title">Aprende jugando</p>
-              <p className="wt-patch__lede">
-                Gana usando la ciencia de verdad, como Opportunity, Spirit y Apollo 15.
-              </p>
-            </div>
-          </div>
-
-          {/* ------------------------------------------------ JUEGO 1 */}
-          <GameSlot mission={MISSIONS[0]} {...{ progress, onPlay, onDossier }} />
-
-          {/* ------------------------------------------------ NIVEL */}
-          <LevelTile progress={progress} />
-
-          {/* ------------------------------------------------ JUEGO 2 */}
-          <GameSlot mission={MISSIONS[1]} {...{ progress, onPlay, onDossier }} />
-
-          {/* ------------------------------------------------ CLASE */}
-          <div className="wt wt--join">
+          <div className="joincard">
             {membership ? (
-              <div className="wt-join__member">
-                <span className="wt__eyebrow">
-                  <IconUsers size={16} /> Clase {membership.code}
-                </span>
-                <p className="wt-join__nick">{membership.nickname}</p>
-                <a className="btn btn--sm btn--quiet" href="#/clase">
-                  Ver mi clase
-                </a>
+              <div className="joincard__member">
+                <p className="joincard__label">Estás en la clase {membership.code}</p>
+                <p className="joincard__nick">{membership.nickname}</p>
+                <div className="joincard__row">
+                  <a className="btn btn--primary btn--lg" href="#juegos">
+                    <IconPlay /> Seguir jugando
+                  </a>
+                  <a className="btn btn--quiet" href="#/clase">
+                    Ver mi clase
+                  </a>
+                </div>
               </div>
             ) : (
-              <JoinBox compact />
+              <JoinBox />
             )}
           </div>
 
-          {/* ------------------------------------------------ JUEGO 3 */}
-          <GameSlot mission={MISSIONS[2]} {...{ progress, onPlay, onDossier }} />
+          <div className="band__links">
+            <a className="band__link" href="#juegos">
+              <IconPlay size={18} /> Jugar solo
+            </a>
+            <a className="band__link" href="#/profesor">
+              <IconTeacher size={18} /> Soy profesor: crear una clase
+            </a>
+          </div>
+        </div>
+      </section>
 
-          {/* ------------------------------------------------ PROFESOR */}
-          <a className="wt wt--teacher" href="#/profesor">
-            <IconTeacher size={28} />
-            <span className="wt-teacher__title">Soy profesor</span>
-            <span className="wt-teacher__sub">Crear una clase</span>
-          </a>
+      {/* ========================================================= NIVEL */}
+      <div className="wrap">
+        <section className="levelbar" id="nivel" aria-labelledby="levelbar-title">
+          <h2 className="levelbar__badge" id="levelbar-title">
+            Nivel {level}
+            <span className="levelbar__of"> de {MAX_GENERAL_LEVEL}</span>
+          </h2>
+          <ol className="levelbar__track" aria-hidden="true">
+            {GENERAL_LEVELS.map((l) => (
+              <li key={l.level} className={l.level <= level ? 'is-on' : ''} />
+            ))}
+          </ol>
+          <p className="levelbar__next">
+            {nextGeneralLevel(progress)
+              ? `Siguiente: ${nextGeneralLevel(progress)!.requirement.toLowerCase()}`
+              : '¡Completaste las tres misiones!'}
+            <span className="levelbar__count"> · {totalLevelsCompleted(progress)}/9 niveles</span>
+          </p>
+        </section>
+      </div>
 
-          {/* ------------------------------------- ARCHIVO + POR VENIR */}
-          {items.map((item, i) => {
-            const soon = (i + 1) % UPCOMING_EVERY === 0 ? UPCOMING[(i + 1) / UPCOMING_EVERY - 1] : undefined
+      {/* ========================================================= JUEGOS */}
+      <section className="wrap games" id="juegos" aria-labelledby="games-title">
+        <h2 className="games__title" id="games-title">
+          Juegos
+        </h2>
+
+        <ul className="games__grid">
+          {MISSIONS.map((m) => (
+            <li key={m.gameId}>
+              <GameTile mission={m} progress={progress} onPlay={onPlay} onDossier={onDossier} />
+            </li>
+          ))}
+          {UPCOMING.map((card) => {
+            const open = card.unlockAt !== null && level >= card.unlockAt
             return (
-              <Fragment key={item.name}>
-                <ArchiveTile item={item} onOpen={onItem} />
-                {soon && (
-                  <div className="wt wt--soon">
-                    <UpcomingTile card={soon} level={level} />
+              <li key={card.id}>
+                <article className={`gtile gtile--soon${card.icon === 'vr' ? ' gtile--vr' : ''}`}>
+                  <div className="gtile__img gtile__img--soon" aria-hidden="true">
+                    {card.icon === 'vr' ? <IconVR size={48} /> : <IconLock size={40} />}
                   </div>
-                )}
-              </Fragment>
+                  <div className="gtile__body">
+                    <h3 className="gtile__name">{card.title}</h3>
+                    <p className="gtile__meta">
+                      {card.unlockAt === null
+                        ? 'Próximamente'
+                        : open
+                          ? '¡Desbloqueado! Muy pronto'
+                          : `Se desbloquea en nivel ${card.unlockAt}`}
+                    </p>
+                  </div>
+                </article>
+              </li>
             )
           })}
-        </div>
+        </ul>
 
-        <p className="wall__hint">
-          Las fichas grandes son juegos. Las pequeñas son {ARCHIVE.length} equipos reales que la
-          humanidad envió al espacio: tócalas para conocerlos.{' '}
-          <a href="#/arcade">Ver el archivo por destino</a>
+        <p className="games__more">
+          ¿Quieres conocer más naves? <a href="#/arcade">Explora el archivo de equipos espaciales</a>
         </p>
       </section>
 
@@ -123,7 +140,8 @@ export default function Home({ progress, membership, onPlay, onDossier, onItem }
   )
 }
 
-function GameSlot({
+/** Ficha de juego: imagen grande de un clic, nombre y niveles debajo. */
+function GameTile({
   mission,
   progress,
   onPlay,
@@ -134,53 +152,58 @@ function GameSlot({
   onPlay: Props['onPlay']
   onDossier: Props['onDossier']
 }) {
-  return (
-    <div className="wt wt--game">
-      <GameCard
-        mission={mission}
-        progress={progress}
-        onPlay={(lvl) => onPlay(mission, lvl)}
-        onDossier={() => onDossier(mission.gameId)}
-      />
-    </div>
-  )
-}
-
-/** Ficha del nivel general: número grande y seis segmentos en Thistle. */
-function LevelTile({ progress }: { progress: Progress }) {
-  const level = getGeneralLevel(progress)
-  const next = nextGeneralLevel(progress)
+  const done = progress.games[mission.gameId]?.levelsCompleted ?? []
+  const next = nextPlayableLevel(progress, mission.gameId)
 
   return (
-    <section className="wt wt--level" id="nivel" aria-labelledby="level-title">
-      <div className="wt-level__head">
-        <span className="wt-level__badge" aria-hidden="true">
-          {level}
+    <article className="gtile">
+      <button
+        type="button"
+        className="gtile__img"
+        onClick={() => onPlay(mission, next)}
+        aria-label={`Jugar ${mission.title}, nivel ${next}`}
+      >
+        <img src={mission.art} alt="" loading="lazy" decoding="async" />
+        <span className="gtile__tag">{mission.bodyLabel}</span>
+        <span className="gtile__play" aria-hidden="true">
+          <IconPlay size={22} /> Jugar
         </span>
-        <div>
-          <h2 className="wt-level__title" id="level-title">
-            Nivel {level} de {MAX_GENERAL_LEVEL}
-          </h2>
-          <p className="wt-level__stats">
-            {totalLevelsCompleted(progress)}/9 niveles · {totalScore(progress).toLocaleString('es')}{' '}
-            pts
-          </p>
+      </button>
+
+      <div className="gtile__body">
+        <h3 className="gtile__name">{mission.title}</h3>
+        <div className="gtile__row">
+          <div className="gtile__levels" role="group" aria-label={`Niveles de ${mission.title}`}>
+            {mission.levels.map((l) => {
+              const isDone = done.includes(l.id)
+              const open = isLevelUnlocked(progress, mission.gameId, l.id)
+              const state = isDone ? 'completado' : open ? 'disponible' : 'bloqueado'
+              return (
+                <button
+                  key={l.id}
+                  type="button"
+                  className={`lv is-${state}`}
+                  disabled={!open}
+                  onClick={() => onPlay(mission, l.id)}
+                  aria-label={`Nivel ${l.id}, ${l.name}: ${state}`}
+                  title={`${l.id}. ${l.name}`}
+                >
+                  {open ? l.id : <IconLock size={12} />}
+                </button>
+              )
+            })}
+          </div>
+          <button
+            type="button"
+            className="gtile__info"
+            onClick={() => onDossier(mission.gameId)}
+            aria-label={`Ficha científica de ${mission.title}`}
+            title="Ficha científica"
+          >
+            <IconInfo size={18} />
+          </button>
         </div>
       </div>
-      <ol className="wt-level__track" aria-hidden="true">
-        {GENERAL_LEVELS.map((l) => (
-          <li key={l.level} className={l.level <= level ? 'is-on' : ''} />
-        ))}
-      </ol>
-      <p className="wt-level__next">
-        {next ? (
-          <>
-            <IconStar size={13} /> Sube al {next.level}: {next.requirement.toLowerCase()}
-          </>
-        ) : (
-          '¡Meta cumplida! Completaste las tres misiones.'
-        )}
-      </p>
-    </section>
+    </article>
   )
 }

@@ -174,7 +174,6 @@ export default function App() {
               membership={membership}
               onPlay={play}
               onDossier={setDossierId}
-              onItem={setArchiveItem}
             />
           )}
         </main>

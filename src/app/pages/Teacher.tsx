@@ -136,7 +136,7 @@ export default function Teacher({ service }: { service: ClassService }) {
             <p className="created__label">Código de la clase</p>
             <p className="created__code">{created.code}</p>
             <p className="created__help">
-              Tus alumnos lo escriben en la portada, en “¿Tu profe te dio un código?”.
+              Tus alumnos lo escriben en la portada, en “Únete a tu clase”.
             </p>
 
             <CopyField

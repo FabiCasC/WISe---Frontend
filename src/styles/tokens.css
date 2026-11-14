@@ -1,139 +1,147 @@
 /* =========================================================================
    ÓRBITA ARCADE · TOKENS
    -------------------------------------------------------------------------
-   Paleta del equipo WISE:
-     Deep Navy  #0C0D45  fondo principal (modo oscuro, por defecto)
-     Dusk Blue  #3E5BA3  paneles, bordes, botones secundarios
-     Pearl Aqua #75CBD1  acento principal, botón primario, progreso
-     Thistle    #F2D2FF  acento secundario: insignias, sellos, nivel general
-     Alice Blue #DAE8FB  texto sobre oscuro y fondo del modo claro
+   Paleta inspirada en los colores de la NASA (sin usar sus logotipos):
+     Azul NASA   #0B3D91  barra superior, banda de inicio, botón secundario
+     Rojo        #D42A16  botón principal y acentos (rojo NASA oscurecido
+                          para que el texto blanco cumpla AA: 5.1:1)
+     Amarillo    #FFC21A  nivel general, insignias, "nuevo"
+     Azul cielo  #1F6FEB  enlaces y foco
+     Tinta       #0B1B3F  texto sobre fondo claro
+   Diseño plano: sin degradados, brillos ni efectos de vidrio.
 
-   Reglas de contraste (AA):
-     · Dusk Blue NUNCA como color de texto sobre Deep Navy (~2.8:1).
-     · Texto pequeño: --text, --text-dim, --text-faint o --action. Todos
-       superan 7:1 sobre --bg y --panel en modo oscuro y 4.5:1 en claro.
-     · Sobre --action (botón primario) el texto va en --on-accent.
-
-   Los acentos de cada misión (missions.ts) solo dan identidad a su juego.
-
+   Modo claro por defecto (fondo blanco azulado). Con prefers-color-scheme:
+   dark, el fondo pasa a negro espacial y los acentos se aclaran.
    Las variables *-rgb son tripletas para transparencias:
      rgb(var(--accent-rgb) / 0.3)
-   --ink-rgb es Deep Navy en ambos modos: se usa para velos sobre fotos.
    ========================================================================= */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
   /* --- Paleta base (no cambia con el tema) ---------------------------- */
-  --c-navy: #0c0d45;
-  --c-dusk: #3e5ba3;
-  --c-aqua: #75cbd1;
-  --c-thistle: #f2d2ff;
-  --c-alice: #dae8fb;
+  --c-nasa: #0b3d91;
+  --c-nasa-deep: #082c6c;
+  --c-red: #d42a16;
+  --c-red-bright: #fc3d21;
+  --c-yellow: #ffc21a;
+  --c-sky: #1f6feb;
+  --c-ink: #0b1b3f;
+  --c-space: #0a0f24;
+  --c-white: #ffffff;
 
-  --ink-rgb: 12 13 69;
-  --thistle-rgb: 242 210 255;
-  --dusk-rgb: 62 91 163;
+  /* Nombres anteriores, mapeados a la paleta nueva (los usan los juegos). */
+  --c-navy: var(--c-nasa);
+  --c-dusk: var(--c-sky);
+  --c-aqua: var(--c-sky);
+  --c-thistle: var(--c-yellow);
+  --c-alice: #f3f6fb;
+
+  --ink-rgb: 10 15 36;
+  --thistle-rgb: 255 194 26;
+  --dusk-rgb: 31 111 235;
 
   /* --- Superficies ---------------------------------------------------- */
-  --bg-rgb: 12 13 69;
-  --surface-rgb: 26 32 98;
-  --space-900: #06072b;
-  --space-800: #090a38;
-  --space-700: #0c0d45;
-  --bg: var(--c-navy);
-  --panel: #1a2062;
-  --panel-soft: rgb(var(--surface-rgb) / 0.78);
-  --panel-glass: rgb(var(--surface-rgb) / 0.58);
-  --hairline: rgb(var(--dusk-rgb) / 0.7);
-  --hairline-soft: rgb(218 232 251 / 0.12);
+  --bg-rgb: 243 246 251;
+  --surface-rgb: 255 255 255;
+  --space-900: #e8eef8;
+  --space-800: #f3f6fb;
+  --space-700: #f3f6fb;
+  --bg: #f3f6fb;
+  --panel: #ffffff;
+  --panel-soft: #ffffff;
+  --panel-glass: #ffffff;
+  --hairline: #c9d3e6;
+  --hairline-soft: #dfe5f0;
 
   /* --- Texto ---------------------------------------------------------- */
-  --fg-rgb: 218 232 251;
-  --text: var(--c-alice);
-  --text-dim: #c3d4ef;
-  --text-faint: #a9bce0;
+  --fg-rgb: 11 27 63;
+  --text: #0b1b3f;
+  --text-dim: #33415f;
+  --text-faint: #4a5878;
 
   /* --- Acentos -------------------------------------------------------- */
-  --accent-rgb: 117 203 209;
-  --action: var(--c-aqua);
-  --action-hi: #a9e6ea;
-  --action-deep: #4fb3ba;
-  --on-accent: var(--c-navy);
-  --secondary: var(--c-dusk);
-  --on-secondary: var(--c-alice);
-  --badge: var(--c-thistle);
-  --on-badge: var(--c-navy);
+  --accent-rgb: 212 42 22;
+  --action: var(--c-red);
+  --action-hi: var(--c-red);
+  --action-deep: #b22312;
+  --on-accent: #ffffff;
+  --secondary: var(--c-nasa);
+  --on-secondary: #ffffff;
+  --badge: var(--c-yellow);
+  --on-badge: var(--c-ink);
+  --link: #1a5fd0;
 
   /* Identidad de cada misión y estados. */
   --moon: #c8ceda;
   --mars: #e68a68;
   --amber: #f2a65a;
-  --violet: var(--c-thistle);
-  --ok: #7ee2b0;
-  --warn: #ffd166;
+  --violet: var(--c-yellow);
+  --ok: #1e8e4e;
+  --warn: #b7791f;
 
   /* --- Tipografía ------------------------------------------------------ */
-  --font-display: 'Orbitron', 'Eurostile', 'Bahnschrift', 'Trebuchet MS', sans-serif;
-  --font-ui: 'Space Grotesk', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Nunito', 'Trebuchet MS', system-ui, sans-serif;
+  --font-ui: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
 
   /* --- Geometría -------------------------------------------------------- */
   --r-sm: 8px;
-  --r-md: 14px;
-  --r-lg: 22px;
-  --r-xl: 30px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
   --tap: 44px;
 
-  /* --- Sombras y brillos ------------------------------------------------ */
-  --glow-action: 0 0 0 1px rgb(var(--accent-rgb) / 0.35),
-    0 10px 40px -12px rgb(var(--accent-rgb) / 0.55);
-  --glow-badge: 0 0 18px rgb(var(--thistle-rgb) / 0.45);
-  --shadow-card: 0 28px 60px -28px rgb(0 0 0 / 0.85), 0 2px 0 0 rgb(var(--fg-rgb) / 0.05) inset;
-  --shadow-modal: 0 40px 120px -30px rgb(0 0 0 / 0.9);
+  /* --- Sombras (sin brillos) -------------------------------------------- */
+  --glow-action: none;
+  --glow-badge: none;
+  --shadow-card: 0 2px 0 #d5dcea, 0 6px 16px -10px rgb(11 27 63 / 0.35);
+  --shadow-modal: 0 30px 80px -30px rgb(11 27 63 / 0.6);
 
   /* --- Movimiento -------------------------------------------------------- */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-fast: 160ms;
-  --dur: 320ms;
-  --dur-slow: 620ms;
+  --dur-fast: 140ms;
+  --dur: 260ms;
+  --dur-slow: 480ms;
 
   /* Factor global de movimiento. El toggle de accesibilidad lo pone a 0. */
   --motion: 1;
 
-  --maxw: 1240px;
+  --maxw: 1200px;
 }
 
-/* --- Modo claro: fondo Alice Blue, texto Deep Navy, acento Dusk Blue ---- */
-@media (prefers-color-scheme: light) {
+/* --- Modo oscuro: negro espacial, acentos más claros ---------------------- */
+@media (prefers-color-scheme: dark) {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
 
-    --bg-rgb: 218 232 251;
-    --surface-rgb: 246 249 255;
-    --space-900: #eef4fd;
-    --space-800: #dae8fb;
-    --space-700: #e4eefc;
-    --bg: var(--c-alice);
-    --panel: #f6f9ff;
-    --hairline: rgb(var(--dusk-rgb) / 0.45);
-    --hairline-soft: rgb(12 13 69 / 0.12);
+    --c-alice: #0a0f24;
+    --bg-rgb: 10 15 36;
+    --surface-rgb: 17 24 51;
+    --space-900: #070b1b;
+    --space-800: #0a0f24;
+    --space-700: #0a0f24;
+    --bg: #0a0f24;
+    --panel: #111833;
+    --panel-soft: #111833;
+    --panel-glass: #111833;
+    --hairline: #2a3766;
+    --hairline-soft: #1f2a52;
 
-    --fg-rgb: 12 13 69;
-    --text: var(--c-navy);
-    --text-dim: #262b6b;
-    --text-faint: #3b4580;
+    --fg-rgb: 230 236 248;
+    --text: #e6ecf8;
+    --text-dim: #c5d0e6;
+    --text-faint: #a7b4cf;
 
-    --accent-rgb: 62 91 163;
-    --action: var(--c-dusk);
-    --action-hi: #3e5ba3;
-    --action-deep: #2a4385;
-    --on-accent: #f6f9ff;
-    --secondary: #c9d9f4;
-    --on-secondary: var(--c-navy);
+    --accent-rgb: 255 106 82;
+    --action: #ff6a52;
+    --action-hi: #ff6a52;
+    --action-deep: #ff8670;
+    --on-accent: #0a0f24;
+    --link: #8ab4ff;
 
-    --shadow-card: 0 24px 50px -30px rgb(12 13 69 / 0.45);
-    --shadow-modal: 0 40px 120px -30px rgb(12 13 69 / 0.55);
+    --shadow-card: 0 2px 0 #050816, 0 8px 20px -12px rgb(0 0 0 / 0.8);
+    --shadow-modal: 0 30px 80px -30px rgb(0 0 0 / 0.9);
   }
 }
 
