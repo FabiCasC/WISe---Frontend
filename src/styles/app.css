@@ -1,0 +1,2500 @@
+/* =========================================================================
+   ÓRBITA ARCADE · HOJA PRINCIPAL
+   Todo el "mundo" está dibujado con CSS/SVG: el portal se ve terminado
+   aunque todavía no exista ni una sola imagen. Cuando el arte llegue,
+   entra por encima mediante .portal__art sin tocar el layout.
+   ========================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--space-800);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+body.is-locked {
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.08;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: 0;
+  background: none;
+}
+
+a {
+  color: var(--action);
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: rgba(109, 226, 242, 0.3);
+}
+
+/* Barras de desplazamiento integradas en la paleta. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(109, 226, 242, 0.35) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(3, 8, 18, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(109, 226, 242, 0.3);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(109, 226, 242, 0.55);
+  background-clip: content-box;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -200px;
+  z-index: 999;
+  background: var(--action);
+  color: #041018;
+  padding: 12px 18px;
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  transition: top var(--dur) var(--ease);
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+/* =========================================================================
+   1 · CIELO
+   ========================================================================= */
+
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(130% 90% at 50% -10%, #0d2342 0%, rgba(13, 35, 66, 0) 55%),
+    radial-gradient(90% 70% at 8% 18%, rgba(109, 226, 242, 0.14) 0%, rgba(109, 226, 242, 0) 60%),
+    radial-gradient(80% 60% at 92% 30%, rgba(230, 138, 104, 0.16) 0%, rgba(230, 138, 104, 0) 60%),
+    radial-gradient(120% 80% at 50% 110%, rgba(139, 125, 240, 0.18) 0%, rgba(139, 125, 240, 0) 55%),
+    linear-gradient(180deg, var(--space-900) 0%, var(--space-700) 45%, var(--space-800) 100%);
+}
+
+.sky__stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Nebulosas: manchas difusas que respiran muy despacio. */
+.sky__nebula {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: calc(0.45 * var(--motion) + 0.25);
+  mix-blend-mode: screen;
+  animation: drift 34s var(--ease) infinite alternate;
+}
+
+.sky__nebula--a {
+  width: 46vw;
+  height: 46vw;
+  left: -10vw;
+  top: 4vh;
+  background: radial-gradient(circle, rgba(109, 226, 242, 0.6), transparent 68%);
+}
+
+.sky__nebula--b {
+  width: 40vw;
+  height: 40vw;
+  right: -8vw;
+  top: 24vh;
+  background: radial-gradient(circle, rgba(230, 138, 104, 0.55), transparent 68%);
+  animation-delay: -12s;
+}
+
+.sky__nebula--c {
+  width: 52vw;
+  height: 34vw;
+  left: 28vw;
+  bottom: -12vh;
+  background: radial-gradient(circle, rgba(139, 125, 240, 0.5), transparent 70%);
+  animation-delay: -22s;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(calc(3vw * var(--motion)), calc(-4vh * var(--motion)), 0) scale(1.14);
+  }
+}
+
+/* Retícula sutil tipo instrumento. */
+.sky__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(109, 226, 242, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(109, 226, 242, 0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(110% 80% at 50% 25%, #000 10%, transparent 72%);
+  -webkit-mask-image: radial-gradient(110% 80% at 50% 25%, #000 10%, transparent 72%);
+}
+
+.sky__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 45%, rgba(3, 8, 18, 0.85) 100%);
+}
+
+/* =========================================================================
+   2 · ESTRUCTURA
+   ========================================================================= */
+
+.shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 40px);
+}
+
+/* --- Barra superior ---------------------------------------------------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  background: linear-gradient(180deg, rgba(5, 11, 24, 0.88), rgba(5, 11, 24, 0.5));
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding-block: 10px;
+}
+
+.brandmark {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  color: inherit;
+  flex: 0 0 auto;
+}
+
+.brandmark__glyph {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+}
+
+.brandmark__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.brandmark__name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 17px;
+  letter-spacing: 0.1em;
+}
+
+.brandmark__sub {
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  color: var(--action);
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+.topbar__spacer {
+  flex: 1 1 auto;
+}
+
+.topbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navlink {
+  padding: 9px 13px;
+  border-radius: var(--r-sm);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+  white-space: nowrap;
+}
+
+.navlink:hover {
+  color: var(--text);
+  background: rgba(245, 248, 255, 0.07);
+}
+
+/* --- Botones ----------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  gap: 9px;
+  min-height: var(--tap);
+  padding: 0 20px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition:
+    transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, #9bf6ff, var(--action) 45%, var(--action-deep));
+  color: #04131a;
+  box-shadow: var(--glow-action);
+}
+
+.btn--primary:hover {
+  box-shadow: 0 0 0 1px rgba(109, 226, 242, 0.6), 0 16px 48px -12px rgba(109, 226, 242, 0.75);
+  transform: translateY(calc(-2px * var(--motion)));
+}
+
+.btn--ghost {
+  background: rgba(245, 248, 255, 0.05);
+  border: 1px solid var(--hairline);
+  color: var(--text);
+}
+
+.btn--ghost:hover {
+  background: rgba(109, 226, 242, 0.12);
+  border-color: rgba(109, 226, 242, 0.5);
+}
+
+.btn--quiet {
+  background: transparent;
+  border: 1px solid var(--hairline-soft);
+  color: var(--text-dim);
+}
+
+.btn--quiet:hover {
+  color: var(--text);
+  border-color: var(--hairline);
+}
+
+.btn--icon {
+  width: var(--tap);
+  min-width: var(--tap);
+  padding: 0;
+}
+
+.btn--sm {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* --- Píldora de pasaporte en la barra ---------------------------------- */
+
+.passport-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--tap);
+  padding: 0 8px 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: rgba(18, 36, 58, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.passport-pill:hover {
+  border-color: rgba(109, 226, 242, 0.55);
+  background: rgba(109, 226, 242, 0.1);
+}
+
+.passport-pill__label {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.stamps {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.stamp {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-faint);
+  background: transparent;
+  transition: all var(--dur) var(--ease);
+}
+
+.stamp.is-on {
+  border-color: var(--action);
+  background: var(--action);
+  box-shadow: 0 0 10px var(--action);
+}
+
+/* =========================================================================
+   3 · HÉROE
+   ========================================================================= */
+
+/* =========================================================================
+   3 · PORTADA (página 1) — pantalla completa sobre la imagen de los planetas
+   ========================================================================= */
+
+@keyframes ping {
+  0% {
+    box-shadow: 0 0 0 0 rgba(109, 226, 242, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 calc(9px * var(--motion)) rgba(109, 226, 242, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(109, 226, 242, 0);
+  }
+}
+
+.cover {
+  position: relative;
+  min-height: min(100svh, 1000px);
+  display: grid;
+  place-items: center;
+  padding: clamp(56px, 9vh, 110px) clamp(16px, 4vw, 40px) clamp(78px, 12vh, 140px);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.cover__media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.cover__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Dos capas: una viñeta que hunde los bordes y un degradado que funde la
+   imagen con el fondo de la página al llegar abajo. */
+.cover__tint {
+  position: absolute;
+  inset: 0;
+  background:
+    /* Oscurece solo la banda central, donde va el texto: así la Luna y Marte
+       de los bordes se siguen viendo. */
+    radial-gradient(
+      52% 58% at 50% 48%,
+      rgba(3, 8, 18, 0.74) 0%,
+      rgba(3, 8, 18, 0.45) 55%,
+      rgba(3, 8, 18, 0) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(5, 11, 24, 0.82) 0%,
+      rgba(5, 11, 24, 0.12) 24%,
+      rgba(5, 11, 24, 0.35) 62%,
+      var(--space-800) 100%
+    );
+}
+
+.cover__inner {
+  position: relative;
+  text-align: center;
+  max-width: 1000px;
+}
+
+.cover__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(109, 226, 242, 0.35);
+  background: rgba(7, 20, 39, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--action);
+  margin-bottom: clamp(18px, 3vh, 30px);
+}
+
+.cover__eyebrow::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--action);
+  animation: ping 2.4s var(--ease) infinite;
+}
+
+.cover__word {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(52px, 13vw, 168px);
+  line-height: 0.84;
+  letter-spacing: -0.035em;
+  margin: 0;
+  background: linear-gradient(176deg, #ffffff 4%, #d8eeff 26%, var(--action) 62%, #3f9fb8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 18px 50px rgba(0, 0, 0, 0.8));
+}
+
+.cover__word-sub {
+  display: block;
+  font-size: clamp(12px, 2.8vw, 28px);
+  letter-spacing: clamp(0.3em, 1.5vw, 0.74em);
+  font-weight: 500;
+  margin-top: clamp(8px, 1.6vh, 18px);
+  margin-left: clamp(0.3em, 1.5vw, 0.74em); /* compensa el tracking final */
+  background: linear-gradient(90deg, rgba(200, 206, 218, 0.95), rgba(230, 138, 104, 0.95));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: none;
+}
+
+.cover__claim {
+  font-family: var(--font-display);
+  font-size: clamp(16px, 2.4vw, 24px);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  margin-top: clamp(20px, 3.4vh, 34px);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.8);
+}
+
+.cover__lede {
+  max-width: 62ch;
+  margin: 14px auto 0;
+  color: var(--text-dim);
+  font-size: clamp(14.5px, 1.6vw, 17px);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+}
+
+.cover__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 13px;
+  justify-content: center;
+  margin-top: clamp(26px, 4vh, 42px);
+}
+
+.cover__stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(14px, 4vw, 52px);
+  margin-top: clamp(32px, 5vh, 54px);
+  padding-top: clamp(22px, 3vh, 30px);
+  border-top: 1px solid rgba(245, 248, 255, 0.16);
+}
+
+.stat {
+  text-align: center;
+  min-width: 88px;
+}
+
+.stat__value {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3.2vw, 34px);
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+.stat__label {
+  margin-top: 7px;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* Flecha de "sigue bajando". */
+.cover__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(18px, 3vh, 34px);
+  width: 30px;
+  height: 46px;
+  margin-left: -15px;
+  border-radius: 999px;
+  border: 2px solid rgba(245, 248, 255, 0.35);
+  display: grid;
+  place-items: start center;
+  padding-top: 7px;
+}
+
+.cover__scroll span {
+  width: 4px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--action);
+  animation: scroll-hint 1.9s var(--ease) infinite;
+}
+
+@keyframes scroll-hint {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(18px * var(--motion)));
+    opacity: 0;
+  }
+}
+
+/* Botones grandes de portada ------------------------------------------- */
+
+.btn--lg {
+  min-height: 50px;
+  padding: 0 24px;
+  font-size: 15px;
+}
+
+.btn--xl {
+  min-height: 58px;
+  padding: 0 30px;
+  font-size: 16.5px;
+}
+
+/* Ayudas de sección ------------------------------------------------------ */
+
+/* Doble clase a propósito: `.section__head` se declara más abajo en la hoja
+   y con un solo nombre de clase ganaría por orden. */
+.section__head.section__head--center {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.section__head--center .section__note {
+  max-width: 62ch;
+}
+
+.section__foot {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(24px, 4vh, 38px);
+}
+
+.portals--center {
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.topbar__cta {
+  flex: 0 0 auto;
+}
+
+/* =========================================================================
+   4b · MOSAICO — la rejilla densa de fichas (el gesto de Friv)
+   -------------------------------------------------------------------------
+   Friv llena la pantalla de accesos. Aquí cada ficha hace algo real: los
+   azulejos grandes abren un juego y los pequeños abren la ficha de ese
+   equipo. Densidad sin botones falsos.
+   ========================================================================= */
+
+/* Lavado violeta bajo la rejilla: es el color que un chico de 10 años asocia
+   con "arcade", y a la vez es el tono de una nebulosa. */
+.mosaic::before {
+  content: '';
+  position: absolute;
+  /* A sangre: el contenedor está centrado con un ancho máximo, pero el fondo
+     tiene que llegar a los bordes de la ventana. */
+  inset: 0 calc(50% - 50vw);
+  z-index: -1;
+  background:
+    radial-gradient(90% 60% at 50% 0%, rgba(139, 125, 240, 0.4), transparent 70%),
+    radial-gradient(70% 50% at 10% 40%, rgba(199, 123, 255, 0.22), transparent 70%),
+    radial-gradient(70% 50% at 92% 70%, rgba(91, 168, 255, 0.22), transparent 70%),
+    linear-gradient(180deg, rgba(46, 24, 96, 0.72), rgba(26, 14, 58, 0.55) 60%, transparent);
+  pointer-events: none;
+}
+
+.mosaic {
+  position: relative;
+  /* width:100% es obligatorio: sin él, margin-inline:auto convierte este flex
+     item en shrink-to-fit y la rejilla deja de ocupar el ancho disponible. */
+  width: 100%;
+  max-width: 1760px;
+  margin-inline: auto;
+  /* El logotipo flotante solapa la última fila, como en Friv. */
+  padding: 10px clamp(10px, 2vw, 28px) clamp(44px, 6vh, 76px);
+}
+
+.mosaic__bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.mosaic__tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline-soft);
+  background: rgba(245, 248, 255, 0.04);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  transition: all var(--dur-fast) var(--ease);
+}
+
+.tab:hover {
+  color: var(--text);
+  border-color: var(--hairline);
+}
+
+.tab.is-on {
+  background: var(--action);
+  border-color: var(--action);
+  color: #04131a;
+  box-shadow: 0 0 18px -4px rgba(109, 226, 242, 0.8);
+}
+
+.mosaic__hint {
+  margin-left: auto;
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+
+.mosaic__hint strong {
+  color: var(--action);
+}
+
+/* --- La rejilla --------------------------------------------------------- */
+
+.mosaic__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  grid-auto-flow: dense;
+  gap: 5px;
+}
+
+.tile {
+  position: relative;
+  aspect-ratio: 1;
+  display: block;
+  padding: 0;
+  border-radius: 13px;
+  overflow: hidden;
+  color: #fff;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.22),
+    0 3px 0 rgba(0, 0, 0, 0.3);
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow var(--dur-fast) var(--ease),
+    filter var(--dur-fast) var(--ease);
+}
+
+/* Brillo de caramelo: la ficha parece un botón, no un panel. */
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 80% at 26% 12%,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.08) 38%,
+    transparent 64%
+  );
+  pointer-events: none;
+}
+
+.tile:hover,
+.tile:focus-visible {
+  transform: scale(calc(1 + 0.24 * var(--motion))) rotate(calc(-3deg * var(--motion)));
+  z-index: 6;
+  filter: saturate(1.25) brightness(1.08);
+  box-shadow:
+    0 20px 42px -10px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 2.5px rgba(255, 255, 255, 0.75);
+}
+
+.tile__glyph {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.96);
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.tile:hover .tile__glyph {
+  transform: translateY(calc(-9% * var(--motion)));
+}
+
+.tile__year {
+  position: absolute;
+  left: 6px;
+  bottom: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.72);
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.tile__status {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.tile.is-activo .tile__status {
+  background: var(--ok);
+  box-shadow: 0 0 7px var(--ok);
+}
+
+.tile.is-viaje .tile__status {
+  background: var(--warn);
+  box-shadow: 0 0 7px var(--warn);
+}
+
+.tile__label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 16px 6px 6px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.88) 55%);
+  font-size: 9px;
+  line-height: 1.2;
+  font-weight: 700;
+  text-align: left;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tile:hover .tile__label,
+.tile:focus-visible .tile__label {
+  opacity: 1;
+}
+
+.tile:hover .tile__year,
+.tile:focus-visible .tile__year {
+  opacity: 0;
+}
+
+/* --- Azulejo de juego: ocupa 2×2 y lleva escena animada ------------------ */
+
+.tile--game {
+  grid-column: span 2;
+  grid-row: span 2;
+  border-radius: 15px;
+  background: #061223;
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 55%, transparent),
+    0 12px 34px -14px rgba(0, 0, 0, 0.9);
+}
+
+.tile--game:hover,
+.tile--game:focus-visible {
+  transform: scale(calc(1 + 0.055 * var(--motion)));
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    0 22px 54px -16px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.tile__scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* La escena es 16:10 y el azulejo es cuadrado: se amplía y se recorta por los
+   lados, que es donde no hay nada importante. */
+.tile__scene .scene {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -30%;
+  width: 160%;
+}
+
+/* Ilustración del juego. Va sobre la escena CSS y bajo el degradado del
+   título. Solo aparece cuando el navegador confirma que cargó. */
+.tile__art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease), transform var(--dur) var(--ease-out);
+}
+
+.tile__art.is-loaded {
+  opacity: 1;
+}
+
+.tile--game:hover .tile__art.is-loaded {
+  transform: scale(1.06);
+}
+
+.tile__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 42%, rgba(3, 8, 18, 0.94));
+}
+
+.tile__flag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--action);
+  color: #04131a;
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  box-shadow: 0 0 16px -2px rgba(109, 226, 242, 0.9);
+}
+
+.tile__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 10px 11px 11px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.tile__name {
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+.tile__dots {
+  display: flex;
+  gap: 3px;
+}
+
+.dot {
+  width: 12px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.dot.is-on {
+  background: var(--accent);
+  box-shadow: 0 0 7px var(--accent);
+}
+
+.tile__play {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  z-index: 2;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(109, 226, 242, 0.96);
+  color: #04131a;
+  box-shadow: 0 0 0 8px rgba(109, 226, 242, 0.18);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.72);
+  transition: all var(--dur) var(--ease-out);
+}
+
+.tile--game:hover .tile__play,
+.tile--game:focus-visible .tile__play {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* --- Logotipo flotando sobre la rejilla (el "blob" de Friv) -------------- */
+
+.mosaic__blob {
+  position: absolute;
+  left: 84%;
+  top: 86%;
+  z-index: 7;
+  /* En táctil no hay hover, así que no debe interceptar toques sobre fichas. */
+  pointer-events: none;
+  padding: 20px 30px 22px;
+  background: linear-gradient(142deg, #fff38a 0%, #6de2f2 44%, #ff8a4c 100%);
+  color: #06131f;
+  box-shadow:
+    0 26px 60px -16px rgba(0, 0, 0, 0.92),
+    inset 0 3px 0 rgba(255, 255, 255, 0.65),
+    0 0 0 4px rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Salto con rebote: el logotipo "huye" del cursor. */
+  transform: translate(-50%, -50%) rotate(var(--rot, -4deg));
+  transition:
+    left 0.52s cubic-bezier(0.34, 1.56, 0.64, 1),
+    top 0.52s cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-radius 0.52s var(--ease-out),
+    transform 0.52s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Solo con ratón de verdad se activa el esquive. */
+@media (hover: hover) and (pointer: fine) {
+  .mosaic__blob {
+    pointer-events: auto;
+    cursor: default;
+  }
+}
+
+.mosaic__blob-word {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(26px, 3.2vw, 44px);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.mosaic__blob-sub {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(9px, 1vw, 13px);
+  letter-spacing: 0.42em;
+  margin-left: 0.42em;
+  margin-top: 4px;
+}
+
+.mosaic__blob-badge {
+  margin-top: 10px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: #04131a;
+  color: #9bf6ff;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* --- Cabecera de la ficha del archivo ------------------------------------ */
+
+.archive-hero {
+  height: 132px;
+  border-radius: var(--r-lg);
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.96);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+/* =========================================================================
+   5 · PORTALES (fichas detalladas de los tres juegos)
+   ========================================================================= */
+
+.section {
+  padding-block: clamp(42px, 7vh, 80px);
+  position: relative;
+}
+
+.section__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(22px, 3.4vh, 34px);
+}
+
+.section__kicker {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--action);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.section__title {
+  font-size: clamp(24px, 3.6vw, 38px);
+}
+
+.section__note {
+  color: var(--text-dim);
+  font-size: 14px;
+  max-width: 46ch;
+}
+
+.portals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: clamp(16px, 2.2vw, 26px);
+}
+
+.portal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--hairline-soft);
+  background: linear-gradient(170deg, rgba(18, 36, 58, 0.92), rgba(7, 20, 39, 0.96));
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    transform var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.portal::before {
+  /* Halo del color de la misión. */
+  content: '';
+  position: absolute;
+  inset: -40% -20% auto -20%;
+  height: 70%;
+  background: radial-gradient(ellipse at 50% 0%, var(--accent) 0%, transparent 68%);
+  opacity: 0.2;
+  z-index: -1;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.portal:hover,
+.portal:focus-within {
+  transform: translateY(calc(-7px * var(--motion)));
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow:
+    var(--shadow-card),
+    0 24px 70px -26px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.portal:hover::before,
+.portal:focus-within::before {
+  opacity: 0.42;
+}
+
+/* --- Ventana animada del portal ---------------------------------------- */
+
+.portal__window {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: radial-gradient(120% 100% at 50% 0%, #0b1d35, #040a14);
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+.portal__art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease-out);
+}
+
+/* Solo se muestra si el navegador pudo cargarla (ver PortalCard.tsx). */
+.portal__art.is-loaded {
+  opacity: 1;
+}
+
+.portal:hover .portal__art.is-loaded {
+  transform: scale(1.05);
+}
+
+/* Escena CSS de respaldo: siempre presente, siempre correcta. */
+.scene {
+  position: absolute;
+  inset: 0;
+}
+
+.scene__sky {
+  position: absolute;
+  inset: 0;
+}
+
+.scene--marte .scene__sky {
+  background: linear-gradient(180deg, #43213a 0%, #8a4a36 42%, #c97a4e 74%, #e3a070 100%);
+}
+
+/* Gusev: atmósfera más cargada de polvo, luz rasante de final de misión. */
+.scene--spirit .scene__sky {
+  background: linear-gradient(180deg, #2d1b2e 0%, #74452f 38%, #b9793f 70%, #e5b273 100%);
+}
+
+.scene--luna .scene__sky {
+  background: linear-gradient(180deg, #010409 0%, #061023 58%, #0b1a30 100%);
+}
+
+/* Estrellas visibles: en la Luna no hay atmósfera que las apague. */
+.scene__starfield {
+  position: absolute;
+  inset: 0 0 46% 0;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 22%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 28% 58%, #dff4ff, transparent),
+    radial-gradient(1.6px 1.6px at 46% 16%, #fff, transparent),
+    radial-gradient(1.1px 1.1px at 62% 42%, #cfe0ff, transparent),
+    radial-gradient(1.5px 1.5px at 78% 24%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 88% 60%, #dff4ff, transparent),
+    radial-gradient(1.3px 1.3px at 35% 78%, #fff, transparent),
+    radial-gradient(1.1px 1.1px at 70% 72%, #cfe0ff, transparent);
+  opacity: 0.85;
+}
+
+.scene__ground {
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  bottom: -14%;
+  height: 48%;
+  border-radius: 50% 50% 0 0 / 34% 34% 0 0;
+}
+
+.scene--marte .scene__ground {
+  background: linear-gradient(180deg, #c4713f, #7d3c22 72%, #4a1f12);
+  box-shadow: inset 0 10px 24px rgba(255, 200, 160, 0.18);
+}
+
+.scene--spirit .scene__ground {
+  background: linear-gradient(180deg, #b36a3c, #6f3620 72%, #40190f);
+  box-shadow: inset 0 10px 24px rgba(255, 210, 170, 0.2);
+}
+
+.scene--luna .scene__ground {
+  background: linear-gradient(180deg, #b9bfcc, #6a7180 70%, #343a47);
+  box-shadow: inset 0 10px 24px rgba(255, 255, 255, 0.2);
+}
+
+/* Franja de suelo claro que la rueda trabada dejó al descubierto. */
+.scene__silica {
+  position: absolute;
+  left: 48%;
+  right: 4%;
+  bottom: 15%;
+  height: 9%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 243, 222, 0.85), transparent 72%);
+  filter: blur(1px);
+}
+
+.scene__sun {
+  position: absolute;
+  width: 16%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  top: 16%;
+  right: 16%;
+  background: radial-gradient(circle, #fff 0%, #ffe9c9 40%, rgba(255, 233, 201, 0) 72%);
+  animation: pulse-soft 7s var(--ease) infinite alternate;
+}
+
+.scene--luna .scene__sun {
+  background: radial-gradient(circle, #e9f4ff 0%, #9fc6e8 42%, rgba(159, 198, 232, 0) 74%);
+}
+
+@keyframes pulse-soft {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(calc(1 + 0.1 * var(--motion)));
+  }
+}
+
+/* Tierra vista desde la Luna. */
+.scene__earth {
+  position: absolute;
+  width: 13%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  top: 18%;
+  left: 15%;
+  background: radial-gradient(circle at 36% 32%, #8fd3ff, #2a7fd4 48%, #0d3f78 78%, #04203f);
+  box-shadow: 0 0 22px rgba(80, 160, 255, 0.5), inset -5px -4px 9px rgba(0, 0, 0, 0.6);
+}
+
+/* Sujeto del portal: rover o estación. Dibujado con cajas. */
+.scene__subject {
+  position: absolute;
+  left: 50%;
+  bottom: 17%;
+  transform: translateX(-50%);
+  width: 34%;
+  animation: hover-bob 5.5s var(--ease) infinite alternate;
+}
+
+@keyframes hover-bob {
+  from {
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    transform: translateX(-50%) translateY(calc(-5px * var(--motion)));
+  }
+}
+
+.scene__dust {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14%;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.25) 0 3px,
+    transparent 3px 26px
+  );
+  opacity: 0.5;
+  animation: dust 9s linear infinite;
+}
+
+@keyframes dust {
+  to {
+    transform: translateX(-26px);
+  }
+}
+
+.scene__scan {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(109, 226, 242, 0.1) 48%,
+    transparent 52%
+  );
+  background-size: 100% 220%;
+  animation: scan 5s linear infinite;
+  opacity: calc(0.9 * var(--motion));
+}
+
+@keyframes scan {
+  from {
+    background-position: 0 -110%;
+  }
+  to {
+    background-position: 0 210%;
+  }
+}
+
+.portal__badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(3, 8, 18, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--hairline-soft);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.portal__badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.portal__time {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: rgba(3, 8, 18, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--hairline-soft);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.portal__play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, rgba(3, 8, 18, 0), rgba(3, 8, 18, 0.55));
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.portal:hover .portal__play,
+.portal:focus-within .portal__play {
+  opacity: 1;
+}
+
+.portal__play-btn {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(109, 226, 242, 0.95);
+  color: #04131a;
+  box-shadow: 0 0 0 10px rgba(109, 226, 242, 0.18), 0 14px 40px -10px rgba(0, 0, 0, 0.8);
+  transform: scale(0.86);
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.portal:hover .portal__play-btn {
+  transform: scale(1);
+}
+
+/* --- Cuerpo del portal ------------------------------------------------- */
+
+.portal__body {
+  padding: 20px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  flex: 1;
+}
+
+.portal__title {
+  font-size: 20px;
+  letter-spacing: -0.015em;
+}
+
+.portal__kicker {
+  font-size: 12.5px;
+  color: var(--text-faint);
+  margin-top: 5px;
+  letter-spacing: 0.02em;
+}
+
+.portal__voice {
+  position: relative;
+  padding-left: 13px;
+  font-size: 13.5px;
+  font-style: italic;
+  color: var(--text-dim);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.portal__voice-tag {
+  display: block;
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-top: 6px;
+}
+
+.portal__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline-soft);
+  background: rgba(245, 248, 255, 0.04);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.chip--accent {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.portal__levels {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding-top: 13px;
+  border-top: 1px solid var(--hairline-soft);
+}
+
+.portal__levels-label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.lvl {
+  width: 26px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(245, 248, 255, 0.14);
+  transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.lvl.is-done {
+  background: var(--accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.portal__actions {
+  display: flex;
+  gap: 9px;
+  padding: 0 20px 20px;
+}
+
+.portal__actions .btn {
+  flex: 1;
+}
+
+/* =========================================================================
+   6 · PASAPORTE
+   ========================================================================= */
+
+.passport {
+  border-radius: var(--r-xl);
+  border: 1px solid var(--hairline);
+  background:
+    linear-gradient(140deg, rgba(109, 226, 242, 0.1), rgba(18, 36, 58, 0.9) 42%),
+    var(--panel);
+  padding: clamp(22px, 3.4vw, 38px);
+  box-shadow: var(--shadow-card);
+}
+
+.passport__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.memory {
+  border-radius: var(--r-lg);
+  border: 1px dashed var(--hairline-soft);
+  background: rgba(3, 8, 18, 0.42);
+  padding: 18px;
+  min-height: 136px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all var(--dur) var(--ease);
+}
+
+.memory.is-unlocked {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--accent) 14%, transparent),
+    rgba(3, 8, 18, 0.5)
+  );
+}
+
+.memory__seal {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--text-faint);
+  color: var(--text-faint);
+  font-size: 16px;
+}
+
+.memory.is-unlocked .memory__seal {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.memory__name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.memory__state {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* =========================================================================
+   8 · EQUIPO
+   ========================================================================= */
+
+.crew {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 13px;
+}
+
+.crew__card {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline-soft);
+  background: rgba(18, 36, 58, 0.55);
+  padding: 18px;
+}
+
+.crew__role {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.crew__task {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 7px;
+}
+
+.crew__out {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hairline-soft);
+}
+
+/* =========================================================================
+   9 · PIE
+   ========================================================================= */
+
+.footer {
+  margin-top: auto;
+  border-top: 1px solid var(--hairline-soft);
+  background: rgba(3, 8, 18, 0.62);
+  padding-block: 34px 44px;
+}
+
+.footer__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 26px;
+}
+
+.footer__title {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--action);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.footer__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.footer__disclaimer {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline-soft);
+  font-size: 12px;
+  color: var(--text-faint);
+  max-width: 86ch;
+  line-height: 1.6;
+}
+
+/* =========================================================================
+   10 · MODALES
+   ========================================================================= */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 32px);
+  background: rgba(3, 8, 18, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: fade var(--dur) var(--ease);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.modal {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: min(86vh, 900px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--hairline);
+  background: linear-gradient(170deg, #14273f, #081528 60%);
+  box-shadow: var(--shadow-modal);
+  animation: rise var(--dur-slow) var(--ease-out);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(calc(22px * var(--motion))) scale(calc(1 - 0.015 * var(--motion)));
+  }
+}
+
+.modal__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 22px clamp(18px, 3vw, 30px);
+  background: linear-gradient(180deg, #14273f 65%, rgba(20, 39, 63, 0));
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+.modal__title {
+  font-size: clamp(19px, 2.6vw, 25px);
+  flex: 1;
+}
+
+.modal__sub {
+  font-size: 12.5px;
+  color: var(--text-faint);
+  margin-top: 6px;
+}
+
+.modal__body {
+  padding: 6px clamp(18px, 3vw, 30px) clamp(22px, 3vw, 30px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal__close {
+  position: sticky;
+  flex: 0 0 auto;
+}
+
+.field {
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline-soft);
+  background: rgba(3, 8, 18, 0.4);
+  padding: 15px 17px;
+}
+
+.field__label {
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--action);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.field__value {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.field--warn {
+  border-color: rgba(255, 209, 102, 0.3);
+  background: rgba(255, 209, 102, 0.07);
+}
+
+.field--warn .field__label {
+  color: var(--warn);
+}
+
+.list-check {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+.list-check li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.list-check li::before {
+  content: '✕';
+  color: var(--mars);
+  font-weight: 700;
+  flex: 0 0 auto;
+  line-height: 1.5;
+}
+
+.srcs {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.src {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline-soft);
+  background: rgba(245, 248, 255, 0.03);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 13px;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.src:hover {
+  border-color: rgba(109, 226, 242, 0.5);
+  background: rgba(109, 226, 242, 0.08);
+}
+
+.src__pub {
+  font-size: 11px;
+  color: var(--text-faint);
+  display: block;
+  margin-top: 3px;
+}
+
+/* --- Ajustes ----------------------------------------------------------- */
+
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+.setting:last-child {
+  border-bottom: 0;
+}
+
+.setting__name {
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.setting__hint {
+  font-size: 12.5px;
+  color: var(--text-faint);
+  margin-top: 4px;
+  max-width: 42ch;
+}
+
+.switch {
+  position: relative;
+  width: 54px;
+  height: 30px;
+  min-width: 54px;
+  border-radius: 999px;
+  background: rgba(245, 248, 255, 0.14);
+  border: 1px solid var(--hairline-soft);
+  transition: background var(--dur) var(--ease);
+}
+
+.switch[aria-checked='true'] {
+  background: var(--action);
+  border-color: var(--action);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.switch[aria-checked='true']::after {
+  transform: translateX(24px);
+}
+
+.range {
+  width: 170px;
+  accent-color: var(--action);
+  height: var(--tap);
+}
+
+/* =========================================================================
+   11 · SALA DE JUEGO
+   ========================================================================= */
+
+.arena {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(120% 90% at 50% 0%, #0a1c33, #030812 70%);
+  animation: fade var(--dur) var(--ease);
+}
+
+.arena__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px clamp(12px, 3vw, 26px);
+  border-bottom: 1px solid var(--hairline-soft);
+  background: rgba(3, 8, 18, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  flex: 0 0 auto;
+}
+
+.arena__id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.arena__name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arena__level {
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+.arena__stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 2.5vw, 26px);
+}
+
+/* Contenedor que recibe el canvas de Phaser. */
+.arena__mount {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 1100px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline-soft);
+  background: rgba(3, 8, 18, 0.55);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.arena__mount canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Tarjeta provisional de los módulos todavía no construidos. */
+.stub {
+  text-align: center;
+  padding: clamp(24px, 5vw, 48px);
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.stub__ring {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 2px solid var(--hairline);
+  border-top-color: var(--action);
+  animation: spin 2.4s linear infinite;
+  display: grid;
+  place-items: center;
+}
+
+.stub__title {
+  font-size: clamp(20px, 3vw, 27px);
+}
+
+.stub__text {
+  color: var(--text-dim);
+  font-size: 14.5px;
+}
+
+.stub__specs {
+  width: 100%;
+  display: grid;
+  gap: 9px;
+  text-align: left;
+  margin-top: 6px;
+}
+
+.stub__spec {
+  display: flex;
+  gap: 13px;
+  padding: 12px 15px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline-soft);
+  background: rgba(245, 248, 255, 0.03);
+  font-size: 13.5px;
+}
+
+.stub__spec b {
+  font-family: var(--font-display);
+  color: var(--action);
+  flex: 0 0 76px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+/* =========================================================================
+   12 · TOAST
+   ========================================================================= */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: rgba(18, 36, 58, 0.96);
+  box-shadow: var(--shadow-modal);
+  font-size: 13.5px;
+  animation: toast-in var(--dur-slow) var(--ease-out);
+  max-width: calc(100vw - 32px);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(calc(16px * var(--motion)));
+  }
+}
+
+/* =========================================================================
+   12b · FRANJA DE DESTACADOS (cabecera del arcade)
+   -------------------------------------------------------------------------
+   Va después del mosaico en la hoja para poder anular los `span` de rejilla
+   de .tile--game sin subir la especificidad.
+   ========================================================================= */
+
+.arcade-top {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(22px, 3.6vh, 42px) clamp(12px, 2vw, 28px) clamp(26px, 4vh, 46px);
+  overflow: hidden;
+}
+
+/* Aurora lenta: da vida al fondo sin distraer de las tarjetas. */
+.arcade-top__aurora {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60% 80% at 12% 10%, rgba(109, 226, 242, 0.3), transparent 62%),
+    radial-gradient(55% 75% at 50% 110%, rgba(199, 123, 255, 0.34), transparent 65%),
+    radial-gradient(60% 80% at 88% 0%, rgba(255, 138, 76, 0.26), transparent 62%),
+    linear-gradient(180deg, rgba(10, 20, 44, 0.9), rgba(32, 18, 68, 0.75));
+  background-size: 180% 180%, 180% 180%, 180% 180%, 100% 100%;
+  animation: aurora 26s ease-in-out infinite alternate;
+}
+
+/* Difumina el canto inferior para que no se vea una línea dura contra el
+   lavado violeta del mosaico. */
+.arcade-top::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70px;
+  z-index: -1;
+  background: linear-gradient(180deg, transparent, rgba(46, 24, 96, 0.72));
+  pointer-events: none;
+}
+
+@keyframes aurora {
+  from {
+    background-position:
+      0% 0%,
+      50% 100%,
+      100% 0%,
+      0 0;
+  }
+  to {
+    background-position:
+      30% 25%,
+      20% 75%,
+      70% 20%,
+      0 0;
+  }
+}
+
+.arcade-top__inner {
+  width: 100%;
+  max-width: 1760px;
+  margin-inline: auto;
+}
+
+.arcade-top__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(16px, 2.4vh, 26px);
+}
+
+.arcade-top__title {
+  font-size: clamp(27px, 4.4vw, 50px);
+  letter-spacing: -0.025em;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.arcade-top__meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Tres tarjetas anchas que llenan el ancho: sin márgenes muertos. */
+.arcade-top__row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(10px, 1.2vw, 18px);
+}
+
+.arcade-top__slot {
+  display: flex;
+  min-width: 0;
+  animation: rise-in 0.7s var(--ease-out) backwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(26px * var(--motion)));
+  }
+}
+
+/* Anula el span de rejilla: aquí el azulejo va suelto y apaisado. */
+.tile--featured {
+  grid-column: auto;
+  grid-row: auto;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 22px;
+}
+
+.tile--featured .tile__flag {
+  top: 14px;
+  left: 14px;
+  font-size: 11px;
+  padding: 5px 13px;
+}
+
+.tile--featured .tile__caption {
+  padding: 16px 18px 18px;
+  gap: 5px;
+}
+
+.tile--featured .tile__name {
+  font-size: clamp(16px, 1.5vw, 22px);
+}
+
+.tile__body {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.tile__kicker {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.tile--featured .tile__dots {
+  margin-top: 8px;
+  align-items: center;
+}
+
+.tile__count {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.tile--featured .tile__play {
+  width: 64px;
+  height: 64px;
+  box-shadow: 0 0 0 12px rgba(109, 226, 242, 0.18);
+}
+
+/* ---- Movimiento que NO mueve el objetivo de clic ---------------------
+   Un botón que se desplaza sin parar es difícil de pulsar. Toda la vida de
+   las tarjetas destacadas ocurre dentro de ellas: un brillo que las barre y
+   la cinta «JUGAR» latiendo. El encuadre no se mueve ni un píxel. */
+
+.tile--featured .tile__shade::after {
+  content: '';
+  position: absolute;
+  top: -60%;
+  bottom: -60%;
+  width: 45%;
+  left: -60%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.16) 45%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.16) 55%,
+    transparent 100%
+  );
+  transform: rotate(14deg);
+  animation: sweep 6.5s var(--ease) infinite;
+  pointer-events: none;
+}
+
+.arcade-top__slot:nth-child(2) .tile--featured .tile__shade::after {
+  animation-delay: 2.1s;
+}
+
+.arcade-top__slot:nth-child(3) .tile--featured .tile__shade::after {
+  animation-delay: 4.2s;
+}
+
+@keyframes sweep {
+  0% {
+    left: -60%;
+  }
+  55%,
+  100% {
+    left: 130%;
+  }
+}
+
+.tile--featured .tile__flag {
+  animation: flag-pulse 2.6s var(--ease) infinite;
+}
+
+@keyframes flag-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 16px -2px rgba(109, 226, 242, 0.9);
+  }
+  50% {
+    box-shadow: 0 0 26px 2px rgba(109, 226, 242, 1);
+  }
+}
+
+/* =========================================================================
+   13 · RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 900px) {
+  .world--moon {
+    top: 9%;
+    opacity: 0.5;
+  }
+  .world--mars {
+    top: 52%;
+    opacity: 0.55;
+  }
+  .sky__grid {
+    background-size: 44px 44px;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Tres tarjetas anchas no caben: pasan a dos columnas y la tercera abajo. */
+  .arcade-top__row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .arcade-top__slot:last-child {
+    grid-column: 1 / -1;
+  }
+  .arcade-top__slot:last-child .tile--featured {
+    aspect-ratio: 21 / 9;
+  }
+}
+
+@media (max-width: 860px) {
+  /* El blob taparía demasiadas fichas en pantallas estrechas. La barra
+     superior ya muestra el logotipo. */
+  .mosaic__blob {
+    display: none;
+  }
+  .mosaic__hint {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 680px) {
+  .topbar__nav {
+    display: none;
+  }
+  .cover {
+    min-height: auto;
+    padding-block: clamp(40px, 7vh, 70px) clamp(56px, 9vh, 90px);
+  }
+  .cover__cta .btn {
+    flex: 1 1 100%;
+  }
+  .cover__scroll {
+    display: none;
+  }
+  .arcade-top__row {
+    grid-template-columns: 1fr;
+  }
+  .arcade-top__slot:last-child .tile--featured {
+    aspect-ratio: 16 / 10;
+  }
+  .mosaic__grid {
+    grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+    gap: 4px;
+  }
+  .tile {
+    border-radius: 8px;
+  }
+  .tile__name {
+    font-size: 10.5px;
+  }
+  /* En táctil no hay hover: la etiqueta se ve siempre, atenuada. */
+  .tile__label {
+    display: none;
+  }
+  .hero {
+    padding-block: 34px 22px;
+  }
+  .hero__cta .btn {
+    flex: 1 1 100%;
+  }
+  .portals {
+    grid-template-columns: 1fr;
+  }
+  .backlog {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  .setting {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .range {
+    width: 100%;
+  }
+  .world__tag {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .passport-pill__label {
+    display: none;
+  }
+}
+
+@media print {
+  .sky,
+  .topbar,
+  .portal__play {
+    display: none;
+  }
+}

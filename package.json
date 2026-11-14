@@ -1,0 +1,29 @@
+{
+  "name": "orbita-arcade",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Portal arcade educativo sobre equipos espaciales que quedaron en otros mundos. NASA Space Apps Challenge 2026.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit false --emitDeclarationOnly false || tsc -b",
+    "test": "vitest run",
+    "assets": "node scripts/optimize-assets.mjs"
+  },
+  "dependencies": {
+    "phaser": "3.80.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "4.3.3",
+    "sharp": "^0.33.5",
+    "typescript": "5.6.3",
+    "vite": "5.4.11",
+    "vitest": "2.1.5"
+  }
+}

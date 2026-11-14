@@ -1,0 +1,28 @@
+# Normaliza los finales de línea en el repositorio.
+# Con seis personas en Windows, macOS y Linux, sin esto cada PR aparece
+# con "todo el archivo modificado" aunque solo cambie una línea.
+* text=auto
+
+# Lenguajes y configuración: siempre LF dentro del repositorio.
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.js   text eol=lf
+*.mjs  text eol=lf
+*.json text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+*.md   text eol=lf
+*.svg  text eol=lf
+*.txt  text eol=lf
+
+# Binarios: que Git no intente convertir nada.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary
+*.docx  binary
+*.mp3   binary
+*.ogg   binary
+*.wav   binary

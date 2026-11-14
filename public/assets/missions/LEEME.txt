@@ -1,0 +1,3 @@
+Generadas por "npm run assets" desde art/originales/.
+No editar a mano: se sobrescriben.
+Nombres que busca el codigo: opportunity.webp, lunar-signals.webp, spirit.webp
