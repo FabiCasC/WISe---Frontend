@@ -15,7 +15,7 @@
  *   Pruebas (vitest)   30  → proporcional al % de pruebas que pasan
  *   Build (vite)       25
  *   Peso del bundle    15  → JS total comprimido con gzip
- * La revisión de Claude va aparte y da su propia nota cualitativa.
+ * La revisión de IA (GitHub Models o Claude) va aparte y da su propia nota.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -142,7 +142,7 @@ const md = [
         '',
       ].join('\n')
     : '',
-  '🟢 ≥ 90 · 🟡 70–89 · 🔴 < 70. La revisión de Claude (calidad, accesibilidad, rigor científico) llega en otro comentario.',
+  '🟢 ≥ 90 · 🟡 70–89 · 🔴 < 70. La revisión de IA (calidad, accesibilidad, rigor científico) llega en otro comentario.',
   sha ? `\n<sub>Commit \`${sha}\`</sub>` : '',
 ].join('\n')
 

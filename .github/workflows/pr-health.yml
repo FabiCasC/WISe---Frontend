@@ -3,12 +3,13 @@
 #  1. checks  → typecheck, pruebas y build. Calcula una nota de 0 a 100 y la
 #               publica como comentario fijo en el PR (se actualiza en cada push).
 #               Si algún chequeo falla, el job queda en rojo.
-#  2. claude  → Claude revisa el diff con las reglas del proyecto y publica su
-#               propia valoración (calidad, contrato, accesibilidad, ciencia).
+#  2. review  → una IA revisa el diff con las reglas de .github/prompts/revision-pr.md
+#               y publica su valoración (calidad, contrato, accesibilidad, ciencia).
+#               Por defecto usa GitHub Models: gratis y sin key (GITHUB_TOKEN).
 #
-# Requisitos (una sola vez, en Settings → Secrets and variables → Actions):
-#   ANTHROPIC_API_KEY  o  CLAUDE_CODE_OAUTH_TOKEN
-# y la app de Claude instalada en el repo: https://github.com/apps/claude
+# No necesita secretos. Opcional: si se agrega ANTHROPIC_API_KEY o
+# CLAUDE_CODE_OAUTH_TOKEN (Settings → Secrets and variables → Actions) e instala
+# https://github.com/apps/claude, la revisión pasa a hacerla Claude.
 
 name: Sanidad del PR
 
@@ -97,8 +98,8 @@ jobs:
           echo "::error::Nivel de sanidad ${{ steps.health.outputs.score }}/100. Typecheck=${{ steps.typecheck.outcome }} · Pruebas=${{ steps.test.outcome }} · Build=${{ steps.build.outcome }}"
           exit 1
 
-  claude:
-    name: Revisión de Claude
+  review:
+    name: Revisión de IA
     needs: checks
     # Corre aunque los chequeos fallen (justo ahí más ayuda). No en borradores ni forks.
     if: >-
@@ -111,54 +112,109 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
+      models: read
       id-token: write
+    env:
+      # Con un secreto de Claude se usa Claude; si no, GitHub Models (gratis, sin key).
+      USE_CLAUDE: ${{ secrets.ANTHROPIC_API_KEY != '' || secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          # El commit de merge del PR y su padre en main: HEAD^1..HEAD es el cambio del PR.
+          fetch-depth: 2
 
-      - uses: anthropics/claude-code-action@v1
+      # ------------------------------------------------ GitHub Models (gratis)
+      - name: Preparar diff para el modelo
+        if: env.USE_CLAUDE != 'true'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          HEALTH: ${{ needs.checks.outputs.emoji }} ${{ needs.checks.outputs.score }}/100 (${{ needs.checks.outputs.level }})
+        run: |
+          mkdir -p review
+          # El plan gratis acepta ~8k tokens de entrada: se recorta el diff y se
+          # excluyen archivos generados o binarios que no aportan a la revisión.
+          LIMIT=16000
+          git diff HEAD^1 HEAD -- . \
+            ':(exclude)package-lock.json' ':(exclude)dist/**' \
+            ':(exclude)*.webp' ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.svg' \
+            > review/full.diff
+          SIZE=$(wc -c < review/full.diff)
+          {
+            echo "PR #$PR_NUMBER: $PR_TITLE"
+            echo "Nota automática de los chequeos: $HEALTH"
+            echo
+            echo "Archivos cambiados:"
+            git diff --stat HEAD^1 HEAD
+            echo
+            if [ "$SIZE" -gt "$LIMIT" ]; then
+              echo "AVISO: el diff mide $SIZE caracteres y se recortó a $LIMIT. Revisa solo lo que ves."
+            fi
+            echo '```diff'
+            head -c "$LIMIT" review/full.diff
+            echo
+            echo '```'
+          } > review/prompt.txt
+          echo "Diff: $SIZE caracteres"
+
+      - name: Revisar con GitHub Models
+        id: ai
+        if: env.USE_CLAUDE != 'true'
+        continue-on-error: true
+        uses: actions/ai-inference@v1
+        with:
+          model: openai/gpt-4o
+          system-prompt-file: .github/prompts/revision-pr.md
+          prompt-file: review/prompt.txt
+          max-tokens: 1500
+
+      - name: Publicar revisión en el PR
+        if: env.USE_CLAUDE != 'true'
+        uses: actions/github-script@v7
+        env:
+          RESPONSE: ${{ steps.ai.outputs.response }}
+          AI_OUTCOME: ${{ steps.ai.outcome }}
+        with:
+          script: |
+            const marker = '<!-- pr-ai-review -->'
+            const ok = process.env.AI_OUTCOME === 'success' && process.env.RESPONSE?.trim()
+            const body = [
+              marker,
+              ok
+                ? process.env.RESPONSE.trim()
+                : '## 🤖 Revisión de IA: no disponible\n\nGitHub Models no respondió (límite diario o error temporal). Vuelve a lanzar el job más tarde; la nota de sanidad no depende de esto.',
+              '',
+              `<sub>GitHub Models · openai/gpt-4o · commit \`${context.payload.pull_request.head.sha.slice(0, 7)}\` · Orientativo: no reemplaza la revisión de una persona.</sub>`,
+            ].join('\n')
+            const { owner, repo } = context.repo
+            const issue_number = context.payload.pull_request.number
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            })
+            const mine = comments.find((c) => c.user.type === 'Bot' && c.body.includes(marker))
+            if (mine) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body })
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body })
+            }
+
+      # ------------------------------------- Claude (si hay secreto configurado)
+      - name: Revisar con Claude
+        if: env.USE_CLAUDE == 'true'
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: >-
             --max-turns 20
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --allowedTools "Read,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
           prompt: |
             REPO: ${{ github.repository }}
             PR: #${{ github.event.pull_request.number }}
             Nota automática de los chequeos: ${{ needs.checks.outputs.emoji }} ${{ needs.checks.outputs.score }}/100 (${{ needs.checks.outputs.level }}).
 
-            Eres revisor del portal Órbita Arcade (React 18 + TypeScript + Vite + Phaser 3,
-            pruebas con Vitest). Es un portal de juegos educativos para escolares de 9 a 14 años
-            sobre misiones reales de la NASA (Opportunity, Spirit, Apollo 15). Lee el diff con
-            `gh pr diff` y el contexto con `gh pr view`. Revisa SOLO lo que cambia este PR.
-
-            Evalúa de 0 a 10 cada criterio:
-            1. Correctitud: bugs, casos borde, estado de React, fugas de timers/listeners de Phaser.
-            2. Contrato: cambios en src/shared/types.ts o src/app/GameHost.tsx deben ser
-               compatibles hacia atrás (campos nuevos opcionales) y si suben schemaVersion
-               deben migrar el progreso de localStorage. Las funciones de progreso deben ser puras.
-            3. Pruebas: la lógica nueva (progress.ts, rules.ts de juegos, cliente de API) tiene pruebas.
-            4. Accesibilidad: teclado, aria-label, foco visible, prefers-reduced-motion,
-               contraste AA (nunca texto Dusk Blue #3E5BA3 sobre Deep Navy #0C0D45),
-               usable a 360 px de ancho.
-            5. Rigor científico y privacidad: cada dato con sourceId y enlace NASA; nunca afirmar
-               "se encontró vida" (decir "pistas de agua antigua"); imágenes con crédito;
-               sin nombres, correos ni edad de alumnos.
-            6. Textos: toda la UI en español claro para niños, sin errores de ortografía.
-
+            Lee las reglas de revisión en .github/prompts/revision-pr.md y síguelas.
+            Lee el diff con `gh pr diff` y el contexto con `gh pr view`.
             Deja comentarios en línea (mcp__github_inline_comment__create_inline_comment) solo
             para problemas concretos, con la corrección sugerida. Luego publica UN comentario
-            general con `gh pr comment` en español con este formato:
-
-            ## 🤖 Revisión de Claude: <emoji> <nota media>/10
-            | Criterio | Nota | Comentario breve |
-            (una fila por criterio)
-            ### Bloqueantes
-            (lista, o "Ninguno")
-            ### Sugerencias
-            (máximo 5)
-            **Veredicto:** ✅ Listo para mergear · ⚠️ Mergear tras corregir · ❌ No mergear
-
-            Usa 🟢 si la media es ≥ 8, 🟡 si es 6–7.9 y 🔴 si es < 6. Sé concreto y breve.
+            general con `gh pr comment` usando exactamente el formato de ese archivo.
