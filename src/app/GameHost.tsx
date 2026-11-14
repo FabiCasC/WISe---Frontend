@@ -8,7 +8,7 @@ import type {
   GameSettings,
   LevelId,
 } from '../shared/types'
-import { getMission } from '../content/missions'
+import { getGameMeta } from '../content/games'
 import { IconBack, IconPause, IconPlay } from './components/Art'
 
 /**
@@ -19,6 +19,10 @@ const LOADERS: Record<GameId, () => Promise<GameModule>> = {
   opportunity: () => import('../games/opportunity'),
   'lunar-signals': () => import('../games/lunar-signals'),
   spirit: () => import('../games/spirit'),
+  'dust-run': () => import('../games/dust-run'),
+  'gusev-maze': () => import('../games/gusev-maze'),
+  'orbital-grid': () => import('../games/orbital-grid'),
+  'sun-shade': () => import('../games/sun-shade'),
 }
 
 type Status = 'loading' | 'ready' | 'error'
@@ -43,7 +47,8 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
   const [error, setError] = useState<string | null>(null)
   const [paused, setPaused] = useState(false)
 
-  const mission = getMission(gameId)
+  // Sirve igual para una mision y para un minijuego del arcade.
+  const meta = getGameMeta(gameId, levelId)
 
   // Callbacks estables: evitan remontar el juego cuando el padre re-renderiza.
   const onResultRef = useRef(onResult)
@@ -155,10 +160,8 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  const level = mission?.levels.find((l) => l.id === levelId)
-
   return (
-    <section className="arena" aria-label={`Partida: ${mission?.title ?? gameId}`}>
+    <section className="arena" aria-label={`Partida: ${meta?.title ?? gameId}`}>
       <header className="arena__bar">
         <button type="button" className="btn btn--quiet" onClick={() => onExitRef.current()}>
           <IconBack />
@@ -166,10 +169,10 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
         </button>
 
         <div className="arena__id">
-          <span className="arena__name">{mission?.title ?? gameId}</span>
+          <span className="arena__name">{meta?.title ?? gameId}</span>
           <span className="arena__level">
             Nivel {levelId}
-            {level ? ` · ${level.name}` : ''}
+            {meta?.levelName ? ` · ${meta.levelName}` : ''}
             {settings.practice ? ' · práctica' : ''}
           </span>
         </div>

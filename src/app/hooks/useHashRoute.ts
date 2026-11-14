@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { GameId, LevelId } from '../../shared/types'
-import { GAME_IDS } from '../../shared/progress'
+import { ALL_GAME_IDS } from '../../shared/progress'
 
 /**
  * Enrutado por hash: recargar una URL profunda nunca da 404 en hosting
@@ -44,7 +44,7 @@ function parse(hash: string): Route | null {
   if (parts[0] === 'jugar') {
     const gameId = parts[1] as GameId
     const level = Number(parts[2] ?? 1)
-    if (GAME_IDS.includes(gameId) && [1, 2, 3].includes(level)) {
+    if (ALL_GAME_IDS.includes(gameId) && [1, 2, 3].includes(level)) {
       return { name: 'play', gameId, levelId: level as LevelId }
     }
   }

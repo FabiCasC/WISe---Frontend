@@ -30,7 +30,7 @@ export default function SiteFooter() {
           <div>
             <div className="footer__title">Alcance declarado</div>
             <ul className="footer__list">
-              <li>Tres juegos · tres niveles cada uno</li>
+              <li>Tres misiones y tres minijuegos · tres niveles cada uno</li>
               <li>Juego individual y cooperación local en PC</li>
               <li>Controles táctiles, pausa y reinicio</li>
               <li>Sin cuentas: en clase, cada alumno usa un apodo</li>

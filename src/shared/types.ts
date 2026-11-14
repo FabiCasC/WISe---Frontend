@@ -8,7 +8,20 @@
  * firma ANTES de anadir efectos, arte o sonido.
  */
 
-export type GameId = 'opportunity' | 'lunar-signals' | 'spirit'
+/**
+ * Misiones narrativas: las tres del plan original. Definen el nivel general
+ * y el pasaporte. NO se amplia esta lista sin revisar progress.ts.
+ */
+export type MissionId = 'opportunity' | 'lunar-signals' | 'spirit'
+
+/**
+ * Minijuegos de la sala arcade. Cumplen el MISMO contrato que una mision
+ * (mountGame, GameResult, progreso), pero no cuentan para el nivel general:
+ * son practica libre con la misma ciencia de fondo.
+ */
+export type ArcadeId = 'dust-run' | 'gusev-maze' | 'orbital-grid' | 'sun-shade'
+
+export type GameId = MissionId | ArcadeId
 export type LevelId = 1 | 2 | 3
 export type Lang = 'es' | 'en'
 

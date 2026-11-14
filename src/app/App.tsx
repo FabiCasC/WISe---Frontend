@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ArchiveItem } from '../content/archive'
+import { getGameTitle } from '../content/games'
 import { getMission, type MissionCard } from '../content/missions'
 import {
   getPlayerId,
@@ -108,10 +109,9 @@ export default function App() {
           /* el respaldo local nunca debe interrumpir la partida */
         })
       }
-      const mission = getMission(result.gameId)
       setToast(
         result.completed
-          ? `¡Nivel completado en ${mission?.title ?? result.gameId}!`
+          ? `¡Nivel completado en ${getGameTitle(result.gameId)}!`
           : 'Partida cerrada sin completar. Puedes reintentar cuando quieras.',
       )
       exitGame()

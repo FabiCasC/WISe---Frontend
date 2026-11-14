@@ -1,9 +1,11 @@
 import {
   PROGRESS_SCHEMA_VERSION,
+  type ArcadeId,
   type GameId,
   type GameResult,
   type GameSettings,
   type LevelId,
+  type MissionId,
   type Progress,
 } from './types'
 
@@ -16,7 +18,18 @@ export const DEFAULT_SETTINGS: GameSettings = {
   lang: 'es',
 }
 
-export const GAME_IDS: GameId[] = ['opportunity', 'lunar-signals', 'spirit']
+/**
+ * Las TRES misiones narrativas. El nivel general y el pasaporte se calculan
+ * solo con esta lista: anadir un minijuego aqui cambiaria la progresion
+ * educativa del portal.
+ */
+export const GAME_IDS: MissionId[] = ['opportunity', 'lunar-signals', 'spirit']
+
+/** Minijuegos de la sala arcade. Guardan progreso, no dan nivel general. */
+export const ARCADE_GAME_IDS: ArcadeId[] = ['dust-run', 'gusev-maze', 'orbital-grid', 'sun-shade']
+
+/** Todo lo jugable. Sirve para rutas, puntuacion total y guardado. */
+export const ALL_GAME_IDS: GameId[] = [...GAME_IDS, ...ARCADE_GAME_IDS]
 
 export function createEmptyProgress(): Progress {
   return {
@@ -25,6 +38,10 @@ export function createEmptyProgress(): Progress {
       opportunity: { levelsCompleted: [], bestScore: {} },
       'lunar-signals': { levelsCompleted: [], bestScore: {} },
       spirit: { levelsCompleted: [], bestScore: {} },
+      'dust-run': { levelsCompleted: [], bestScore: {} },
+      'gusev-maze': { levelsCompleted: [], bestScore: {} },
+      'orbital-grid': { levelsCompleted: [], bestScore: {} },
+      'sun-shade': { levelsCompleted: [], bestScore: {} },
     },
     memories: [],
     evidence: [],
@@ -94,8 +111,11 @@ export function applyResult(progress: Progress, result: GameResult): Progress {
     ? { ...game.bestScore, [result.levelId]: Math.max(previousBest, result.score) }
     : game.bestScore
 
+  // El pasaporte guarda recuerdos de MISIONES. Un minijuego del arcade
+  // puntua y guarda nivel, pero no sella una ficha de mision.
+  const isMission = (GAME_IDS as GameId[]).includes(result.gameId)
   const memories =
-    result.completed && !progress.memories.includes(result.gameId)
+    result.completed && isMission && !progress.memories.includes(result.gameId)
       ? [...progress.memories, result.gameId]
       : progress.memories
 
@@ -110,7 +130,7 @@ export function applyResult(progress: Progress, result: GameResult): Progress {
 }
 
 export function totalScore(progress: Progress): number {
-  return GAME_IDS.reduce((sum, id) => {
+  return ALL_GAME_IDS.reduce((sum, id) => {
     const scores = Object.values(progress.games[id]?.bestScore ?? {})
     return sum + scores.reduce((a: number, b) => a + (b ?? 0), 0)
   }, 0)

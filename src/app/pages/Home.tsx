@@ -1,3 +1,4 @@
+import { ARCADE } from '../../content/arcade'
 import { UPCOMING } from '../../content/catalog'
 import { MISSIONS, type MissionCard } from '../../content/missions'
 import type { Membership } from '../../shared/classroom'
@@ -5,6 +6,7 @@ import { getGeneralLevel } from '../../shared/progress'
 import type { GameId, LevelId, Progress } from '../../shared/types'
 import { IconPlay, IconTeacher } from '../components/Art'
 import GameCard, { UpcomingTile } from '../components/GameCard'
+import MiniCard from '../components/MiniCard'
 import JoinBox from '../components/JoinBox'
 import LevelMeter from '../components/LevelMeter'
 import OrbitArt from '../components/OrbitArt'
@@ -105,6 +107,27 @@ export default function Home({ progress, membership, onPlay, onDossier }: Props)
           <a className="btn btn--lg btn--quiet" href="#/arcade">
             Explorar el archivo de equipos espaciales
           </a>
+        </div>
+      </section>
+
+      {/* ========================================================= SALA ARCADE
+          Partidas cortas, siempre abiertas. No piden nivel previo: son la
+          puerta de entrada para quien todavia no se atreve con una misión. */}
+      <section className="section wrap catalog" id="arcade" aria-labelledby="arcade-title">
+        <div className="catalog__head">
+          <h2 className="section__title" id="arcade-title">
+            Sala arcade
+          </h2>
+          <p className="section__note">
+            Tres clásicos con ciencia real detrás. Partidas de 1 a 4 minutos, abiertas
+            desde el principio: no hacen falta misiones completadas.
+          </p>
+        </div>
+
+        <div className="catalog__grid">
+          {ARCADE.map((card) => (
+            <MiniCard key={card.gameId} card={card} progress={progress} />
+          ))}
         </div>
       </section>
 
