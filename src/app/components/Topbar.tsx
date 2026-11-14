@@ -1,21 +1,25 @@
 import { BRAND } from '../../content/brand'
-import { GAME_IDS } from '../../shared/progress'
+import type { Membership } from '../../shared/classroom'
+import { MAX_GENERAL_LEVEL, getGeneralLevel } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
-import { BrandGlyph, IconGear, IconPlay } from './Art'
+import { BrandGlyph, IconGear, IconStar } from './Art'
 
 interface Props {
-  page: 'landing' | 'arcade'
+  isHome: boolean
   progress: Progress
+  membership: Membership | null
   onSettings: () => void
 }
 
-export default function Topbar({ page, progress, onSettings }: Props) {
-  const stamps = progress.memories.length
+export default function Topbar({ isHome, progress, membership, onSettings }: Props) {
+  const level = getGeneralLevel(progress)
+  // En la portada las anclas son locales; desde otra página la ruta lleva el id.
+  const to = (id: string) => (isHome ? `#${id}` : `#/${id}`)
 
   return (
     <header className="topbar">
       <div className="topbar__inner">
-        <a className="brandmark" href="#/" aria-label={`${BRAND.full}, portada`}>
+        <a className="brandmark" href="#/" aria-label={`${BRAND.full}, inicio`}>
           <BrandGlyph />
           <span className="brandmark__text">
             <span className="brandmark__name">{BRAND.wordmark}</span>
@@ -26,48 +30,35 @@ export default function Topbar({ page, progress, onSettings }: Props) {
         <span className="topbar__spacer" />
 
         <nav className="topbar__nav" aria-label="Secciones">
-          {page === 'landing' ? (
-            <>
-              <a className="navlink" href="#juegos">
-                Juegos
-              </a>
-              <a className="navlink" href="#pasaporte">
-                Pasaporte
-              </a>
-              <a className="navlink" href="#equipo">
-                Equipo
-              </a>
-            </>
-          ) : (
-            <>
-              <a className="navlink" href="#/">
-                Portada
-              </a>
-              <a className="navlink" href="#archivo">
-                Archivo
-              </a>
-            </>
-          )}
+          <a className="navlink" href={to('juegos')}>
+            Juegos
+          </a>
+          <a className="navlink" href="#/profesor">
+            Profesores
+          </a>
         </nav>
 
-        {page === 'landing' && (
-          <a className="btn btn--primary btn--sm topbar__cta" href="#/arcade">
-            <IconPlay size={16} />
-            Arcade
+        {membership && (
+          <a
+            className="classpill"
+            href="#/clase"
+            aria-label={`Clase ${membership.code}, tu apodo es ${membership.nickname}`}
+          >
+            <span className="classpill__code">{membership.code}</span>
+            <span className="classpill__nick">{membership.nickname}</span>
           </a>
         )}
 
-        {/* Desde el arcade hay que volver a la portada Y bajar a la sección,
-            por eso la ruta lleva el id dentro. */}
-        <a className="passport-pill" href={page === 'landing' ? '#pasaporte' : '#/pasaporte'}>
-          <span className="passport-pill__label">Pasaporte</span>
-          <span className="stamps" aria-hidden="true">
-            {GAME_IDS.map((id) => (
-              <i key={id} className={`stamp${progress.memories.includes(id) ? ' is-on' : ''}`} />
-            ))}
+        <a
+          className="levelpill"
+          href={to('nivel')}
+          aria-label={`Nivel general ${level} de ${MAX_GENERAL_LEVEL}`}
+        >
+          <IconStar size={15} />
+          <span>
+            Nivel <b>{level}</b>
+            <span className="levelpill__of">/{MAX_GENERAL_LEVEL}</span>
           </span>
-          <span className="sr-only">{stamps} de 3 recuerdos conseguidos</span>
-          <span style={{ fontVariantNumeric: 'tabular-nums' }}>{stamps}/3</span>
         </a>
 
         <button

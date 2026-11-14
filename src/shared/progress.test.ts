@@ -3,6 +3,8 @@ import {
   applyResult,
   createEmptyProgress,
   getGeneralLevel,
+  isLevelUnlocked,
+  nextPlayableLevel,
   nextGeneralLevel,
   totalLevelsCompleted,
   totalScore,
@@ -158,5 +160,26 @@ describe('repetir un nivel', () => {
     expect(p.games.opportunity.levelsCompleted).toEqual([1])
     expect(p.memories).toEqual(['opportunity'])
     expect(totalScore(p)).toBe(340)
+  })
+})
+
+describe('niveles bloqueados', () => {
+  it('solo el nivel 1 está abierto al empezar', () => {
+    const p = createEmptyProgress()
+    expect(isLevelUnlocked(p, 'spirit', 1)).toBe(true)
+    expect(isLevelUnlocked(p, 'spirit', 2)).toBe(false)
+    expect(nextPlayableLevel(p, 'spirit')).toBe(1)
+  })
+
+  it('completar un nivel abre el siguiente solo en ese juego', () => {
+    const p = play(win('spirit', 1))
+    expect(isLevelUnlocked(p, 'spirit', 2)).toBe(true)
+    expect(isLevelUnlocked(p, 'spirit', 3)).toBe(false)
+    expect(isLevelUnlocked(p, 'opportunity', 2)).toBe(false)
+    expect(nextPlayableLevel(p, 'spirit')).toBe(2)
+  })
+
+  it('con el juego completo se vuelve a sugerir el nivel 1', () => {
+    expect(nextPlayableLevel(play(...fullGame('spirit')), 'spirit')).toBe(1)
   })
 })

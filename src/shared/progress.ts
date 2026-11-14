@@ -190,3 +190,15 @@ export function nextGeneralLevel(progress: Progress): GeneralLevelSpec | null {
   const level = getGeneralLevel(progress)
   return GENERAL_LEVELS.find((l) => l.level === level + 1) ?? null
 }
+
+/** Un nivel se abre cuando el anterior del mismo juego está completado. */
+export function isLevelUnlocked(progress: Progress, gameId: GameId, levelId: LevelId): boolean {
+  if (levelId === 1) return true
+  return progress.games[gameId]?.levelsCompleted.includes((levelId - 1) as LevelId) ?? false
+}
+
+/** Primer nivel sin completar (o el 1 si ya están todos). Siempre está abierto. */
+export function nextPlayableLevel(progress: Progress, gameId: GameId): LevelId {
+  const done = progress.games[gameId]?.levelsCompleted ?? []
+  return (([1, 2, 3] as LevelId[]).find((l) => !done.includes(l)) ?? 1) as LevelId
+}

@@ -33,7 +33,7 @@ export default function SiteFooter() {
               <li>Tres juegos · tres niveles cada uno</li>
               <li>Juego individual y cooperación local en PC</li>
               <li>Controles táctiles, pausa y reinicio</li>
-              <li>Progreso local, sin cuentas ni servidor</li>
+              <li>Sin cuentas: en clase, cada alumno usa un apodo</li>
               <li>Sin multijugador en línea ni ranking global</li>
             </ul>
           </div>
