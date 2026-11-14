@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { applyResult, createEmptyProgress, totalScore } from './progress'
-import type { GameResult } from './types'
+import {
+  applyResult,
+  createEmptyProgress,
+  getGeneralLevel,
+  nextGeneralLevel,
+  totalLevelsCompleted,
+  totalScore,
+} from './progress'
+import type { GameId, GameResult, LevelId, Progress } from './types'
 
 function result(patch: Partial<GameResult> = {}): GameResult {
   return {
@@ -64,5 +71,92 @@ describe('applyResult', () => {
     const next = applyResult(base, result({ gameId: 'inexistente' }))
 
     expect(next).toBe(base)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Nivel general
+// ---------------------------------------------------------------------------
+
+function win(gameId: GameId, levelId: LevelId, score = 100): GameResult {
+  return {
+    gameId,
+    levelId,
+    score,
+    durationMs: 60_000,
+    completed: true,
+    evidenceIds: [],
+    firstAnswerCorrect: true,
+  }
+}
+
+function play(...results: GameResult[]): Progress {
+  return results.reduce(applyResult, createEmptyProgress())
+}
+
+const fullGame = (id: GameId) => [win(id, 1), win(id, 2), win(id, 3)]
+
+describe('getGeneralLevel', () => {
+  it('N1: al entrar sin haber jugado', () => {
+    expect(getGeneralLevel(createEmptyProgress())).toBe(1)
+  })
+
+  it('N2: un nivel completado en cualquier juego', () => {
+    expect(getGeneralLevel(play(win('lunar-signals', 2)))).toBe(2)
+  })
+
+  it('N3: dos niveles completados en total, aunque sean de juegos distintos', () => {
+    expect(getGeneralLevel(play(win('spirit', 1), win('opportunity', 1)))).toBe(3)
+  })
+
+  it('se queda en N3 con varios niveles sueltos sin cerrar un juego', () => {
+    const p = play(win('spirit', 1), win('spirit', 2), win('opportunity', 1), win('lunar-signals', 3))
+    expect(totalLevelsCompleted(p)).toBe(4)
+    expect(getGeneralLevel(p)).toBe(3)
+  })
+
+  it('N4: un juego completo', () => {
+    expect(getGeneralLevel(play(...fullGame('spirit')))).toBe(4)
+  })
+
+  it('N5: dos juegos completos', () => {
+    expect(getGeneralLevel(play(...fullGame('spirit'), ...fullGame('opportunity')))).toBe(5)
+  })
+
+  it('N6: los tres juegos completos, y no hay nivel siguiente', () => {
+    const p = play(...fullGame('spirit'), ...fullGame('opportunity'), ...fullGame('lunar-signals'))
+    expect(getGeneralLevel(p)).toBe(6)
+    expect(nextGeneralLevel(p)).toBeNull()
+  })
+
+  it('perder una partida no sube el nivel', () => {
+    const p = play({ ...win('spirit', 1), completed: false })
+    expect(getGeneralLevel(p)).toBe(1)
+  })
+
+  it('repetir el mismo nivel no sube el nivel general', () => {
+    const p = play(win('spirit', 1), win('spirit', 1), win('spirit', 1))
+    expect(getGeneralLevel(p)).toBe(2)
+  })
+
+  it('tolera niveles duplicados guardados por versiones antiguas', () => {
+    const p = createEmptyProgress()
+    p.games.spirit.levelsCompleted = [1, 1, 1]
+    expect(getGeneralLevel(p)).toBe(2)
+  })
+
+  it('indica el requisito del siguiente nivel', () => {
+    expect(nextGeneralLevel(createEmptyProgress())?.level).toBe(2)
+    expect(nextGeneralLevel(play(...fullGame('spirit')))?.unlocks).toMatch(/Reto especial/)
+  })
+})
+
+describe('repetir un nivel', () => {
+  it('actualiza el mejor puntaje y mantiene un solo sello', () => {
+    const p = play(win('opportunity', 1, 120), win('opportunity', 1, 340), win('opportunity', 1, 90))
+    expect(p.games.opportunity.bestScore[1]).toBe(340)
+    expect(p.games.opportunity.levelsCompleted).toEqual([1])
+    expect(p.memories).toEqual(['opportunity'])
+    expect(totalScore(p)).toBe(340)
   })
 })
