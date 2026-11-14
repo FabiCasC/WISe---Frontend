@@ -135,10 +135,12 @@ jobs:
           # El plan gratis acepta ~8k tokens de entrada: se recorta el diff y se
           # excluyen archivos generados o binarios que no aportan a la revisión.
           LIMIT=16000
-          git diff HEAD^1 HEAD -- . \
-            ':(exclude)package-lock.json' ':(exclude)dist/**' \
-            ':(exclude)*.webp' ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.svg' \
-            > review/full.diff
+          # El código de la app va primero: si hay que recortar, se pierde lo menos importante.
+          EXCL=(':(exclude)package-lock.json' ':(exclude)dist/**' ':(exclude)*.webp' ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.svg')
+          {
+            git diff HEAD^1 HEAD -- src "${EXCL[@]}"
+            git diff HEAD^1 HEAD -- . ':(exclude)src/**' "${EXCL[@]}"
+          } > review/full.diff
           SIZE=$(wc -c < review/full.diff)
           {
             echo "PR #$PR_NUMBER: $PR_TITLE"
@@ -160,31 +162,32 @@ jobs:
       - name: Revisar con GitHub Models
         id: ai
         if: env.USE_CLAUDE != 'true'
-        continue-on-error: true
-        uses: actions/ai-inference@v1
-        with:
-          model: openai/gpt-4o
-          system-prompt-file: .github/prompts/revision-pr.md
-          prompt-file: review/prompt.txt
-          max-tokens: 1500
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Orden de preferencia: si uno falla o fue retirado, se prueba el siguiente.
+          AI_MODELS: openai/gpt-4.1,openai/gpt-4o,openai/gpt-4o-mini
+          SYSTEM_PROMPT: .github/prompts/revision-pr.md
+          USER_PROMPT: review/prompt.txt
+        run: node scripts/ai-review.mjs
 
       - name: Publicar revisión en el PR
         if: env.USE_CLAUDE != 'true'
         uses: actions/github-script@v7
         env:
-          RESPONSE: ${{ steps.ai.outputs.response }}
-          AI_OUTCOME: ${{ steps.ai.outcome }}
+          AI_MODEL: ${{ steps.ai.outputs.model }}
         with:
           script: |
+            const fs = require('fs')
             const marker = '<!-- pr-ai-review -->'
-            const ok = process.env.AI_OUTCOME === 'success' && process.env.RESPONSE?.trim()
+            const review = fs.existsSync('review/response.md')
+              ? fs.readFileSync('review/response.md', 'utf8').trim()
+              : '## 🤖 Revisión de IA: no disponible\n\nEl paso de revisión no generó respuesta.'
+            const sha = context.payload.pull_request.head.sha.slice(0, 7)
             const body = [
               marker,
-              ok
-                ? process.env.RESPONSE.trim()
-                : '## 🤖 Revisión de IA: no disponible\n\nGitHub Models no respondió (límite diario o error temporal). Vuelve a lanzar el job más tarde; la nota de sanidad no depende de esto.',
+              review,
               '',
-              `<sub>GitHub Models · openai/gpt-4o · commit \`${context.payload.pull_request.head.sha.slice(0, 7)}\` · Orientativo: no reemplaza la revisión de una persona.</sub>`,
+              `<sub>GitHub Models · ${process.env.AI_MODEL || '—'} · commit \`${sha}\` · Orientativo: no reemplaza la revisión de una persona.</sub>`,
             ].join('\n')
             const { owner, repo } = context.repo
             const issue_number = context.payload.pull_request.number
