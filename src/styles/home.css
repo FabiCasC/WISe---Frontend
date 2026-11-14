@@ -1,0 +1,1223 @@
+/* =========================================================================
+   ÓRBITA ARCADE · PORTADA, CATÁLOGO Y MODO CLASE
+   Solo tokens de tokens.css: funciona en modo oscuro y claro.
+   ========================================================================= */
+
+/* --- Botón secundario (Dusk Blue) ----------------------------------------- */
+
+.btn--secondary {
+  background: var(--secondary);
+  color: var(--on-secondary);
+  border: 1px solid rgb(var(--fg-rgb) / 0.14);
+}
+
+.btn--secondary:hover {
+  background: color-mix(in srgb, var(--secondary) 86%, var(--text));
+  transform: translateY(calc(-2px * var(--motion)));
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+/* =========================================================================
+   Barra superior: píldoras de nivel y de clase
+   ========================================================================= */
+
+.levelpill,
+.classpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.levelpill {
+  color: var(--on-badge);
+  background: var(--badge);
+  font-weight: 600;
+  box-shadow: var(--glow-badge);
+}
+
+.levelpill b {
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+
+.levelpill__of {
+  opacity: 0.75;
+}
+
+.classpill {
+  border: 1px solid var(--hairline);
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.classpill:hover {
+  border-color: var(--action);
+}
+
+.classpill__code {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--action);
+}
+
+.classpill__nick {
+  font-weight: 600;
+}
+
+/* =========================================================================
+   Héroe
+   ========================================================================= */
+
+.hero {
+  position: relative;
+  overflow-x: clip;
+  padding-block: clamp(28px, 6vw, 72px) clamp(20px, 4vw, 40px);
+}
+
+.hero__inner {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: center;
+}
+
+.hero__eyebrow {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--action);
+  margin-bottom: 14px;
+}
+
+.hero__title {
+  font-size: clamp(34px, 10.5vw, 84px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.hero__accent {
+  color: var(--action);
+  text-shadow: 0 0 calc(28px * var(--motion)) rgb(var(--accent-rgb) / 0.45);
+}
+
+.hero__lede {
+  margin-top: 22px;
+  max-width: 54ch;
+  font-size: clamp(16px, 1.6vw, 18.5px);
+  color: var(--text-dim);
+}
+
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.hero__side {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  place-items: center;
+  min-height: 360px;
+}
+
+.hero__join {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 150px;
+}
+
+/* --- Ilustración orbital --------------------------------------------------- */
+
+.orbit {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.orbit__glow {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(var(--thistle-rgb) / 0.35), transparent 65%);
+  filter: blur(18px);
+}
+
+.orbit__planet {
+  position: absolute;
+  inset: 31%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, #ffffff 0%, var(--c-aqua) 26%, var(--c-dusk) 70%, var(--c-navy) 100%);
+  box-shadow:
+    inset -14px -12px 28px rgb(var(--ink-rgb) / 0.55),
+    0 0 40px rgb(var(--accent-rgb) / 0.35);
+  overflow: hidden;
+}
+
+.orbit__crater {
+  position: absolute;
+  border-radius: 50%;
+  background: rgb(var(--ink-rgb) / 0.22);
+}
+
+.orbit__crater--1 {
+  width: 22%;
+  height: 22%;
+  left: 52%;
+  top: 22%;
+}
+
+.orbit__crater--2 {
+  width: 14%;
+  height: 14%;
+  left: 26%;
+  top: 58%;
+}
+
+.orbit__crater--3 {
+  width: 10%;
+  height: 10%;
+  left: 62%;
+  top: 64%;
+}
+
+.orbit__ring {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  border: 1.5px dashed rgb(var(--thistle-rgb) / 0.55);
+  animation: orbit-spin 16s linear infinite;
+}
+
+.orbit__ring--b {
+  inset: -2%;
+  border-style: solid;
+  border-color: rgb(var(--accent-rgb) / 0.3);
+  animation-duration: 28s;
+  animation-direction: reverse;
+}
+
+.orbit__sat {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.orbit__sat--a {
+  width: 16px;
+  height: 16px;
+  top: -8px;
+  left: calc(50% - 8px);
+  background: var(--c-thistle);
+  box-shadow: 0 0 14px var(--c-thistle);
+}
+
+.orbit__sat--b {
+  width: 22px;
+  height: 12px;
+  bottom: 10%;
+  left: 2%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--c-aqua) 0 30%, var(--c-alice) 30% 70%, var(--c-aqua) 70%);
+}
+
+.orbit__moon {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  right: 6%;
+  top: 14%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff, var(--moon) 45%, #6a7180);
+  animation: bob 6s var(--ease) infinite alternate;
+}
+
+.orbit__spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--c-alice);
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+.orbit__spark--1 {
+  left: 6%;
+  top: 22%;
+}
+
+.orbit__spark--2 {
+  left: 88%;
+  top: 70%;
+  animation-delay: -1s;
+}
+
+.orbit__spark--3 {
+  left: 18%;
+  top: 86%;
+  animation-delay: -2s;
+}
+
+.orbit__spark--4 {
+  left: 72%;
+  top: 4%;
+  animation-delay: -1.5s;
+}
+
+@keyframes orbit-spin {
+  to {
+    transform: rotate(calc(360deg * var(--motion)));
+  }
+}
+
+@keyframes bob {
+  to {
+    transform: translateY(calc(10px * var(--motion)));
+  }
+}
+
+@keyframes twinkle {
+  50% {
+    opacity: calc(1 - 0.8 * var(--motion));
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .orbit__spark {
+    background: var(--c-dusk);
+  }
+}
+
+/* --- Recuadro del código --------------------------------------------------- */
+
+.joinbox,
+.classchip-card {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline);
+  background: var(--panel-soft);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+}
+
+.joinbox__label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.joinbox__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.joinbox__input {
+  flex: 1 1 150px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: var(--r-md);
+  border: 2px solid var(--hairline);
+  background: rgb(var(--bg-rgb) / 0.7);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.joinbox__input::placeholder {
+  color: var(--text-faint);
+  opacity: 0.55;
+}
+
+.joinbox__input:focus-visible {
+  outline: none;
+  border-color: var(--action);
+  box-shadow: 0 0 0 4px rgb(var(--accent-rgb) / 0.25);
+}
+
+.joinbox__btn {
+  flex: 1 1 140px;
+  min-height: 52px;
+}
+
+.joinbox__hint,
+.joinbox__error {
+  margin-top: 10px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+.joinbox__error,
+.form__error {
+  color: var(--text);
+  border-left: 3px solid var(--warn);
+  padding-left: 10px;
+}
+
+.classchip-card__label {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.classchip-card__name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 4px 0 6px;
+}
+
+.classchip-card__nick {
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.classchip-card__nick strong {
+  color: var(--action);
+}
+
+/* =========================================================================
+   Medidor de nivel general (Thistle)
+   ========================================================================= */
+
+.meter {
+  border-radius: var(--r-lg);
+  border: 1px solid rgb(var(--thistle-rgb) / 0.35);
+  background:
+    linear-gradient(120deg, rgb(var(--thistle-rgb) / 0.1), transparent 55%),
+    var(--panel-soft);
+  padding: clamp(16px, 3vw, 24px);
+  display: grid;
+  gap: 16px;
+}
+
+.meter__head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.meter__badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--badge);
+  color: var(--on-badge);
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 900;
+  box-shadow: var(--glow-badge);
+}
+
+.meter__title {
+  font-size: clamp(18px, 2.4vw, 22px);
+}
+
+.meter__next {
+  margin-top: 4px;
+  color: var(--text-dim);
+  font-size: 14.5px;
+}
+
+.meter__next strong {
+  color: var(--text);
+}
+
+.meter__track {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.meter__seg {
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-faint);
+  background: rgb(var(--fg-rgb) / 0.08);
+  border: 1px solid var(--hairline-soft);
+  transition: background var(--dur) var(--ease);
+}
+
+.meter__seg.is-on {
+  background: var(--badge);
+  border-color: transparent;
+  color: var(--on-badge);
+}
+
+.meter__seg.is-current {
+  box-shadow: var(--glow-badge);
+}
+
+.meter__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.meter__stats b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================================
+   Catálogo estilo Friv
+   ========================================================================= */
+
+.catalog__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-bottom: 20px;
+}
+
+.catalog__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.gcard {
+  --accent: var(--action);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-lg);
+  background: var(--panel);
+  border: 1px solid var(--hairline-soft);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition:
+    transform var(--dur) var(--ease-out),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.gcard:hover,
+.gcard:focus-within {
+  transform: translateY(calc(-4px * var(--motion)));
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.gcard__thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  padding: 0;
+  background: var(--c-navy);
+}
+
+.gcard__thumb:focus-visible {
+  outline-offset: -4px;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+
+.gcard__thumb .scene {
+  position: absolute;
+  inset: 0;
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+/* Miniatura quieta hasta que se pasa el mouse o se enfoca: estilo Friv. */
+.gcard__thumb .scene,
+.gcard__thumb .scene * {
+  animation-play-state: paused;
+}
+
+.gcard:hover .gcard__thumb .scene,
+.gcard:hover .gcard__thumb .scene *,
+.gcard:focus-within .gcard__thumb .scene,
+.gcard:focus-within .gcard__thumb .scene * {
+  animation-play-state: running;
+}
+
+.gcard:hover .gcard__thumb .scene,
+.gcard:focus-within .gcard__thumb .scene {
+  transform: scale(calc(1 + 0.06 * var(--motion)));
+}
+
+.gcard__art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition:
+    opacity var(--dur) var(--ease),
+    transform var(--dur-slow) var(--ease-out);
+}
+
+.gcard__art.is-loaded {
+  opacity: 1;
+}
+
+.gcard:hover .gcard__art.is-loaded,
+.gcard:focus-within .gcard__art.is-loaded {
+  transform: scale(calc(1 + 0.08 * var(--motion)));
+}
+
+.gcard__body-tag,
+.gcard__seal {
+  position: absolute;
+  top: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.gcard__body-tag {
+  left: 10px;
+  background: rgb(var(--ink-rgb) / 0.78);
+  color: var(--c-alice);
+}
+
+.gcard__seal {
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--c-thistle);
+  color: var(--c-navy);
+}
+
+.gcard__play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c-aqua);
+  color: var(--c-navy);
+  box-shadow: 0 10px 30px -8px rgb(var(--ink-rgb) / 0.8);
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity var(--dur-fast) var(--ease),
+    transform var(--dur) var(--ease-out);
+}
+
+.gcard:hover .gcard__play,
+.gcard__thumb:focus-visible .gcard__play {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* En pantallas táctiles no hay hover: el botón de jugar se ve siempre. */
+@media (hover: none) {
+  .gcard__play {
+    opacity: 0.92;
+    transform: scale(0.85);
+  }
+}
+
+.gcard__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px 16px;
+  flex: 1 1 auto;
+}
+
+.gcard__title {
+  font-size: 17px;
+  line-height: 1.15;
+}
+
+.gcard__genre {
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+.gcard__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.gcard__levels {
+  display: flex;
+  gap: 6px;
+}
+
+/* Puntos de nivel: ● completado, ○ disponible, candado bloqueado. 44 px de
+   área táctil con un círculo visible de 30 px. */
+.lvdot {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.lvdot::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+}
+
+.lvdot.is-completado {
+  background: var(--accent);
+  color: var(--c-navy);
+}
+
+.lvdot.is-disponible {
+  border: 2px solid var(--action);
+  color: var(--text);
+}
+
+.lvdot.is-bloqueado {
+  border: 1.5px dashed var(--hairline);
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+.lvdot:not(:disabled):hover {
+  transform: scale(calc(1 + 0.1 * var(--motion)));
+}
+
+.gcard__ficha {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline-soft);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.gcard__ficha:hover {
+  color: var(--text);
+  border-color: var(--hairline);
+}
+
+/* --- Tarjetas por venir ----------------------------------------------------- */
+
+.gcard--upcoming {
+  background: rgb(var(--surface-rgb) / 0.5);
+  border-style: dashed;
+  border-color: var(--hairline);
+  box-shadow: none;
+}
+
+.gcard--upcoming:hover {
+  transform: none;
+}
+
+.gcard__thumb--upcoming {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 40%, rgb(var(--thistle-rgb) / 0.18), transparent 60%),
+    repeating-linear-gradient(
+      135deg,
+      rgb(var(--fg-rgb) / 0.04) 0 10px,
+      transparent 10px 20px
+    ),
+    var(--c-navy);
+  color: var(--c-thistle);
+}
+
+.gcard__upcoming-icon {
+  opacity: 0.7;
+}
+
+.gcard__lock {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgb(var(--ink-rgb) / 0.82);
+  color: var(--c-alice);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.gcard--upcoming.is-unlocked .gcard__lock {
+  background: var(--c-thistle);
+  color: var(--c-navy);
+}
+
+.gcard--upcoming.is-vr .gcard__thumb--upcoming {
+  background:
+    radial-gradient(circle at 50% 40%, rgb(var(--accent-rgb) / 0.25), transparent 60%),
+    var(--c-navy);
+  color: var(--c-aqua);
+}
+
+/* =========================================================================
+   Páginas de clase y profesor
+   ========================================================================= */
+
+.page {
+  max-width: 880px;
+}
+
+.page__head {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.page__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-md);
+  background: var(--secondary);
+  color: var(--on-secondary);
+}
+
+.page__title {
+  font-size: clamp(26px, 4vw, 38px);
+}
+
+.page__lede {
+  margin-top: 6px;
+  color: var(--text-dim);
+  max-width: 62ch;
+}
+
+.card {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline-soft);
+  background: var(--panel-soft);
+  padding: clamp(18px, 3vw, 28px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.card__title {
+  font-size: 20px;
+}
+
+.form {
+  max-width: 520px;
+}
+
+.form__field {
+  display: grid;
+  gap: 6px;
+}
+
+.form__field label {
+  font-weight: 600;
+}
+
+.form__field input,
+.form__field select {
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--hairline);
+  background: rgb(var(--bg-rgb) / 0.7);
+  color: var(--text);
+  font: inherit;
+}
+
+.form__field input:focus-visible,
+.form__field select:focus-visible {
+  outline: none;
+  border-color: var(--action);
+  box-shadow: 0 0 0 4px rgb(var(--accent-rgb) / 0.25);
+}
+
+.form .btn {
+  justify-self: start;
+}
+
+/* --- Clase creada ----------------------------------------------------------- */
+
+.created__label {
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.created__code {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 10vw, 72px);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: var(--action);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.created__help {
+  color: var(--text-dim);
+}
+
+.created__actions,
+.welcome__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.created__note,
+.welcome__note {
+  font-size: 13px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
+.callout {
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  font-size: 14.5px;
+}
+
+.callout--warn {
+  border: 1px solid rgb(255 209 102 / 0.55);
+  background: rgb(255 209 102 / 0.1);
+}
+
+.copyfield {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.copyfield__label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.copyfield__row {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.copyfield__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  background: rgb(var(--bg-rgb) / 0.7);
+  color: var(--text);
+  font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.copyfield__hint {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* --- Bienvenida del alumno -------------------------------------------------- */
+
+.welcome {
+  text-align: center;
+  justify-items: center;
+}
+
+.welcome__hello {
+  font-size: 18px;
+  color: var(--text-dim);
+}
+
+.welcome__nick {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 9vw, 64px);
+  font-weight: 900;
+  color: var(--c-thistle);
+  line-height: 1;
+}
+
+@media (prefers-color-scheme: light) {
+  .welcome__nick {
+    color: var(--c-dusk);
+  }
+}
+
+.welcome__text {
+  max-width: 52ch;
+  color: var(--text-dim);
+}
+
+.welcome__actions {
+  justify-content: center;
+}
+
+/* --- Panel del profesor ----------------------------------------------------- */
+
+.code-inline {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  color: var(--action);
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.kpi {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--panel-soft);
+  border: 1px solid var(--hairline-soft);
+}
+
+.kpi__value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.kpi__value--soon {
+  font-size: 18px;
+  color: var(--text-faint);
+}
+
+.kpi__label {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.tablewrap {
+  overflow-x: auto;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline-soft);
+  background: var(--panel-soft);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+
+.table th,
+.table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline-soft);
+  white-space: nowrap;
+}
+
+.table thead th {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: rgb(var(--fg-rgb) / 0.04);
+}
+
+.table tbody th {
+  font-weight: 700;
+}
+
+.table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.table .num {
+  font-variant-numeric: tabular-nums;
+}
+
+.table .muted {
+  color: var(--text-faint);
+}
+
+.lvpill {
+  display: inline-grid;
+  place-items: center;
+  min-width: 30px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--badge);
+  color: var(--on-badge);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+/* =========================================================================
+   Responsive
+   ========================================================================= */
+
+@media (max-width: 900px) {
+  .hero__inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero__side {
+    min-height: 0;
+  }
+
+  .orbit {
+    width: 220px;
+    height: 220px;
+    top: -10px;
+    left: auto;
+    right: -30px;
+    transform: none;
+    opacity: 0.55;
+  }
+
+  .hero__join {
+    margin-top: 0;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .hero__text {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar__nav {
+    display: none;
+  }
+
+  .classpill__code {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero__cta .btn {
+    flex: 1 1 100%;
+  }
+
+  .catalog__grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .gcard__info {
+    padding: 12px;
+  }
+
+  .gcard__title {
+    font-size: 15px;
+  }
+
+  .gcard__genre {
+    font-size: 12.5px;
+  }
+
+  .gcard__foot {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gcard__levels {
+    justify-content: space-between;
+  }
+
+  .gcard__ficha {
+    justify-content: center;
+  }
+
+  .gcard__lock {
+    font-size: 11.5px;
+  }
+
+  .meter__head {
+    align-items: flex-start;
+  }
+
+  .meter__badge {
+    width: 52px;
+    height: 52px;
+    font-size: 21px;
+  }
+
+  .levelpill {
+    padding: 0 12px;
+  }
+
+  .levelpill__of {
+    display: none;
+  }
+
+  .brandmark__text {
+    display: none;
+  }
+
+  .page__head {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

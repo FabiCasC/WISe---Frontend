@@ -9,6 +9,9 @@ import { GAME_IDS } from '../../shared/progress'
  *   #/                       -> portada
  *   #/arcade                 -> arcade: juegos destacados + archivo
  *   #/jugar/spirit/2         -> partida (se superpone a la página actual)
+ *   #/profesor               -> crear una clase
+ *   #/clase  o  #/clase/LUNA-27 -> entrar a una clase (con el código ya puesto)
+ *   #/panel/<token>          -> panel privado del profesor
  *
  * Convención: **una ruta siempre empieza por `#/`**. Cualquier otro hash
  * (`#equipo`, `#archivo`) es un ancla dentro de la página actual y NO debe
@@ -18,6 +21,12 @@ export type Route =
   | { name: 'landing' }
   | { name: 'arcade' }
   | { name: 'play'; gameId: GameId; levelId: LevelId }
+  | { name: 'teacher' }
+  | { name: 'join'; code: string | null }
+  | { name: 'panel'; token: string }
+
+/** Páginas de fondo (todo menos la partida, que se superpone). */
+export type PageRoute = Exclude<Route, { name: 'play' }>
 
 function parse(hash: string): Route | null {
   if (hash === '' || hash === '#' || hash === '#/') return { name: 'landing' }
@@ -28,6 +37,9 @@ function parse(hash: string): Route | null {
   const parts = hash.slice(2).split('/').filter(Boolean)
 
   if (parts[0] === 'arcade') return { name: 'arcade' }
+  if (parts[0] === 'profesor') return { name: 'teacher' }
+  if (parts[0] === 'clase') return { name: 'join', code: parts[1] ? decodeURIComponent(parts[1]) : null }
+  if (parts[0] === 'panel' && parts[1]) return { name: 'panel', token: parts[1] }
 
   if (parts[0] === 'jugar') {
     const gameId = parts[1] as GameId

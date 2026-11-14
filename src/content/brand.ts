@@ -40,10 +40,10 @@ export const BRAND = {
 
 /** Paleta acordada en el plan. Se refleja 1:1 en src/styles/tokens.css */
 export const PALETTE = {
-  space: '#071427',
-  panel: '#12243A',
-  text: '#F5F8FF',
-  action: '#6DE2F2',
+  space: '#0C0D45',
+  panel: '#1A2062',
+  text: '#DAE8FB',
+  action: '#75CBD1',
   moon: '#C8CEDA',
   mars: '#E68A68',
 } as const
