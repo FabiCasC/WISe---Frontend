@@ -4,6 +4,7 @@ import App from './app/App'
 import './styles/tokens.css'
 import './styles/app.css'
 import './styles/home.css'
+import './styles/wall.css'
 
 const host = document.getElementById('root')
 

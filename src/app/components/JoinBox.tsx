@@ -6,7 +6,7 @@ import { navigate } from '../hooks/useHashRoute'
  * Recuadro "Escribe el código de tu clase". Solo valida el formato y lleva a
  * #/clase/<CÓDIGO>, que es quien realmente une al alumno.
  */
-export default function JoinBox({ initial = '' }: { initial?: string }) {
+export default function JoinBox({ initial = '', compact = false }: { initial?: string; compact?: boolean }) {
   const [value, setValue] = useState(initial)
   const [error, setError] = useState<string | null>(null)
   const id = useId()
@@ -42,7 +42,7 @@ export default function JoinBox({ initial = '' }: { initial?: string }) {
           aria-describedby={error ? `${id}-err` : `${id}-hint`}
         />
         <button type="submit" className="btn btn--primary joinbox__btn">
-          Entrar a la clase
+          {compact ? 'Entrar' : 'Entrar a la clase'}
         </button>
       </div>
       {error ? (

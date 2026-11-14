@@ -112,6 +112,7 @@ export function UpcomingTile({ card, level }: { card: UpcomingCard; level: numbe
         <span className="gcard__upcoming-icon">
           {card.icon === 'vr' ? <IconVR size={44} /> : <IconRocket size={44} />}
         </span>
+        <span className="gcard__upcoming-title">{card.title}</span>
         <span className="gcard__lock">
           {card.unlockAt === null || !unlocked ? <IconLock size={14} /> : <IconStar size={14} />}
           {status}
