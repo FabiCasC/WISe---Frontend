@@ -168,6 +168,39 @@ export const GAMES: GameEntry[] = [
     size: 'wide',
   },
   {
+    id: 'artemis-landing',
+    title: 'Artemis Landing',
+    destination: 'moon',
+    icon: 'rocket',
+    levels: 3,
+    concepts: [
+      { id: 'sin-aire-solo-motor', label: 'No air on the Moon: only the engine can brake' },
+      { id: 'combustible-es-tiempo', label: 'Fuel is time — hovering burns it and buys nothing' },
+      { id: 'gravedad-baja-no-es-nula', label: 'Low gravity is still gravity, and drift still tips you over' },
+    ],
+    status: 'live',
+    isNew: true,
+    // 'big' on purpose: at one cell the two-word name wraps and the tile's
+    // contents overflow a 96px box, which clipped the icon and pushed the
+    // PLAY and LV chips outside it.
+    size: 'big',
+  },
+  {
+    id: 'dart-impact',
+    title: 'DART Impact',
+    destination: 'small',
+    icon: 'comet',
+    levels: 3,
+    concepts: [
+      { id: 'momento-desvia-asteroide', label: 'A small, fast impact can move an asteroid' },
+      { id: 'golpe-frontal-frena', label: 'Only a head-on hit takes speed away' },
+      { id: 'eyecta-multiplica', label: 'The debris thrown off pushes back, harder than the spacecraft' },
+    ],
+    status: 'live',
+    isNew: true,
+    size: 'big',
+  },
+  {
     id: 'orbital-grid',
     title: 'Keep the Link',
     destination: 'earth',
@@ -282,18 +315,31 @@ export const GAMES: GameEntry[] = [
     status: 'live',
     isNew: true,
   },
+  // Snake Express — Lunar Express
+  {
+    id: 'snake-express',
+    title: 'Lunar Express',
+    destination: 'moon',
+    icon: 'rover',
+    levels: 1,
+    concepts: [
+      { id: 'equipos-en-la-luna', label: 'Lunar equipment left behind and why' },
+      { id: 'muestras-lunares', label: 'Moon samples and their scientific value' },
+    ],
+    status: 'live',
+    isNew: true,
+    size: 'wide',
+  },
 
   // ------------------------------------------------------- COMING SOON
   soon('hubble-focus', 'Hubble Focus', 'orbit', 'scope', 7, ['Mirrors focus light', 'A blurry image has a cause', 'Telescopes can be repaired in orbit'], { size: 'big', isNew: true }),
   soon('webb-unfold', 'Webb Mirror Unfold', 'deep', 'scope', 6, ['Infrared sees through dust', 'Mirror segments must line up'], { size: 'wide', isNew: true }),
   soon('iss-docking', 'ISS Docking', 'orbit', 'station', 5, ['Relative speed', 'Being in orbit is falling around Earth']),
-  soon('artemis-landing', 'Artemis Landing', 'moon', 'rocket', 8, ['Landing in low gravity', 'Every landing has a fuel budget'], { isNew: true }),
   soon('perseverance-samples', 'Perseverance Sample Run', 'mars', 'rover', 6, ['Choose rocks that tell a story', 'Seal the sample to keep it clean']),
   soon('curiosity-climb', 'Curiosity Climb', 'mars', 'rover', 5, ['Rock layers record time']),
   soon('voyager-record', 'Voyager Golden Record', 'deep', 'sat', 4, ['Signals get weaker with distance'], { size: 'big' }),
   soon('juno-storms', 'Juno Storm Chaser', 'giant', 'planet', 6, ['Jupiter’s storms last for centuries']),
   soon('cassini-rings', 'Cassini Ring Dive', 'giant', 'planet', 7, ['Saturn’s rings are ice and rock'], { size: 'wide' }),
-  soon('dart-impact', 'DART Impact', 'small', 'comet', 3, ['Momentum can nudge an asteroid']),
   soon('parker-dive', 'Parker Sun Dive', 'sun', 'sun', 5, ['Heat shields reflect heat', 'The corona is hotter than the surface']),
   soon('apollo13-power', 'Apollo 13 Power Down', 'deep', 'rocket', 6, ['An energy budget can save lives'], { size: 'wide' }),
   soon('gateway-build', 'Lunar Gateway Build', 'moon', 'station', 7, ['Modules connect in orbit']),
