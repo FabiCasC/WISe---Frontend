@@ -1,4 +1,4 @@
-import { GAMES, type GameEntry } from '../../content/games'
+import { LIVE_GAMES, type GameEntry } from '../../content/games'
 import type { Role } from '../../shared/accounts'
 import type { Membership } from '../../shared/classroom'
 import { getRank, learnedConcepts, nextRank } from '../../shared/progress'
@@ -37,9 +37,12 @@ export default function Home({ role, progress, membership, onOpenGame }: Props) 
             Learn by playing real NASA missions
           </h1>
           <p className="band__lede">
-            Humanity left machines on the Moon and Mars. In {GAMES.length} short games you use
-            their real science, the instruments, the energy and the light, to find out what they
-            discovered. No quizzes: the science is the game.
+            {/* Counts the PLAYABLE games, not the catalog. Quoting the catalog
+                total meant the headline number included tiles that open on
+                nothing, which is the first promise a visitor can check. */}
+            Humanity left machines on the Moon and Mars. In {LIVE_GAMES.length} short games you
+            use their real science, the instruments, the energy and the light, to find out what
+            they discovered. No quizzes: the science is the game.
           </p>
 
           <div className="joincard">
