@@ -253,13 +253,27 @@ export const GAMES: GameEntry[] = [
     status: 'live',
     isNew: true,
   },
+  {
+    id: 'ingenuity-flight',
+    title: 'Ingenuity: Fly in Thin Air',
+    destination: 'mars',
+    icon: 'sat',
+    levels: 3,
+    concepts: [
+      { id: 'aire-fino-giro-rapido', label: 'Thin air gives little lift, so a Mars helicopter must spin its blades very fast' },
+      { id: 'bateria-limita-vuelo', label: 'A solar-charged battery allows only about one 90-second flight per day' },
+      { id: 'navegar-con-textura', label: 'Ingenuity’s camera needed textured ground; smooth sand ripples ended its last flight' },
+    ],
+    status: 'live',
+    isNew: true,
+    size: 'wide',
+  },
 
   // ------------------------------------------------------- COMING SOON
   soon('hubble-focus', 'Hubble Focus', 'orbit', 'scope', 7, ['Mirrors focus light', 'A blurry image has a cause', 'Telescopes can be repaired in orbit'], { size: 'big', isNew: true }),
   soon('webb-unfold', 'Webb Mirror Unfold', 'deep', 'scope', 6, ['Infrared sees through dust', 'Mirror segments must line up'], { size: 'wide', isNew: true }),
   soon('iss-docking', 'ISS Docking', 'orbit', 'station', 5, ['Relative speed', 'Being in orbit is falling around Earth']),
   soon('artemis-landing', 'Artemis Landing', 'moon', 'rocket', 8, ['Landing in low gravity', 'Every landing has a fuel budget'], { isNew: true }),
-  soon('ingenuity-flight', 'Ingenuity First Flight', 'mars', 'sat', 4, ['Thin air needs fast blades'], { size: 'wide' }),
   soon('perseverance-samples', 'Perseverance Sample Run', 'mars', 'rover', 6, ['Choose rocks that tell a story', 'Seal the sample to keep it clean']),
   soon('curiosity-climb', 'Curiosity Climb', 'mars', 'rover', 5, ['Rock layers record time']),
   soon('voyager-record', 'Voyager Golden Record', 'deep', 'sat', 4, ['Signals get weaker with distance'], { size: 'big' }),

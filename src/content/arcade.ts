@@ -11,6 +11,7 @@ export type ArcadeId =
   | 'pathfinder-bounce'
   | 'sojourner-commands'
   | 'phoenix-ice'
+  | 'ingenuity-flight'
 
 /**
  * SALA ARCADE — minijuegos cortos.
@@ -282,6 +283,32 @@ export const ARCADE: ArcadeCard[] = [
       },
     ],
     sources: ['nasa-phoenix', 'nasa-phoenix-history', 'nssdc-phoenix', 'pia12338-phoenix-winter'],
+  },
+  {
+    gameId: 'ingenuity-flight',
+    title: 'Ingenuity: Fly in Thin Air',
+    kicker: 'Rotor flight · Ingenuity Mars Helicopter',
+    genre: 'Flight control',
+    fact:
+      'Ingenuity, a 1.8 kg helicopter, made the first powered, controlled flight on another planet on 19 April 2021, in air less than 1% as dense as Earth’s. For its first flight the blades spun up to 2,537 rpm. Its solar panel charged enough energy for about one 90-second flight per Martian day. After 72 flights, on 18 January 2024 a rotor blade was damaged at landing: over steep, featureless sand ripples its navigation camera had too little texture to track. It still stands on Mars.',
+    dramatization:
+      'The lift model (lift grows with air density × rpm²) is simplified and tuned so hovering on Mars needs about 2,400 rpm; the Earth lift-off speed shown is what this same model gives, not a measured number. Spin-up is faster than the real 12 s, the battery is counted in seconds of hover, and the drift over sand is a game version of the navigation problem.',
+    learning: 'Flying needs air to push on: the thinner the air, the faster the blades must spin, and the more the flight depends on battery and good navigation.',
+    accent: '#C9CCD4',
+    durationMin: [1, 3],
+    levels: [
+      { id: 1, name: 'Spin faster', goal: 'Lift off, hover above 3 m, land softly' },
+      { id: 2, name: 'One flight per sol', goal: 'Take a photo and reach the new base in 90 s' },
+      { id: 3, name: 'Featureless sand', goal: 'Land on pebbly ground, never on the ripples' },
+    ],
+    evidence: [
+      {
+        id: 'ev-ingenuity',
+        label: 'First flight on another planet',
+        meaning: 'Ingenuity proved that a helicopter can fly in Mars’s thin air. It made 72 flights and scouted ahead for Perseverance.',
+      },
+    ],
+    sources: ['nasa-ingenuity', 'nasa-ingenuity-first-flight', 'nasa-ingenuity-ends', 'nasa-ingenuity-investigation', 'nasa-ingenuity-cold'],
   },
 ]
 
