@@ -1,6 +1,6 @@
 import type { Tutorial } from './types'
 
-export type { Tutorial, TutorialControl, TutorialPart } from './types'
+export type { Tutorial, TutorialControl, TutorialPart, TutorialStep } from './types'
 
 // Every sibling file is a game's tutorial (default export). Loaded eagerly:
 // they are tiny text files and the portal needs them before opening a game.

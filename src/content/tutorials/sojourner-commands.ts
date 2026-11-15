@@ -18,5 +18,11 @@ export default {
     { name: 'Plans sent', meaning: 'How many plans you have sent to Mars so far.' },
     { name: 'APXS', meaning: 'Sojourner’s chemistry tool. It sits on the BACK of the rover, so you must back up to a rock to measure it.' },
   ],
-  practice: 'Add three or four moves, press Enter, and watch the signal travel to Mars before the rover moves.',
+  steps: [
+    { text: 'Press Start planning. Add a few moves with the arrow keys: ↑ forward, ↓ back, ← and → turn.', keys: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyQ', 'KeyE'] },
+    { text: 'Made a mistake? Backspace undoes the last command.', keys: ['Backspace'] },
+    { text: 'Press Enter to send the plan to Mars. Watch the signal travel: that is the Radio delay, and nothing moves until it arrives.', keys: ['Enter'] },
+    { text: 'Now the rover runs your whole plan, with no way to steer it. That is why planners had to think ahead.' },
+    { text: 'In levels 2 and 3 press A to use the APXS on the back of the rover. Ready?' },
+  ],
 } satisfies Tutorial

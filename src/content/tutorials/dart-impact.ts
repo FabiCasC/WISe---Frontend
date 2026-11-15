@@ -15,5 +15,11 @@ export default {
     { name: 'Divert fuel', meaning: 'Fuel to steer. Steering is limited, so line up early.' },
     { name: 'The arrow on Dimorphos', meaning: 'Shows which way it is moving. It turns green when it is coming toward you. A head-on hit slows it down; a hit from the side does not.' },
   ],
-  practice: 'Watch the arrow on Dimorphos, press Space to release, then steer ↑ ↓ to meet it.',
+  steps: [
+    { text: 'Press Begin. Look at the arrow on Dimorphos: it shows which way the moonlet is moving.', keys: ['Space', 'Enter'] },
+    { text: 'Press Space to release the impactor.', keys: ['Space', 'Enter'] },
+    { text: 'Steer it with ↑ and ↓. You have limited Divert fuel, so do not wiggle.', keys: ['ArrowUp', 'ArrowDown', 'KeyW', 'KeyS'] },
+    { text: 'See what happens: a head-on hit slows Dimorphos and shortens its orbit (Orbit cut). A hit from the side does not.' },
+    { text: 'The real levels need a bigger cut and give you fewer impactors. Ready?' },
+  ],
 } satisfies Tutorial

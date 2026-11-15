@@ -16,5 +16,11 @@ export default {
     { name: 'Goal', meaning: 'What to do this level: reach a height, photograph the rocks, or land at the new base.' },
     { name: 'NAV', meaning: 'Ingenuity’s camera needs ground with texture, like pebbles. Over smooth sand ripples it gets lost.' },
   ],
-  practice: 'Hold ↑ until the number passes the lift-off mark, then ease off and settle down gently.',
+  steps: [
+    { text: 'Press Start the rotors. Hold ↑ to spin the blades faster. Watch Rotor speed.', keys: ['ArrowUp', 'KeyW', 'Space'] },
+    { text: 'Keep going until the speed passes the lift-off mark. Below it, Mars air is too thin to lift you.' },
+    { text: 'Your height should climb now. Press ↓ to slow the blades and come down gently.', keys: ['ArrowDown', 'KeyS'] },
+    { text: 'Use ← and → to fly sideways.', keys: ['ArrowLeft', 'ArrowRight', 'KeyA', 'KeyD'] },
+    { text: 'In the real levels the battery counts down and you must land softly. Ready?' },
+  ],
 } satisfies Tutorial

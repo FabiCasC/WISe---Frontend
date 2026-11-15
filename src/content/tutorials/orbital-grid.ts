@@ -18,5 +18,11 @@ export default {
     { name: 'Contact last run', meaning: 'The share of the day you stayed in touch. Your goal is on the right.' },
     { name: 'Days run', meaning: 'How many times you tested. Testing is how you find the gap.' },
   ],
-  practice: 'Place just one dish and run a day to see the blackout. Then add more and look for the best spread.',
+  steps: [
+    { text: 'Press Start. Click on the ring around the Earth to place a dish (or move with ← → and press Space).', keys: ['Space'], pointer: true },
+    { text: 'Place just one dish, then press Enter to run a day. Watch the probe: green means LINK, red means no signal.', keys: ['Enter'] },
+    { text: 'Look at the 24-hour bar: the red parts are blackouts, when no dish could see the probe.' },
+    { text: 'Click on a dish to remove it, and try two or three dishes spread around. Where do the blackouts go?' },
+    { text: 'The real levels set a goal for how much of the day you must stay in contact. Ready?' },
+  ],
 } satisfies Tutorial

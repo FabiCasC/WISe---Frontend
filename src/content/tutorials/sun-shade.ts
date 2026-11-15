@@ -19,5 +19,11 @@ export default {
     { name: 'Samples', meaning: 'Collect them on the way. They are worth points.' },
     { name: 'Stops', meaning: 'How many times a rover has been stopped. Fewer is better.' },
   ],
-  practice: 'Walk the solar rover into a shaded zone to see it stop, then try the same with the nuclear one.',
+  steps: [
+    { text: 'Press Start. Move the SOLAR rover with A and D, and jump with W.', keys: ['KeyA', 'KeyD', 'KeyW'] },
+    { text: 'Now the NUCLEAR rover: move with ← and →, and jump with ↑.', keys: ['ArrowLeft', 'ArrowRight', 'ArrowUp'] },
+    { text: 'Walk the solar rover into a dark purple shade zone. With no sunlight its panels make no power, and it stops.' },
+    { text: 'The nuclear rover makes power from heat, so shade does not stop it. But it is bigger: it cannot fit under low gaps.' },
+    { text: 'Press R to restart a level any time. Both rovers have to reach their hatch, and they must help each other. Ready?', keys: ['KeyR'] },
+  ],
 } satisfies Tutorial

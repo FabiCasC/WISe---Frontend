@@ -19,5 +19,11 @@ export default {
     { name: 'Sun breaks', meaning: 'Bright patches you can catch to recharge your battery.' },
     { name: 'Rocks, dunes and gusts', meaning: 'Hit one and you lose energy. Jump the low ones, duck the high ones.' },
   ],
-  practice: 'Practice has no energy loss. Jump a rock, catch a sun break and watch the τ meter climb as you go.',
+  steps: [
+    { text: 'Press Start, then press Space to jump the first rock. A crash costs energy.', keys: ['Space', 'ArrowUp', 'KeyW'] },
+    { text: 'Look at Energy. It drains all the time, because the dust blocks the Sun. Catch a glowing sun break to refill it.' },
+    { text: 'Now look at Dust τ · sunlight. Watch τ climb as you drive: the higher it goes, the less sunlight reaches your panels.' },
+    { text: 'Hold ↓ to duck under a high gust of dust (these come in levels 2 and 3).', keys: ['ArrowDown', 'KeyS'] },
+    { text: 'You know it. In the real levels energy really drains and a crash really hurts. Ready?' },
+  ],
 } satisfies Tutorial

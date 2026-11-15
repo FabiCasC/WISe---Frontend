@@ -18,5 +18,11 @@ export default {
     { name: 'Ovens left', meaning: 'Phoenix could heat a sample in a small oven to look for water. You only have a few ovens.' },
     { name: 'Water readings', meaning: 'How many times the oven found water. Ice left in the open turns to gas, so use fresh samples.' },
   ],
-  practice: 'Dig a spot, press N a couple of times, and look for the chunks that shrink.',
+  steps: [
+    { text: 'Press Start digging. Dig a spot: press a number key (1 to 5), or tap a spot.', keys: ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6'], pointer: true },
+    { text: 'Press N to wait one sol (a Martian day). Look for bright chunks that get smaller.', keys: ['KeyN'] },
+    { text: 'Bright chunks that vanish were water ice turning into gas. The ones that stay are salt. Watch a few sols.' },
+    { text: 'Tap a chunk to label it Ice or Salt. In the later levels, Enter or O puts a scoop in the oven to look for water.', keys: ['KeyO', 'Enter'] },
+    { text: 'Energy and ovens are limited, like on the real Phoenix. Ready?' },
+  ],
 } satisfies Tutorial

@@ -172,25 +172,67 @@ function Practice({
   onGuide: () => void
   renderPractice: () => ReactNode
 }) {
+  const steps = tutorial.steps
+  const [i, setI] = useState(0)
+  const [done, setDone] = useState(false)
+  const last = i === steps.length - 1
+  const step = steps[i]
+
   // Leaves a strip at the bottom of the screen for the coach bar.
   useEffect(() => {
     document.documentElement.classList.add('level0')
     return () => document.documentElement.classList.remove('level0')
   }, [])
 
+  // A step with keys ticks itself off when the player does it, then the coach
+  // moves on. Pressing the keys on the way is never blocked.
+  useEffect(() => {
+    setDone(false)
+    if ((!step.keys?.length && !step.pointer) || last) return
+    let timer = 0
+    const finish = () => {
+      document.removeEventListener('keydown', onKey, true)
+      document.removeEventListener('pointerdown', onPointer, true)
+      setDone(true)
+      timer = window.setTimeout(() => setI((n) => Math.min(n + 1, steps.length - 1)), 900)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (step.keys?.includes(e.code)) finish()
+    }
+    const onPointer = (e: PointerEvent) => {
+      if (step.pointer && !(e.target as Element | null)?.closest?.('.coach')) finish()
+    }
+    document.addEventListener('keydown', onKey, true)
+    document.addEventListener('pointerdown', onPointer, true)
+    return () => {
+      document.removeEventListener('keydown', onKey, true)
+      document.removeEventListener('pointerdown', onPointer, true)
+      window.clearTimeout(timer)
+    }
+  }, [i, step, last, steps.length])
+
   return (
     <>
       {renderPractice()}
       <aside className="coach" aria-label={`${game.title}: level 0 practice`}>
-        <div className="coach__text">
-          <b>Level 0 · Practice</b>
-          <span>{tutorial.practice} Nothing here is scored.</span>
+        <div className="coach__text" aria-live="polite">
+          <b>
+            Level 0 · Step {i + 1} of {steps.length}
+          </b>
+          <span className={done ? 'is-done' : ''}>
+            {done && <IconCheck size={14} />} {step.text}
+          </span>
         </div>
         <div className="coach__actions">
           <button type="button" className="btn btn--quiet btn--sm" onClick={onGuide}>
             Guide
           </button>
-          <button type="button" className="btn btn--primary btn--sm" onClick={onStart}>
+          {!last && (
+            <button type="button" className="btn btn--secondary btn--sm" onClick={() => setI((n) => n + 1)}>
+              {done ? 'Next' : 'Skip step'}
+            </button>
+          )}
+          <button type="button" className={`btn btn--sm ${last ? 'btn--primary' : 'btn--quiet'}`} onClick={onStart}>
             <IconPlay size={14} /> Start level 1
           </button>
         </div>

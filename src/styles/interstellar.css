@@ -2145,3 +2145,11 @@ main {
     gap: 6px;
   }
 }
+
+.coach__text .is-done {
+  color: var(--ok);
+}
+
+.coach__text .is-done svg {
+  vertical-align: -2px;
+}

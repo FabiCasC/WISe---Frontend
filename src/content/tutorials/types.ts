@@ -29,6 +29,20 @@ export interface TutorialPart {
   meaning: string
 }
 
+export interface TutorialStep {
+  /** What to do or notice right now, in one or two short sentences. */
+  text: string
+  /**
+   * KeyboardEvent.code values (e.g. 'Space', 'ArrowUp', 'KeyW'). When the
+   * player presses one, the step is ticked off and the coach moves on. Leave
+   * it out for steps that only explain something: those use the Next button.
+   * Touch players always have the Next button.
+   */
+  keys?: string[]
+  /** Ticks the step when the player taps or clicks the game (not the coach bar). */
+  pointer?: boolean
+}
+
 export interface Tutorial {
   gameId: string
   /** Why this really happened, in 1-2 sentences. The hook. */
@@ -36,6 +50,10 @@ export interface Tutorial {
   controls: TutorialControl[]
   /** What each part of the screen means. */
   parts: TutorialPart[]
-  /** One thing to try during the practice round. */
-  practice: string
+  /**
+   * The practice round, step by step. The real game runs underneath in
+   * practice mode and the coach bar walks the player through these: the first
+   * step should be how to begin, and the last one should say they are ready.
+   */
+  steps: TutorialStep[]
 }

@@ -17,5 +17,11 @@ export default {
     { name: 'Parachute', meaning: 'Slows you a lot, but if you open it while you are still too fast, it tears.' },
     { name: 'Rockets and airbags', meaning: 'Mars air is very thin, so a parachute is not enough. Rockets brake the last part, and airbags cushion the bounce.' },
   ],
-  practice: 'Watch the speed number fall as you go down, then press the button when you think it is safe.',
+  steps: [
+    { text: 'Press Start entry. The lander is falling at thousands of metres per second. Watch Speed and Altitude.', keys: ['Space', 'Enter'] },
+    { text: 'The heat shield is slowing you down by itself. The Clock runs fast high in the sky, and slows down near the ground so you can react.' },
+    { text: 'When the game says it is time, press Space (or the button) to do the next step of the landing.', keys: ['Space', 'Digit1', 'Digit2', 'Digit3', 'Digit4'] },
+    { text: 'Each step only works in the right speed range. Too early and the parachute tears, too late and the airbags burst.' },
+    { text: 'That is the landing. The real levels check your timing. Ready?' },
+  ],
 } satisfies Tutorial

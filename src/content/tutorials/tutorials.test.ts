@@ -7,17 +7,7 @@ import { getTutorial, TUTORIALS } from './index'
  * src/content/tutorials/<id>.ts, delete the id from this list: the goal is an
  * empty list, and the test below keeps the others from being forgotten.
  */
-const PENDING: string[] = [
-  'opportunity',
-  'lunar-signals',
-  'spirit',
-  'artemis-landing',
-  'eagle-liftoff',
-  'lunar-rover',
-  'nasa-numbers',
-  'snake-express',
-  'lro-search',
-]
+const PENDING: string[] = []
 
 describe('Level 0 tutorials', () => {
   it('belong to live games, one file per game', () => {
@@ -40,7 +30,8 @@ describe('Level 0 tutorials', () => {
       expect(p.name.length).toBeGreaterThan(1)
       expect(p.meaning.length).toBeGreaterThan(20)
     }
-    expect(t.practice.length).toBeGreaterThan(20)
+    expect(t.steps.length).toBeGreaterThanOrEqual(3)
+    for (const st of t.steps) expect(st.text.length).toBeGreaterThan(20)
   })
 
   it('every live game has one, except the ones still pending', () => {

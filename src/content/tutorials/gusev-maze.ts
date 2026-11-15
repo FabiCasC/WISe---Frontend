@@ -22,5 +22,11 @@ export default {
     },
     { name: 'Rovers', meaning: 'Your lives. You lose one when the dust covers your panels completely.' },
   ],
-  practice: 'Dust builds up slowly here. Let your panel power fall a little, then drive into a dust devil and watch it recover.',
+  steps: [
+    { text: 'Press Start, then move with the arrows or W A S D. Grab a few samples.', keys: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'] },
+    { text: 'Watch Panel power. Dust keeps settling on your panels, so your rover slowly gets weaker and slower.' },
+    { text: 'Find a dust devil, the swirl moving around the maze, and drive into it while your power is low. Its wind cleans your panels.' },
+    { text: 'Look at your power jump back up. That is the cleaning event the real Spirit team saw.' },
+    { text: 'The real levels have more dust devils and the dust builds faster. Ready?' },
+  ],
 } satisfies Tutorial
