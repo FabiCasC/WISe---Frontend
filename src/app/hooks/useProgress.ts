@@ -16,15 +16,15 @@ export interface ProgressApi {
   reset: () => void
 }
 
-export function useProgress(): ProgressApi {
-  const [progress, setProgress] = useState<Progress>(() => loadProgress())
+export function useProgress(accountId?: string): ProgressApi {
+  const [progress, setProgress] = useState<Progress>(() => loadProgress(accountId))
   const [storageOk, setStorageOk] = useState(true)
 
   // Persistir cada cambio. Un fallo no interrumpe la partida: solo se marca.
   useEffect(() => {
-    const ok = saveProgress(progress)
+    const ok = saveProgress(progress, accountId)
     setStorageOk((prev) => (prev === ok ? prev : ok))
-  }, [progress])
+  }, [progress, accountId])
 
   // Aplicar movimiento reducido al documento.
   useEffect(() => {
@@ -47,8 +47,8 @@ export function useProgress(): ProgressApi {
   }, [])
 
   const reset = useCallback(() => {
-    setProgress(resetProgress())
-  }, [])
+    setProgress(resetProgress(accountId))
+  }, [accountId])
 
   return useMemo(
     () => ({ progress, storageOk, record, updateSettings, reset }),

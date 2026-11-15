@@ -11,6 +11,9 @@ import {
 
 const STORAGE_KEY = 'orbita-arcade:progress'
 
+/** Each account keeps its own progress; without one the old shared key is used. */
+const keyFor = (accountId?: string) => (accountId ? `${STORAGE_KEY}:${accountId}` : STORAGE_KEY)
+
 export const DEFAULT_SETTINGS: GameSettings = {
   volume: 0.6,
   reducedMotion: false,
@@ -94,9 +97,9 @@ export function migrateProgress(raw: unknown): Progress {
  * (Safari private mode) fall back to empty progress. It never throws:
  * playing must always be possible.
  */
-export function loadProgress(): Progress {
+export function loadProgress(accountId?: string): Progress {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(keyFor(accountId))
     return raw ? migrateProgress(JSON.parse(raw)) : createEmptyProgress()
   } catch {
     return createEmptyProgress()
@@ -104,18 +107,18 @@ export function loadProgress(): Progress {
 }
 
 /** A failed save must never stop the game: it returns false and moves on. */
-export function saveProgress(progress: Progress): boolean {
+export function saveProgress(progress: Progress, accountId?: string): boolean {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...progress, updatedAt: new Date().toISOString() }))
+    localStorage.setItem(keyFor(accountId), JSON.stringify({ ...progress, updatedAt: new Date().toISOString() }))
     return true
   } catch {
     return false
   }
 }
 
-export function resetProgress(): Progress {
+export function resetProgress(accountId?: string): Progress {
   try {
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(keyFor(accountId))
   } catch {
     /* blocked storage: keep going in memory */
   }

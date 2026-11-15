@@ -8,7 +8,8 @@ import { getGame } from '../../content/games'
  *
  *   #/                       -> lobby: join a class, play solo or teacher
  *   #/arcade                 -> the game wall (every game, Friv style)
- *   #/archive                -> archive of real spacecraft
+ *   #/studio                 -> game studio (build your own game)
+ *   #/profile                -> your profile: points and medals
  *   #/play/spirit/2          -> game (overlays the current page)
  *   #/teacher                -> create a class
  *   #/class  or  #/class/MOON-27 -> join a class (code already filled in)
@@ -22,7 +23,8 @@ import { getGame } from '../../content/games'
 export type Route =
   | { name: 'landing' }
   | { name: 'arcade' }
-  | { name: 'archive' }
+  | { name: 'studio' }
+  | { name: 'profile' }
   | { name: 'play'; gameId: GameId; levelId: LevelId }
   | { name: 'teacher' }
   | { name: 'join'; code: string | null }
@@ -40,7 +42,8 @@ function parse(hash: string): Route | null {
   const parts = hash.slice(2).split('/').filter(Boolean)
 
   if (parts[0] === 'arcade') return { name: 'arcade' }
-  if (parts[0] === 'archive') return { name: 'archive' }
+  if (parts[0] === 'studio') return { name: 'studio' }
+  if (parts[0] === 'profile') return { name: 'profile' }
   // English routes; the Spanish ones stay as aliases so shared links keep working.
   if (parts[0] === 'teacher' || parts[0] === 'profesor') return { name: 'teacher' }
   if (parts[0] === 'class' || parts[0] === 'clase')

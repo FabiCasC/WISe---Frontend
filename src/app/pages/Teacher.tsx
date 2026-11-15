@@ -46,7 +46,7 @@ export function CopyField({ label, value, hint }: { label: string; value: string
   )
 }
 
-export default function Teacher({ service }: { service: ClassService }) {
+export default function Teacher({ service, onCreated }: { service: ClassService; onCreated?: (code: string) => void }) {
   const [name, setName] = useState('')
   const [grade, setGrade] = useState(GRADES[1])
   const [error, setError] = useState<string | null>(null)
@@ -62,7 +62,9 @@ export default function Teacher({ service }: { service: ClassService }) {
     setError(null)
     setBusy(true)
     try {
-      setCreated(await service.createClass({ name, grade }))
+      const made = await service.createClass({ name, grade })
+      setCreated(made)
+      onCreated?.(made.code)
     } catch {
       setError('The class could not be created. Please try again.')
     } finally {
@@ -80,8 +82,8 @@ export default function Teacher({ service }: { service: ClassService }) {
           <div>
             <h1 className="page__title">Teacher mode</h1>
             <p className="page__lede">
-              Create a class, share the code and watch your group progress. No accounts: we never
-              ask for your name or email, and your students only get a nickname.
+              Create a class, share the code and watch your group progress. We never ask for your
+              students’ real names or emails: they only get a nickname.
             </p>
           </div>
         </div>

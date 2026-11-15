@@ -315,13 +315,15 @@ export function loadClassDb(): ClassDb {
   return db && typeof db.classes === 'object' ? db : { classes: {} }
 }
 
-export function loadMembership(): Membership | null {
-  const m = read<Membership | null>(MEMBERSHIP_KEY, null)
+const membershipKey = (accountId?: string) => (accountId ? `${MEMBERSHIP_KEY}:${accountId}` : MEMBERSHIP_KEY)
+
+export function loadMembership(accountId?: string): Membership | null {
+  const m = read<Membership | null>(membershipKey(accountId), null)
   return m && typeof m.code === 'string' && typeof m.nickname === 'string' ? m : null
 }
 
-export function saveMembership(m: Membership | null): void {
-  write(MEMBERSHIP_KEY, m)
+export function saveMembership(m: Membership | null, accountId?: string): void {
+  write(membershipKey(accountId), m)
 }
 
 /** Id anónimo estable de este navegador. */

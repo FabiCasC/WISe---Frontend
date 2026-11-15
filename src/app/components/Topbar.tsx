@@ -1,16 +1,19 @@
 import { BRAND } from '../../content/brand'
+import type { Account } from '../../shared/accounts'
 import type { Membership } from '../../shared/classroom'
 import { getRank, learnedConcepts } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
 import { BrandGlyph, IconGear, IconStar } from './Art'
+import WallIcon from './WallIcon'
 
 interface Props {
+  account: Account
   progress: Progress
   membership: Membership | null
   onSettings: () => void
 }
 
-export default function Topbar({ progress, membership, onSettings }: Props) {
+export default function Topbar({ account, progress, membership, onSettings }: Props) {
   const rank = getRank(progress)
   const learned = learnedConcepts(progress).length
 
@@ -31,12 +34,14 @@ export default function Topbar({ progress, membership, onSettings }: Props) {
           <a className="navlink" href="#/arcade">
             Arcade
           </a>
-          <a className="navlink" href="#/teacher">
-            Teachers
+          <a className="navlink" href="#/studio">
+            Studio
           </a>
-          <a className="navlink" href="#/archive">
-            Archive
-          </a>
+          {account.role === 'teacher' && (
+            <a className="navlink" href="#/teacher">
+              Teachers
+            </a>
+          )}
         </nav>
 
         {membership && (
@@ -50,11 +55,16 @@ export default function Topbar({ progress, membership, onSettings }: Props) {
           </a>
         )}
 
-        <a className="levelpill" href="#/" aria-label={`Rank ${rank.name}, ${learned} concepts learned`}>
+        <a className="levelpill" href="#/profile" aria-label={`Rank ${rank.name}, ${learned} concepts learned. Open your profile`}>
           <IconStar size={15} />
           <span>
             {rank.name} <b>{learned}</b>
           </span>
+        </a>
+
+        <a className="accountpill" href="#/profile" aria-label={`Your profile, ${account.username}`}>
+          <WallIcon name={account.avatar} size={20} />
+          <span className="accountpill__name">{account.username}</span>
         </a>
 
         <button type="button" className="btn btn--quiet btn--icon" onClick={onSettings} aria-label="Settings">
