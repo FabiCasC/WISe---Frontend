@@ -367,70 +367,7 @@ export const ARCADE: ArcadeCard[] = [
     ],
     sources: ['nasa-lro', 'pia12889-lro-apollo14', 'pia12897-fra-mauro', 'pia12909-apollo11-second-look', 'nasa-lro-apollo12'],
   },
-  {
-    gameId: 'nasa-numbers',
-    title: 'NASA Number Mission',
-    kicker: 'Number puzzle · Apollo 15 and the Moon',
-    body: 'luna',
-    bodyLabel: 'Moon',
-    hardware: 'Apollo 15 mission and the Moon\'s laser retroreflectors',
-    genre: 'Number puzzle',
-    voice: 'Every number in the logbook is a clue. Can you find the right one?',
-    learning: 'Real numbers from NASA missions: guess, narrow down, and learn the story behind each one.',
-    crew: 'TBD',
-    durationMin: [3, 5],
-    accent: '#6DE2F2',
-    levels: [
-      {
-        id: 1,
-        name: 'Launch Pad',
-        goal: '5 questions about Apollo 15 · reach 3 correct',
-        idea: 'Halving the range each time finds any number in a few tries.',
-      },
-      {
-        id: 2,
-        name: 'Mission Control',
-        goal: '5 years and measurements · reach 3 correct',
-        idea: 'Measurements come with a margin of error.',
-      },
-      {
-        id: 3,
-        name: 'Deep Space',
-        goal: '5 connected numbers about the Moon · reach 3 correct',
-        idea: 'Distance, the speed of light, and the echo time are linked.',
-      },
-    ],
-    evidence: [
-      {
-        id: 'ev-apollo15-log',
-        label: 'Apollo 15 logbook',
-        meaning: 'Dates, counts, and measurements from the Apollo 15 mission, as recorded by NASA.',
-      },
-      {
-        id: 'ev-moon-numbers',
-        label: 'Moon numbers',
-        meaning: 'The Moon\'s distance, orbit, and laser echo time are measured values, not estimates by eye.',
-      },
-    ],
-    dossier: {
-      arrival: 'Apollo 15 landed at Hadley–Apennine on July 30, 1971.',
-      lastContact:
-        'The ALSEP stations, including the seismometer, were shut down on September 30, 1977.',
-      missionEnd:
-        'The laser retroreflectors need no power and are still used to measure the Earth–Moon distance.',
-      purpose: 'Explore the Moon, collect samples, and leave instruments that kept working after the crew left.',
-      finding: 'Numbers measured on and around the Moon, from rock samples to a laser echo of about 2.5 seconds.',
-      dramatization:
-        'The guessing game, the attempts, and the points are inventions of this game. The numbers in the mission logs come from NASA pages.',
-      notTrue: [
-        'Guessing a number is not how scientists measure: they measure, and they report a margin of error.',
-        'The retroreflector has no battery and does not transmit: it only returns the light it receives.',
-        'Some answers are rounded for play; the mission log shows the exact NASA value.',
-      ],
-    },
-    sourceIds: ['nssdca-apollo15-lm', 'nssdca-moon-facts', 'jpl-apollo-reflectors', 'jpl-llr-2020'],
-    art: 'assets/missions/nasa-numbers.webp',
-  },
+ 
   
   {
     gameId: 'dart-impact',
@@ -465,8 +402,37 @@ export const ARCADE: ArcadeCard[] = [
     ],
   },
 
-
-
+  {
+    gameId: 'nasa-numbers',
+    title: 'NASA Number Mission',
+    kicker: 'Number puzzle · Apollo 15 and the Moon',
+    genre: 'Number puzzle',
+    fact:
+      'Apollo 15 landed on the Moon on 30 July 1971 and left a science station that was shut down on 30 September 1977. It also left a laser retroreflector with 300 corner cubes that needs no power and is still used today. A laser pulse takes about 2.5 seconds to go from Earth to the Moon and back, and the Moon is about 384,400 km away on average.',
+    dramatization:
+      'The guessing game, the attempts, the hints and the points are game rules. Some answers are rounded or accepted within a margin to keep play simple; the mission log after each question shows NASA’s exact value. The order of the questions is shuffled for each run.',
+    learning: 'The numbers behind a mission are measured, and you can narrow down any number by halving the range.',
+    accent: '#6DE2F2',
+    durationMin: [3, 5],
+    levels: [
+      { id: 1, name: 'Launch Pad', goal: '5 questions about Apollo 15 · reach 3 correct' },
+      { id: 2, name: 'Mission Control', goal: '5 years and measurements · reach 3 correct' },
+      { id: 3, name: 'Deep Space', goal: '5 connected numbers about the Moon · reach 3 correct' },
+    ],
+    evidence: [
+      {
+        id: 'ev-apollo15-log',
+        label: 'Apollo 15 logbook',
+        meaning: 'Dates, counts and measurements from the Apollo 15 mission, as recorded by NASA.',
+      },
+      {
+        id: 'ev-moon-numbers',
+        label: 'Moon numbers',
+        meaning: 'The Moon’s distance, orbit and laser echo time are measured values, not estimates by eye.',
+      },
+    ],
+    sources: ['nssdc-apollo15-alsep', 'nssdca-moon-facts', 'jpl-apollo-reflectors', 'jpl-llr-2020'],
+  },
   {
     gameId: 'artemis-landing',
     title: 'Artemis Landing',
