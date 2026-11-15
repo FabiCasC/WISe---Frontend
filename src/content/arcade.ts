@@ -6,7 +6,8 @@ export type ArcadeId =
   | 'gusev-maze'
   | 'orbital-grid'
   | 'sun-shade'
-  | 'apollo11-descent'
+  | 'eagle-liftoff'
+  | 'snake-express'
   | 'lunar-rover'
   | 'pathfinder-bounce'
   | 'sojourner-commands'
@@ -54,6 +55,32 @@ export interface ArcadeCard {
 }
 
 export const ARCADE: ArcadeCard[] = [
+  {
+    gameId: 'snake-express',
+    title: 'Lunar Express',
+    kicker: 'Moonwalk · Apollo samples and experiments',
+    genre: 'Snake-style moonwalk',
+    fact:
+      'The Moon has two kinds of ground. The bright highlands are older crust that survived giant impacts; the dark maria are seas of lava that cooled between 4.2 and 1.2 billion years ago. Apollo crews brought back rocks from both (Apollo 11 alone collected 21.55 kg) and left science packages on purpose: Apollo\'s seismometers sent data until 1977.',
+    dramatization:
+      'Astronauts did not walk in a line dragging their samples, and the oxygen times, the map and the rule of how far from the lunar module to set down a package are game numbers. The two rock colours are simplified: real samples come in many shades.',
+    learning: 'You can read the Moon\'s history from its rocks, and some hardware was left behind on purpose to keep doing science.',
+    accent: '#C8CEDA',
+    durationMin: [2, 4],
+    levels: [
+      { id: 1, name: 'Sea of Tranquility', goal: 'Bring back 5 dark basalt rocks from the lava plain' },
+      { id: 2, name: 'The highlands', goal: 'Bring back 5 bright rocks of the oldest crust' },
+      { id: 3, name: 'Leave science behind', goal: 'Set down 3 packages away from the LM and bring 3 rocks' },
+    ],
+    evidence: [
+      {
+        id: 'ev-alsep',
+        label: 'Science packages left on the Moon',
+        meaning: 'Apollo crews set up experiments that stayed on the Moon and kept sending data to Earth for years after they left.',
+      },
+    ],
+    sources: ['nasa-moon-composition', 'nssdc-apollo11-lm', 'nssdc-apollo15-alsep'],
+  },
   {
     gameId: 'dust-run',
     title: 'Storm over Meridiani',
@@ -157,31 +184,31 @@ export const ARCADE: ArcadeCard[] = [
     ],
   },
   {
-    gameId: 'apollo11-descent',
-    title: 'Land the Eagle',
-    kicker: 'Lunar landing · Apollo lunar module',
-    genre: 'Landing physics',
+    gameId: 'eagle-liftoff',
+    title: 'Eagle Liftoff',
+    kicker: 'Launch and rendezvous · Apollo 11 lunar module',
+    genre: 'Orbital chase',
     fact:
-      'The Moon pulls with 1.62 m/s², about one sixth of Earth’s 9.80 m/s². The Apollo lunar module had two stages: the descent stage, with the landing rocket and four legs, was the launch pad for the ascent stage and was left behind on the Moon. On Apollo 11, Neil Armstrong saw the computer taking Eagle into a boulder-strewn area, flew past it and landed on smoother ground. The low-fuel light had come on at about 100 feet (30 m).',
+      'Eagle\'s ascent engine fired for 435 seconds and put it in an orbit of 11 by 55 miles, lower than Columbia\'s, about 69 miles up. A lower orbit is faster, so Eagle caught up and docked about three and a half hours later. The descent stage stayed on the Moon as the launch pad and is still there at Tranquility Base.',
     dramatization:
-      'The real landing burn lasted about 12.6 minutes and the engine could throttle up and down. Here the engine is only on or off, the side jets are simplified, fuel is counted in seconds of burn, and the safe limits (2 m/s down, 1 m/s sideways) are game numbers. The lander is drawn a little bigger than life; only the 9.4 m leg span is real.',
-    learning: 'Low gravity lets a small engine land you, but only if you stop sliding and pick flat ground.',
+      'Time is sped up hugely and the orbits are drawn much bigger than the Moon. Each burn jumps straight to the next circular orbit (a real change of orbit takes two burns and half a lap), and the launch window, burns and time limits are game numbers.',
+    learning: 'To catch a spacecraft ahead of you, you drop to a lower, faster orbit and then climb back up.',
     accent: '#F3B54A',
     durationMin: [1, 3],
     levels: [
-      { id: 1, name: 'One-sixth gravity', goal: 'Touch down slower than 2 m/s with a few seconds of fuel' },
-      { id: 2, name: 'Stop the drift', goal: 'Cancel an 8 m/s sideways slide before touchdown' },
-      { id: 3, name: 'Fly past the boulders', goal: 'Find the smooth ground and land there' },
+      { id: 1, name: 'Launch window', goal: 'Lift off when Columbia is a little ahead' },
+      { id: 2, name: 'Lower is faster', goal: 'Catch Columbia from 50° behind with 3 burns' },
+      { id: 3, name: 'Full rendezvous', goal: 'Time the launch, then catch up and dock' },
     ],
     evidence: [
       {
         id: 'ev-lm-descent-stage',
         label: 'Lunar module descent stage',
         meaning:
-          'The bottom half of each Apollo lunar module stayed on the Moon as a launch pad. Six of them are still there, from Apollo 11, 12, 14, 15, 16 and 17.',
+          'The bottom half of each Apollo lunar module was the launch pad for the top half, and it stayed on the Moon. Six are still there, from Apollo 11, 12, 14, 15, 16 and 17.',
       },
     ],
-    sources: ['nssdc-moon-facts', 'nssdc-apollo11-lm', 'nasa-apollo11-landing', 'nssdc-apollo17-lm'],
+    sources: ['nasa-apollo11-overview', 'nssdc-apollo11-lm', 'nssdc-apollo17-lm'],
   },
   {
     gameId: 'lunar-rover',

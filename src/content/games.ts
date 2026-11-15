@@ -216,15 +216,14 @@ export const GAMES: GameEntry[] = [
 
   // Seven abandoned-hardware games (Canvas 2D, src/games/<id>, texts in content/arcade.ts)
   {
-    id: 'apollo11-descent',
-    title: 'Land the Eagle',
+    id: 'eagle-liftoff',
+    title: 'Eagle Liftoff',
     destination: 'moon',
     icon: 'rocket',
     levels: 3,
     concepts: [
-      { id: 'gravedad-lunar-sexta-parte', label: 'Moon gravity is one sixth of Earth’s, so a small engine and little fuel can land you' },
-      { id: 'velocidad-horizontal-cero', label: 'A lander must stop sliding sideways before it touches down' },
-      { id: 'elegir-terreno-plano', label: 'Pick flat ground: a soft landing on boulders still tips you over' },
+      { id: 'ventana-de-lanzamiento', label: 'Lift off when the ship you must meet is a little ahead of you' },
+      { id: 'orbita-baja-mas-rapida', label: 'A lower orbit is faster: drop below a ship to catch it, then climb back' },
     ],
     status: 'live',
     isNew: true,
@@ -321,10 +320,11 @@ export const GAMES: GameEntry[] = [
     title: 'Lunar Express',
     destination: 'moon',
     icon: 'rover',
-    levels: 1,
+    levels: 3,
     concepts: [
-      { id: 'equipos-en-la-luna', label: 'Lunar equipment left behind and why' },
-      { id: 'muestras-lunares', label: 'Moon samples and their scientific value' },
+      { id: 'mares-son-lava', label: 'The dark plains (maria) are cooled lava: dark basalt rock' },
+      { id: 'tierras-altas-corteza-antigua', label: 'The bright highlands are the Moon’s oldest crust' },
+      { id: 'experimentos-se-quedan', label: 'Science packages were left on purpose, away from the lunar module, to keep sending data' },
     ],
     status: 'live',
     isNew: true,
