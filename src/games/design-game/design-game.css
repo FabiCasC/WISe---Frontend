@@ -1854,6 +1854,19 @@
 
 .dg-template-btn__desc { font-size: 10.5px; color: var(--text-faint); }
 
+.dg-template-btn__add {
+  width: 20px;
+  height: 20px;
+  color: var(--text-faint);
+  flex: 0 0 20px;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.dg-template-btn:hover .dg-template-btn__add { opacity: 1; }
+
 /* =========================================================================
    ASISTENTE IA
    ========================================================================= */

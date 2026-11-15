@@ -47,15 +47,6 @@ function IconMaze() {
   )
 }
 
-function IconBulb() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" {...{ width: '100%', height: '100%' }}>
-      <path d="M12 2a7 7 0 0 1 4 12.7V17H8v-2.3A7 7 0 0 1 12 2Z" {...stroke} />
-      <path d="M9 17v1a3 3 0 0 0 6 0v-1" {...stroke} />
-    </svg>
-  )
-}
-
 function IconBlocks() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...{ width: '100%', height: '100%' }}>
@@ -97,7 +88,7 @@ function IconFile() {
 
 function IconTrash() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" {...{ width: '40', height: '100%' }}>
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...{ width: '30', height: '100%' }}>
       <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" {...stroke} />
     </svg>
   )
@@ -113,10 +104,10 @@ const GENRE_OPTIONS: {
   desc: string
   Icon: () => JSX.Element
 }[] = [
-  { genre: 'arcade',    label: 'Arcade',      desc: 'Recolecta objetos, esquiva enemigos', Icon: IconGamepad },
-  { genre: 'platformer',label: 'Plataformas', desc: 'Salta, corre, llega a la meta',       Icon: IconRun },
-  { genre: 'maze',      label: 'Laberinto',   desc: 'Explora, encuentra la salida',         Icon: IconMaze },
-]
+    { genre: 'arcade', label: 'Arcade', desc: 'Recolecta objetos, esquiva enemigos', Icon: IconGamepad },
+    { genre: 'platformer', label: 'Plataformas', desc: 'Salta, corre, llega a la meta', Icon: IconRun },
+    { genre: 'maze', label: 'Laberinto', desc: 'Explora, encuentra la salida', Icon: IconMaze },
+  ]
 
 const EXAMPLES = [
   'Un robot que recolecta cristales y evita enemigos que se mueven de un lado a otro',
@@ -371,9 +362,9 @@ export default function WelcomeScreen({
    ------------------------------------------------------------------------- */
 
 const INFO_CARDS = [
-  { Icon: IconBot,    title: 'IA como asistente',    desc: 'La IA sugiere cambios, tú decides qué aceptar. El aprendizaje es tuyo.' },
-  { Icon: IconBlocks, title: 'Programación visual',  desc: 'Conecta bloques para programar. Sin código difícil.' },
-  { Icon: IconPlay,   title: 'Prueba al instante',   desc: 'El simulador ejecuta tus instrucciones en tiempo real.' },
+  { Icon: IconBot, title: 'IA como asistente', desc: 'La IA sugiere cambios, tú decides qué aceptar. El aprendizaje es tuyo.' },
+  { Icon: IconBlocks, title: 'Programación visual', desc: 'Conecta bloques para programar. Sin código difícil.' },
+  { Icon: IconPlay, title: 'Prueba al instante', desc: 'El simulador ejecuta tus instrucciones en tiempo real.' },
 ]
 
 const STATUS_LABELS: Record<string, string> = {

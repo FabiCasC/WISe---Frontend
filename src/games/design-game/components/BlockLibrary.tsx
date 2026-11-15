@@ -20,9 +20,8 @@ function IconInfo() {
   return <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" {...stroke} /><path d="M12 11v5M12 7.6v.2" {...stroke} /></svg>
 }
 
-/** Mapa de icono SVG por tipo de bloque — usamos símbolos geométricos minimalistas */
-function BlockIcon({ icon }: { icon: string }) {
-  // Los iconos en blocks.ts son caracteres/símbolos. Renderizamos un SVG neutral de categoría.
+/** Icono neutro por bloque */
+function BlockIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="12" r="4" fill="currentColor" opacity={0.7} />
@@ -131,8 +130,8 @@ function BlockItem({ def, spec }: { def: BlockDefinition; spec: GameSpecificatio
       onDragStart={(e) => { e.dataTransfer.setData('block-type', def.type) }}
     >
       <span className="dg-block-item__icon">
-        <BlockIcon icon={def.icon} />
-      </span>
+              <BlockIcon />
+            </span>
       <div className="dg-block-item__text">
         <span className="dg-block-item__label">{def.label}</span>
         <span className="dg-block-item__desc">{def.description}</span>

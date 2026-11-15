@@ -1,10 +1,28 @@
 /**
- * DESIGN GAME - MODAL DE ENVÍO A REVISIÓN
+ * DESIGN GAME - MODAL DE REVISIÓN DOCENTE
+ * Sin emojis; iconos SVG coherentes con Órbita Arcade.
  */
 
 import type { GameSpecification, ReviewSubmission } from '../types'
 import { validateProject } from '../store'
-import { SPRITE_DESCRIPTORS } from '../entities'
+
+/* -------------------------------------------------------------------------
+   Iconos SVG
+   ------------------------------------------------------------------------- */
+const stroke = {
+  fill: 'none', stroke: 'currentColor',
+  strokeWidth: 1.9,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+}
+
+function IconClose()   { return <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" {...stroke} /></svg> }
+function IconCheck()   { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" {...stroke} strokeWidth={2.4} /></svg> }
+function IconCross()   { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" {...stroke} strokeWidth={2.4} /></svg> }
+function IconWarn()    { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.5h3.4L21 20H3L10.3 3.5z" {...stroke} /><path d="M12 10v4M12 17.5v.5" {...stroke} /></svg> }
+function IconInfo()    { return <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" {...stroke} /><path d="M12 11v5M12 7.6v.2" {...stroke} /></svg> }
+function IconSend()    { return <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13M22 2 15 22l-4-9-9-4 20-7z" {...stroke} /></svg> }
+function IconClock()   { return <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" {...stroke} /><path d="M12 7v5l3 3" {...stroke} /></svg> }
 
 interface Props {
   spec: GameSpecification
@@ -14,20 +32,25 @@ interface Props {
 }
 
 export default function ReviewModal({ spec, latestReview, onConfirm, onClose }: Props) {
-  const validation = validateProject(spec)
-  const hasPendingReview = latestReview?.status === 'in_review'
-  const hasObservations = latestReview?.status === 'changes_requested'
+  const validation        = validateProject(spec)
+  const hasPendingReview  = latestReview?.status === 'in_review'
+  const hasObservations   = latestReview?.status === 'changes_requested'
 
   return (
     <div className="dg-overlay" onClick={onClose}>
       <div className="dg-modal dg-modal--wide" onClick={(e) => e.stopPropagation()}>
+
+        {/* Cabecera */}
         <div className="dg-modal__header">
-          <h2 className="dg-modal__title">📤 Enviar a revisión docente</h2>
-          <button className="dg-btn dg-btn--ghost dg-btn--sm" onClick={onClose}>✕</button>
+          <h2 className="dg-modal__title">Enviar a revisión docente</h2>
+          <button className="dg-btn dg-btn--quiet dg-btn--sm" onClick={onClose} aria-label="Cerrar">
+            <IconClose />
+          </button>
         </div>
 
         <div className="dg-modal__body">
-          {/* Resumen del proyecto */}
+
+          {/* Resumen */}
           <div className="dg-review__summary">
             <div className="dg-review__summary-item">
               <span className="dg-review__summary-label">Videojuego</span>
@@ -39,10 +62,7 @@ export default function ReviewModal({ spec, latestReview, onConfirm, onClose }: 
             </div>
             <div className="dg-review__summary-item">
               <span className="dg-review__summary-label">Entidades</span>
-              <span className="dg-review__summary-value">
-                {spec.entities.map((e) => SPRITE_DESCRIPTORS[e.sprite]?.emoji ?? '?').join(' ')}
-                {' '}{spec.entities.length}
-              </span>
+              <span className="dg-review__summary-value">{spec.entities.length}</span>
             </div>
             <div className="dg-review__summary-item">
               <span className="dg-review__summary-label">Scripts</span>
@@ -50,9 +70,7 @@ export default function ReviewModal({ spec, latestReview, onConfirm, onClose }: 
             </div>
             <div className="dg-review__summary-item">
               <span className="dg-review__summary-label">Versión</span>
-              <span className="dg-review__summary-value">
-                v{spec.reviewHistory.length + 1}
-              </span>
+              <span className="dg-review__summary-value">v{spec.reviewHistory.length + 1}</span>
             </div>
           </div>
 
@@ -60,14 +78,14 @@ export default function ReviewModal({ spec, latestReview, onConfirm, onClose }: 
           {hasObservations && latestReview?.feedback && (
             <div className="dg-review__feedback">
               <h3 className="dg-review__feedback-title">
-                💬 Observaciones del docente (v{latestReview.version})
+                Observaciones del docente — v{latestReview.version}
               </h3>
               <p className="dg-review__feedback-text">{latestReview.feedback.comments}</p>
               {latestReview.feedback.issues.length > 0 && (
                 <ul className="dg-review__issues">
                   {latestReview.feedback.issues.map((issue, i) => (
                     <li key={i} className={`dg-review__issue dg-review__issue--${issue.type}`}>
-                      {issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠️' : '💡'}
+                      {issue.type === 'error' ? <IconCross /> : issue.type === 'warning' ? <IconWarn /> : <IconInfo />}
                       {' '}{issue.message}
                     </li>
                   ))}
@@ -80,52 +98,49 @@ export default function ReviewModal({ spec, latestReview, onConfirm, onClose }: 
           <div className="dg-review__validation">
             <h3 className="dg-review__validation-title">Verificación previa al envío</h3>
 
-            {validation.errors.length > 0 ? (
-              <ul className="dg-review__checklist">
-                {validation.errors.map((error, i) => (
-                  <li key={i} className="dg-review__check dg-review__check--fail">
-                    <span>❌</span>
-                    <span>{error.message}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <ul className="dg-review__checklist">
-                <li className="dg-review__check dg-review__check--ok">
-                  <span>✅</span>
-                  <span>El proyecto tiene nombre</span>
-                </li>
-                <li className="dg-review__check dg-review__check--ok">
-                  <span>✅</span>
-                  <span>Existe al menos un escenario</span>
-                </li>
-                <li className={`dg-review__check ${spec.entities.length > 0 ? 'dg-review__check--ok' : 'dg-review__check--fail'}`}>
-                  <span>{spec.entities.length > 0 ? '✅' : '❌'}</span>
-                  <span>Hay entidades en el juego ({spec.entities.length})</span>
-                </li>
-                <li className={`dg-review__check ${spec.scripts.length > 0 ? 'dg-review__check--ok' : 'dg-review__check--fail'}`}>
-                  <span>{spec.scripts.length > 0 ? '✅' : '❌'}</span>
-                  <span>Hay instrucciones de programación ({spec.scripts.length})</span>
-                </li>
-              </ul>
-            )}
+            <ul className="dg-review__checklist">
+              {validation.errors.length > 0
+                ? validation.errors.map((error, i) => (
+                    <li key={i} className="dg-review__check dg-review__check--fail">
+                      <IconCross /> {error.message}
+                    </li>
+                  ))
+                : (
+                  <>
+                    <li className="dg-review__check dg-review__check--ok">
+                      <IconCheck /> El proyecto tiene nombre
+                    </li>
+                    <li className="dg-review__check dg-review__check--ok">
+                      <IconCheck /> Existe un escenario
+                    </li>
+                    <li className={`dg-review__check ${spec.entities.length > 0 ? 'dg-review__check--ok' : 'dg-review__check--fail'}`}>
+                      {spec.entities.length > 0 ? <IconCheck /> : <IconCross />}
+                      {' '}Entidades en el juego ({spec.entities.length})
+                    </li>
+                    <li className={`dg-review__check ${spec.scripts.length > 0 ? 'dg-review__check--ok' : 'dg-review__check--fail'}`}>
+                      {spec.scripts.length > 0 ? <IconCheck /> : <IconCross />}
+                      {' '}Instrucciones de programación ({spec.scripts.length})
+                    </li>
+                  </>
+                )
+              }
+            </ul>
 
             {validation.warnings.length > 0 && (
-              <ul className="dg-review__checklist dg-review__checklist--warn">
+              <ul className="dg-review__checklist dg-review__checklist--warn" style={{ marginTop: 6 }}>
                 {validation.warnings.map((w, i) => (
                   <li key={i} className="dg-review__check dg-review__check--warn">
-                    <span>⚠️</span>
-                    <span>{w.message}</span>
+                    <IconWarn /> {w.message}
                   </li>
                 ))}
               </ul>
             )}
           </div>
 
-          {/* Estado de revisión en curso */}
+          {/* En revisión */}
           {hasPendingReview && (
             <div className="dg-review__notice dg-review__notice--pending">
-              <span>⏳</span>
+              <span className="dg-review__notice-icon"><IconClock /></span>
               <div>
                 <strong>Ya tienes una versión en revisión</strong>
                 <p>Enviada el {formatDate(latestReview!.submittedAt)}. No puedes enviar otra versión mientras esta está siendo revisada.</p>
@@ -136,7 +151,7 @@ export default function ReviewModal({ spec, latestReview, onConfirm, onClose }: 
           {/* Info sobre snapshot */}
           {!hasPendingReview && validation.valid && (
             <div className="dg-review__notice">
-              <span>ℹ️</span>
+              <span className="dg-review__notice-icon"><IconInfo /></span>
               <div>
                 <strong>Al confirmar</strong>
                 <p>Se guardará una copia exacta e inmutable de tu proyecto. Puedes seguir editando después del envío: los cambios posteriores no afectarán la versión que el docente está revisando.</p>
@@ -145,21 +160,20 @@ export default function ReviewModal({ spec, latestReview, onConfirm, onClose }: 
           )}
         </div>
 
-        {/* Botones */}
+        {/* Pie */}
         <div className="dg-modal__footer">
-          <button className="dg-btn dg-btn--ghost" onClick={onClose}>
-            Cancelar
-          </button>
+          <button className="dg-btn dg-btn--quiet" onClick={onClose}>Cancelar</button>
           <button
             className="dg-btn dg-btn--primary"
             onClick={onConfirm}
             disabled={!validation.valid || hasPendingReview}
           >
+            <IconSend />
             {hasPendingReview
               ? 'En revisión'
               : !validation.valid
                 ? 'Corrige los errores primero'
-                : '✓ Confirmar envío'}
+                : 'Confirmar envío'}
           </button>
         </div>
 
@@ -170,10 +184,8 @@ export default function ReviewModal({ spec, latestReview, onConfirm, onClose }: 
             <div className="dg-review__history-list">
               {[...spec.reviewHistory].reverse().map((r) => (
                 <div key={r.id} className="dg-review__history-item">
-                  <span className={`dg-status dg-status--${r.status}`}>
-                    {STATUS_LABELS[r.status]}
-                  </span>
-                  <span>v{r.version}</span>
+                  <span className={`dg-status dg-status--${r.status}`}>{STATUS_LABELS[r.status]}</span>
+                  <span style={{ color: 'var(--text-dim)' }}>v{r.version}</span>
                   <span className="dg-review__history-date">{formatDate(r.submittedAt)}</span>
                   {r.feedback?.comments && (
                     <span className="dg-review__history-comment">
@@ -191,27 +203,20 @@ export default function ReviewModal({ spec, latestReview, onConfirm, onClose }: 
 }
 
 const GENRE_LABELS: Record<string, string> = {
-  arcade: 'Arcade',
-  platformer: 'Plataformas',
-  maze: 'Laberinto',
+  arcade: 'Arcade', platformer: 'Plataformas', maze: 'Laberinto',
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  in_review: '⏳ En revisión',
-  changes_requested: '💬 Observaciones',
-  approved: '✅ Aprobado',
+  in_review:          'En revisión',
+  changes_requested:  'Con observaciones',
+  approved:           'Aprobado',
 }
 
 function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString('es', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
     })
-  } catch {
-    return iso
-  }
+  } catch { return iso }
 }
