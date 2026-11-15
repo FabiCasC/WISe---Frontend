@@ -180,7 +180,10 @@ export const GAMES: GameEntry[] = [
     ],
     status: 'live',
     isNew: true,
-    size: 'wide',
+    // 'big' on purpose: at one cell the two-word name wraps and the tile's
+    // contents overflow a 96px box, which clipped the icon and pushed the
+    // PLAY and LV chips outside it.
+    size: 'big',
   },
   {
     id: 'dart-impact',
