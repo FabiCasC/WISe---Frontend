@@ -6,33 +6,33 @@ export interface LevelSpec {
   id: LevelId
   name: string
   goal: string
-  /** Idea cientifica que el nivel debe dejar clara. */
+  /** Scientific idea the level should make clear. */
   idea: string
 }
 
 export interface Evidence {
   id: string
   label: string
-  /** Lo que SI demuestra la evidencia. Redaccion revisada: nada de "vida". */
+  /** What the evidence ACTUALLY proves. Revised wording: no mention of "life". */
   meaning: string
 }
 
 export interface MissionCard {
   gameId: GameId
-  /** Titulo del juego en el portal. */
+  /** Title of the game in the portal. */
   title: string
-  /** Subtitulo corto bajo el titulo. */
+  /** Short subtitle below the title. */
   kicker: string
   body: Body
   bodyLabel: string
-  /** Equipo protagonista real. */
+  /** Real protagonist hardware. */
   hardware: string
   genre: string
-  /** Frase en primera persona. SIEMPRE marcada como dramatizacion en la UI. */
+  /** First-person phrase. ALWAYS marked as dramatization in the UI. */
   voice: string
-  /** Que aprende el jugador. Una frase. */
+  /** What the player learns. One sentence. */
   learning: string
-  /** Pareja responsable segun el plan. */
+  /** Responsible pair according to the plan. */
   crew: string
   durationMin: [number, number]
   accent: string
@@ -44,13 +44,13 @@ export interface MissionCard {
     missionEnd: string
     purpose: string
     finding: string
-    /** Lo que el juego inventa. Obligatorio por el plan. */
+    /** What the game invents. Mandatory per the plan. */
     dramatization: string
-    /** Errores frecuentes que esta ficha corrige. */
+    /** Frequent misconceptions this dossier corrects. */
     notTrue: string[]
   }
   sourceIds: string[]
-  /** Arte opcional. Si el archivo no existe, el portal dibuja el fallback CSS. */
+  /** Optional art. If the file does not exist, the portal draws the CSS fallback. */
   art: string
 }
 
@@ -248,6 +248,70 @@ export const MISSIONS: MissionCard[] = [
     },
     sourceIds: ['mer-spirit'],
     art: 'assets/missions/spirit.webp',
+  },
+  {
+    gameId: 'nasa-numbers',
+    title: 'NASA Number Mission',
+    kicker: 'Number puzzle · Apollo 15 and the Moon',
+    body: 'luna',
+    bodyLabel: 'Moon',
+    hardware: 'Apollo 15 mission and the Moon\'s laser retroreflectors',
+    genre: 'Number puzzle',
+    voice: 'Every number in the logbook is a clue. Can you find the right one?',
+    learning: 'Real numbers from NASA missions: guess, narrow down, and learn the story behind each one.',
+    crew: 'TBD',
+    durationMin: [3, 5],
+    accent: '#6DE2F2',
+    levels: [
+      {
+        id: 1,
+        name: 'Launch Pad',
+        goal: '5 questions about Apollo 15 · reach 3 correct',
+        idea: 'Halving the range each time finds any number in a few tries.',
+      },
+      {
+        id: 2,
+        name: 'Mission Control',
+        goal: '5 years and measurements · reach 3 correct',
+        idea: 'Measurements come with a margin of error.',
+      },
+      {
+        id: 3,
+        name: 'Deep Space',
+        goal: '5 connected numbers about the Moon · reach 3 correct',
+        idea: 'Distance, the speed of light, and the echo time are linked.',
+      },
+    ],
+    evidence: [
+      {
+        id: 'ev-apollo15-log',
+        label: 'Apollo 15 logbook',
+        meaning: 'Dates, counts, and measurements from the Apollo 15 mission, as recorded by NASA.',
+      },
+      {
+        id: 'ev-moon-numbers',
+        label: 'Moon numbers',
+        meaning: 'The Moon\'s distance, orbit, and laser echo time are measured values, not estimates by eye.',
+      },
+    ],
+    dossier: {
+      arrival: 'Apollo 15 landed at Hadley–Apennine on July 30, 1971.',
+      lastContact:
+        'The ALSEP stations, including the seismometer, were shut down on September 30, 1977.',
+      missionEnd:
+        'The laser retroreflectors need no power and are still used to measure the Earth–Moon distance.',
+      purpose: 'Explore the Moon, collect samples, and leave instruments that kept working after the crew left.',
+      finding: 'Numbers measured on and around the Moon, from rock samples to a laser echo of about 2.5 seconds.',
+      dramatization:
+        'The guessing game, the attempts, and the points are inventions of this game. The numbers in the mission logs come from NASA pages.',
+      notTrue: [
+        'Guessing a number is not how scientists measure: they measure, and they report a margin of error.',
+        'The retroreflector has no battery and does not transmit: it only returns the light it receives.',
+        'Some answers are rounded for play; the mission log shows the exact NASA value.',
+      ],
+    },
+   sourceIds: ['nssdc-apollo15-alsep', 'nssdc-moon-facts', 'jpl-apollo-reflectors', 'jpl-llr-2020'],
+    art: 'assets/missions/nasa-numbers.webp',
   },
 ]
 

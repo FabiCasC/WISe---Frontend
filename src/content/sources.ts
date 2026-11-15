@@ -282,6 +282,20 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://science.nasa.gov/mission/lro/',
     accessed: '2026-11-15',
   },
+    'jpl-apollo-reflectors': {
+    id: 'jpl-apollo-reflectors',
+    title: 'The Apollo Experiment That Keeps on Giving (Apollo 11/14 arrays 100 corner cubes, Apollo 15 array 300)',
+    publisher: 'NASA JPL',
+    url: 'https://www.jpl.nasa.gov/news/the-apollo-experiment-that-keeps-on-giving/',
+    accessed: '2026-11-14',
+  },
+  'jpl-llr-2020': {
+    id: 'jpl-llr-2020',
+    title: 'Lunar Laser Range Model 2020 (speed of light, round-trip time of the laser pulse)',
+    publisher: 'NASA JPL Solar System Dynamics',
+    url: 'https://ssd.jpl.nasa.gov/ftp/eph/planets/ioms/LLR_Model_2020_DR.pdf',
+    accessed: '2026-11-14',
+  },
   'pia12889-lro-apollo14': {
     id: 'pia12889-lro-apollo14',
     title: 'PIA12889 — LROC First Look at the Apollo Landing Sites (Apollo 14 LM, ALSEP and astronaut tracks)',
