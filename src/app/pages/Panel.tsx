@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { conceptLabel, getGame } from '../../content/games'
 import type { ClassService, Dashboard, DashboardRow } from '../../shared/classroom'
+import { computeMedals, earnedMedals, medalStatsFromStudent } from '../../shared/medals'
 import { isLearned } from '../../shared/progress'
-import { IconCheck, IconCross } from '../components/Art'
+import type { Medal } from '../../shared/medals'
+import { IconCheck, IconCross, IconStar } from '../components/Art'
 import SiteFooter from '../components/SiteFooter'
 import { absoluteLink, CopyField } from './Teacher'
 
@@ -63,6 +65,8 @@ export default function Panel({ token, service }: { token: string; service: Clas
   const current = rows.find((r) => r.nickname === selected) ?? rows[0]
   const gamesPlayed = rows.reduce((n, r) => n + r.gamesPlayed, 0)
   const hardest = concepts.find((c) => c.percent < 100)
+  const medalsOf = (r: DashboardRow) => earnedMedals(computeMedals(medalStatsFromStudent(r), 'student'))
+  const classMedals = rows.reduce((n, r) => n + medalsOf(r).length, 0)
 
   return (
     <>
@@ -90,6 +94,10 @@ export default function Panel({ token, service }: { token: string; service: Clas
           <div className="kpi">
             <span className="kpi__label">Concepts learned (average)</span>
             <span className="kpi__value">{average ? average.conceptsLearned.toLocaleString('en') : '—'}</span>
+          </div>
+          <div className="kpi">
+            <span className="kpi__label">Medals earned</span>
+            <span className="kpi__value">{classMedals}</span>
           </div>
           <div className={`kpi${hardest ? ' kpi--alert' : ''}`}>
             <span className="kpi__label">Hardest concept</span>
@@ -122,6 +130,7 @@ export default function Panel({ token, service }: { token: string; service: Clas
                       <th scope="col">Levels</th>
                       <th scope="col">Concepts</th>
                       <th scope="col">Right first time</th>
+                      <th scope="col">Medals</th>
                       <th scope="col">Score</th>
                     </tr>
                   </thead>
@@ -139,6 +148,7 @@ export default function Panel({ token, service }: { token: string; service: Clas
                         <td className="num">
                           {r.firstTryCorrect} of {r.attempts}
                         </td>
+                        <td className="num">{medalsOf(r).length}</td>
                         <td className="num">{r.totalScore.toLocaleString('en')}</td>
                       </tr>
                     ))}
@@ -147,7 +157,7 @@ export default function Panel({ token, service }: { token: string; service: Clas
               </div>
             </div>
 
-            {current && <StudentDetail row={current} />}
+            {current && <StudentDetail row={current} medals={medalsOf(current)} />}
           </div>
         )}
 
@@ -194,17 +204,32 @@ export default function Panel({ token, service }: { token: string; service: Clas
   )
 }
 
-function StudentDetail({ row }: { row: DashboardRow }) {
+function StudentDetail({ row, medals }: { row: DashboardRow; medals: Medal[] }) {
   const games = Object.entries(row.games)
   return (
     <div className="box" aria-live="polite">
       <div className="box__head">
         <h2>{row.nickname}</h2>
         <span>
-          {row.conceptsLearned} concepts · {row.levelsCompleted} levels
+          {row.totalScore.toLocaleString('en')} points · {row.conceptsLearned} concepts · {row.levelsCompleted} levels
         </span>
       </div>
       <div className="student">
+        <div className="played">
+          <div className="played__top">
+            <span>Medals</span>
+            <span className="num">{medals.length}</span>
+          </div>
+          <div className="tags">
+            {medals.length === 0 && <span className="tag tag--none">No medals yet</span>}
+            {medals.map((m) => (
+              <span key={m.id} className="tag tag--ok">
+                <IconStar size={13} />
+                {m.name}
+              </span>
+            ))}
+          </div>
+        </div>
         {games.length === 0 && <p className="student__empty">No levels completed yet.</p>}
         {games.map(([gameId, levels]) => {
           const game = getGame(gameId)

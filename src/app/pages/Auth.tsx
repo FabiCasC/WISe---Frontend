@@ -142,10 +142,6 @@ export default function Auth({ db, onSignUp, onLogIn }: Props) {
             </div>
           </div>
         )}
-
-        <p className="auth__note">
-          Prototype: accounts are simulated and saved only in this browser.
-        </p>
       </div>
     </main>
   )
