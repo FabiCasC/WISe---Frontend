@@ -1,25 +1,32 @@
 /**
- * DESIGN GAME - EDITOR DE SCRIPTS (ÁREA DE PROGRAMACIÓN VISUAL)
- * Panel central: secuencias de bloques por entidad
+ * DESIGN GAME - EDITOR DE SCRIPTS
  */
 
 import { useState } from 'react'
 import type { Block, BlockParameter, GameSpecification, Script } from '../types'
-import { BLOCK_COLORS, BLOCK_DEFINITIONS as _BLOCK_DEFS, createBlock, getBlockDefinition } from '../blocks'
+import { BLOCK_COLORS, createBlock, getBlockDefinition } from '../blocks'
 import {
-  getState,
-  selectEntity,
-  selectScript,
-  createScript,
-  removeScript,
-  appendBlock,
-  removeBlock,
-  updateBlockParams,
+  getState, selectEntity, selectScript, createScript, removeScript,
+  appendBlock, removeBlock, updateBlockParams,
 } from '../store'
 
-interface Props {
-  spec: GameSpecification
+const stroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+
+function IconAdd()   { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" {...stroke} /></svg> }
+function IconClose() { return <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" {...stroke} /></svg> }
+function IconCode()  { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 7l-4 10" {...stroke} /></svg> }
+
+/** Icono de tipo de entidad */
+function entityIcon(type: string) {
+  if (type === 'player')     return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5" {...stroke} /><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" {...stroke} /></svg>
+  if (type === 'enemy')      return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3L12 3z" {...stroke} /></svg>
+  if (type === 'collectible') return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.1 6.4 7 1-5 4.9 1.2 7L12 18l-6.3 3.3 1.2-7-5-4.9 7-1z" {...stroke} /></svg>
+  if (type === 'platform')   return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="12" width="20" height="6" rx="2" {...stroke} /></svg>
+  if (type === 'obstacle')   return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 7-9 7-9-7z" {...stroke} /></svg>
+  return                            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 8-8 8-8-8z" {...stroke} /></svg>
 }
+
+interface Props { spec: GameSpecification }
 
 export default function ScriptEditor({ spec }: Props) {
   const { selectedEntityId, selectedScriptId } = getState()
@@ -33,9 +40,9 @@ export default function ScriptEditor({ spec }: Props) {
     return (
       <div className="dg-script-editor dg-script-editor--empty">
         <div className="dg-empty-state">
-          <span className="dg-empty-state__icon">🎭</span>
+          <span className="dg-empty-state__icon"><IconCode /></span>
           <h3>Sin personajes todavía</h3>
-          <p>Agrega personajes, enemigos u objetos desde el panel de Objetos para empezar a programar.</p>
+          <p>Agrega personajes u objetos desde el panel Objetos para empezar a programar.</p>
         </div>
       </div>
     )
@@ -52,13 +59,7 @@ export default function ScriptEditor({ spec }: Props) {
             onClick={() => selectEntity(entity.id)}
             title={entity.name}
           >
-            <span className="dg-entity-tab__icon">
-              {entity.type === 'player' ? '🧑' :
-               entity.type === 'enemy' ? '👾' :
-               entity.type === 'collectible' ? '⭐' :
-               entity.type === 'platform' ? '▬' :
-               entity.type === 'obstacle' ? '🪨' : '🏁'}
-            </span>
+            <span className="dg-entity-tab__icon">{entityIcon(entity.type)}</span>
             <span className="dg-entity-tab__name">{entity.name}</span>
           </button>
         ))}
@@ -66,38 +67,31 @@ export default function ScriptEditor({ spec }: Props) {
 
       {!selectedEntity ? (
         <div className="dg-empty-state">
-          <p>Selecciona un personaje u objeto arriba para ver y editar sus instrucciones.</p>
+          <p>Selecciona una entidad arriba para ver y editar sus instrucciones.</p>
         </div>
       ) : (
         <div className="dg-script-editor__body">
-          {/* Lista de scripts de la entidad */}
+          {/* Lista de scripts */}
           <div className="dg-script-editor__scripts-col">
             <div className="dg-script-editor__scripts-header">
-              <span className="dg-script-editor__scripts-title">
-                Scripts de "{selectedEntity.name}"
-              </span>
+              <span className="dg-script-editor__scripts-title">Scripts</span>
               <button
-                className="dg-btn dg-btn--ghost dg-btn--sm"
-                onClick={() => {
-                  const s = createScript(selectedEntity.id)
-                  selectScript(s.id)
-                }}
+                className="dg-btn dg-btn--quiet dg-btn--sm"
+                onClick={() => { const s = createScript(selectedEntity.id); selectScript(s.id) }}
+                title="Nuevo script"
               >
-                + Script
+                <IconAdd />
               </button>
             </div>
 
             {entityScripts.length === 0 && (
               <div className="dg-script-editor__no-scripts">
-                <p>Sin instrucciones todavía.</p>
+                <p>Sin instrucciones.</p>
                 <button
                   className="dg-btn dg-btn--primary dg-btn--sm"
-                  onClick={() => {
-                    const s = createScript(selectedEntity.id)
-                    selectScript(s.id)
-                  }}
+                  onClick={() => { const s = createScript(selectedEntity.id); selectScript(s.id) }}
                 >
-                  Crear primer script
+                  Crear script
                 </button>
               </div>
             )}
@@ -109,21 +103,18 @@ export default function ScriptEditor({ spec }: Props) {
                   script={script}
                   isSelected={script.id === selectedScriptId}
                   onSelect={() => selectScript(script.id)}
-                  onDelete={() => {
-                    removeScript(script.id)
-                    if (selectedScriptId === script.id) selectScript(null)
-                  }}
+                  onDelete={() => { removeScript(script.id); if (selectedScriptId === script.id) selectScript(null) }}
                 />
               ))}
             </div>
           </div>
 
-          {/* Editor del script seleccionado */}
+          {/* Canvas del script */}
           <div className="dg-script-editor__editor-col">
             {!selectedScript ? (
               <div className="dg-empty-state dg-empty-state--center">
-                <span className="dg-empty-state__icon">📝</span>
-                <p>Selecciona un script o crea uno nuevo para programar las instrucciones.</p>
+                <span className="dg-empty-state__icon"><IconCode /></span>
+                <p>Selecciona un script o crea uno nuevo.</p>
               </div>
             ) : (
               <ScriptCanvas script={selectedScript} spec={spec} />
@@ -135,17 +126,12 @@ export default function ScriptEditor({ spec }: Props) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Item de la lista de scripts
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
+   Script list item
+   ------------------------------------------------------------------------- */
 
-function ScriptListItem({
-  script, isSelected, onSelect, onDelete,
-}: {
-  script: Script
-  isSelected: boolean
-  onSelect: () => void
-  onDelete: () => void
+function ScriptListItem({ script, isSelected, onSelect, onDelete }: {
+  script: Script; isSelected: boolean; onSelect: () => void; onDelete: () => void
 }) {
   const eventDef = getBlockDefinition(script.eventBlock.type)
   const blockCount = countBlocks(script.eventBlock)
@@ -156,22 +142,20 @@ function ScriptListItem({
       onClick={onSelect}
     >
       <span className="dg-script-item__event-icon">
-        {eventDef?.icon ?? '▶'}
+        <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 4.5v15l13-7.5z" fill="currentColor" />
+        </svg>
       </span>
       <div className="dg-script-item__info">
-        <span className="dg-script-item__name">
-          {eventDef?.label ?? 'Script'}
-        </span>
-        <span className="dg-script-item__count">
-          {blockCount - 1} bloque{blockCount !== 2 ? 's' : ''}
-        </span>
+        <span className="dg-script-item__name">{eventDef?.label ?? 'Script'}</span>
+        <span className="dg-script-item__count">{blockCount - 1} bloque{blockCount !== 2 ? 's' : ''}</span>
       </div>
       <button
         className="dg-script-item__delete"
         onClick={(e) => { e.stopPropagation(); onDelete() }}
         aria-label="Eliminar script"
       >
-        ✕
+        <IconClose />
       </button>
     </div>
   )
@@ -179,28 +163,25 @@ function ScriptListItem({
 
 function countBlocks(block: Block | undefined): number {
   if (!block) return 0
-  let count = 1
-  if (block.next) count += countBlocks(block.next)
-  if (block.children) for (const c of block.children) count += countBlocks(c)
-  return count
+  let n = 1
+  if (block.next) n += countBlocks(block.next)
+  if (block.children) for (const c of block.children) n += countBlocks(c)
+  return n
 }
 
-// ---------------------------------------------------------------------------
-// Canvas del script (renderiza la cadena de bloques)
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
+   Script canvas
+   ------------------------------------------------------------------------- */
 
 function ScriptCanvas({ script, spec }: { script: Script; spec: GameSpecification }) {
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null)
-
   const blocks = flattenChain(script.eventBlock)
 
   return (
     <div className="dg-script-canvas">
       <div className="dg-script-canvas__header">
-        <span className="dg-script-canvas__title">Script</span>
-        <span className="dg-script-canvas__hint">
-          Haz clic en un bloque para editar sus parámetros
-        </span>
+        <span className="dg-script-canvas__title">Secuencia de instrucciones</span>
+        <span className="dg-script-canvas__hint">Haz clic en un bloque para editar sus parámetros</span>
       </div>
 
       <div
@@ -210,8 +191,7 @@ function ScriptCanvas({ script, spec }: { script: Script; spec: GameSpecificatio
           e.preventDefault()
           const type = e.dataTransfer.getData('block-type') as Block['type']
           if (!type) return
-          const block = createBlock(type)
-          appendBlock(script.id, block)
+          appendBlock(script.id, createBlock(type))
         }}
       >
         {blocks.map((block, idx) => (
@@ -223,17 +203,12 @@ function ScriptCanvas({ script, spec }: { script: Script; spec: GameSpecificatio
             isEvent={idx === 0}
             isEditing={editingBlockId === block.id}
             onEdit={() => setEditingBlockId(editingBlockId === block.id ? null : block.id)}
-            onRemove={() => {
-              if (idx === 0) return // No eliminar el evento raíz
-              removeBlock(script.id, block.id)
-              setEditingBlockId(null)
-            }}
+            onRemove={() => { if (idx === 0) return; removeBlock(script.id, block.id); setEditingBlockId(null) }}
           />
         ))}
 
         {blocks.length === 1 && (
           <div className="dg-script-canvas__empty-hint">
-            <span>↑</span>
             <span>Agrega bloques desde la biblioteca de la izquierda</span>
           </div>
         )}
@@ -244,25 +219,18 @@ function ScriptCanvas({ script, spec }: { script: Script; spec: GameSpecificatio
 
 function flattenChain(block: Block | undefined): Block[] {
   if (!block) return []
-  const result: Block[] = [block]
-  if (block.next) result.push(...flattenChain(block.next))
-  return result
+  const r: Block[] = [block]
+  if (block.next) r.push(...flattenChain(block.next))
+  return r
 }
 
-// ---------------------------------------------------------------------------
-// Nodo de bloque visual
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
+   Bloque visual
+   ------------------------------------------------------------------------- */
 
-function BlockNode({
-  block, script, spec, isEvent, isEditing, onEdit, onRemove,
-}: {
-  block: Block
-  script: Script
-  spec: GameSpecification
-  isEvent: boolean
-  isEditing: boolean
-  onEdit: () => void
-  onRemove: () => void
+function BlockNode({ block, script, spec, isEvent, isEditing, onEdit, onRemove }: {
+  block: Block; script: Script; spec: GameSpecification; isEvent: boolean
+  isEditing: boolean; onEdit: () => void; onRemove: () => void
 }) {
   const def = getBlockDefinition(block.type)
   const color = BLOCK_COLORS[block.category]
@@ -273,30 +241,25 @@ function BlockNode({
       style={{ '--block-color': color } as React.CSSProperties}
     >
       <div className="dg-block-node__header" onClick={onEdit}>
-        {!isEvent && (
-          <span className="dg-block-node__connector" />
-        )}
-        <span className="dg-block-node__icon">{def?.icon ?? '?'}</span>
+        {!isEvent && <span className="dg-block-node__connector" />}
+        <span className="dg-block-node__icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" fill="currentColor" opacity={0.7} />
+          </svg>
+        </span>
         <span className="dg-block-node__label">{def?.label ?? block.type}</span>
         <div className="dg-block-node__params-preview">
           {block.parameters.slice(0, 2).map((p) => (
-            <span key={p.name} className="dg-block-node__param-chip">
-              {String(p.value)}
-            </span>
+            <span key={p.name} className="dg-block-node__param-chip">{String(p.value)}</span>
           ))}
         </div>
         {!isEvent && (
-          <button
-            className="dg-block-node__remove"
-            onClick={(e) => { e.stopPropagation(); onRemove() }}
-            aria-label="Eliminar bloque"
-          >
-            ✕
+          <button className="dg-block-node__remove" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label="Eliminar bloque">
+            <IconClose />
           </button>
         )}
       </div>
 
-      {/* Editor de parámetros (expandido) */}
       {isEditing && block.parameters.length > 0 && (
         <div className="dg-block-node__params">
           {block.parameters.map((param) => (
@@ -304,10 +267,8 @@ function BlockNode({
               key={param.name}
               param={param}
               spec={spec}
-              onChange={(newValue) => {
-                const updated = block.parameters.map((p) =>
-                  p.name === param.name ? { ...p, value: newValue } : p,
-                )
+              onChange={(v) => {
+                const updated = block.parameters.map((p) => p.name === param.name ? { ...p, value: v } : p)
                 updateBlockParams(script.id, block.id, updated)
               }}
             />
@@ -315,75 +276,40 @@ function BlockNode({
         </div>
       )}
 
-      {/* Conector inferior */}
-      {!isEvent && (
-        <span className="dg-block-node__connector dg-block-node__connector--bottom" />
-      )}
+      {!isEvent && <span className="dg-block-node__connector dg-block-node__connector--bottom" />}
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// Editor de parámetros de un bloque
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
+   Editor de parámetro
+   ------------------------------------------------------------------------- */
 
-function ParamEditor({
-  param,
-  spec,
-  onChange,
-}: {
-  param: BlockParameter
-  spec: GameSpecification
-  onChange: (value: string | number | boolean) => void
+function ParamEditor({ param, spec, onChange }: {
+  param: BlockParameter; spec: GameSpecification
+  onChange: (v: string | number | boolean) => void
 }) {
-  const options =
-    param.type === 'entity'
-      ? spec.entities.map((e) => ({ label: e.name, value: e.id }))
-      : param.options ?? []
+  const options = param.type === 'entity'
+    ? spec.entities.map((e) => ({ label: e.name, value: e.id }))
+    : param.options ?? []
 
   return (
     <div className="dg-param-editor">
       <label className="dg-param-editor__label">{param.name}</label>
 
       {param.type === 'boolean' ? (
-        <select
-          className="dg-param-editor__input"
-          value={String(param.value)}
-          onChange={(e) => onChange(e.target.value === 'true')}
-        >
+        <select className="dg-param-editor__input" value={String(param.value)} onChange={(e) => onChange(e.target.value === 'true')}>
           <option value="true">Verdadero</option>
           <option value="false">Falso</option>
         </select>
       ) : options.length > 0 ? (
-        <select
-          className="dg-param-editor__input"
-          value={String(param.value)}
-          onChange={(e) => {
-            const val = param.type === 'number' ? Number(e.target.value) : e.target.value
-            onChange(val)
-          }}
-        >
-          {options.map((opt) => (
-            <option key={String(opt.value)} value={String(opt.value)}>
-              {opt.label}
-            </option>
-          ))}
+        <select className="dg-param-editor__input" value={String(param.value)} onChange={(e) => onChange(param.type === 'number' ? Number(e.target.value) : e.target.value)}>
+          {options.map((o) => <option key={String(o.value)} value={String(o.value)}>{o.label}</option>)}
         </select>
       ) : param.type === 'number' ? (
-        <input
-          className="dg-param-editor__input"
-          type="number"
-          value={Number(param.value)}
-          onChange={(e) => onChange(Number(e.target.value))}
-          step={1}
-        />
+        <input type="number" className="dg-param-editor__input" value={Number(param.value)} onChange={(e) => onChange(Number(e.target.value))} />
       ) : (
-        <input
-          className="dg-param-editor__input"
-          type="text"
-          value={String(param.value)}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <input type="text" className="dg-param-editor__input" value={String(param.value)} onChange={(e) => onChange(e.target.value)} />
       )}
     </div>
   )
