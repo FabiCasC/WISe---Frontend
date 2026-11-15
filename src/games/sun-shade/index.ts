@@ -21,9 +21,8 @@ import {
 /**
  * SOL Y SOMBRA
  * -------------------------------------------------------------------------
- * Dos rovers con fuentes de energia opuestas. El SOLAR cruza la luz y se
- * apaga en la sombra; el NUCLEAR aguanta la sombra y se funde con el exceso
- * de luz. Cada uno pasa por donde el otro no puede, asi que el nivel solo se
+ * Dos rovers con fuentes de energia opuestas. El SOLAR se apaga en la sombra;
+ * el NUCLEAR no depende del Sol, pero es pesado y se hunde en arena blanda. Cada uno pasa por donde el otro no puede, asi que el nivel solo se
  * termina llevando a LOS DOS a su escotilla.
  *
  * Dos jugadores en el mismo teclado (WASD y flechas), o una sola persona
@@ -104,6 +103,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     })
   }
 
+  /** Each stop is a wrong call about power sources; the win is the right one. */
+  const decisions: { concept: string; correct: boolean }[] = []
+
   function complete(score: number) {
     if (settled) return
     settled = true
@@ -116,6 +118,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       evidenceIds: card?.evidence.map((e) => e.id) ?? [],
       // Sin un solo apagon y con todas las muestras.
       firstAnswerCorrect: resets === 0 && gemsTaken === totalGems,
+      decisions: [...decisions, { concept: 'solar-vs-nuclear', correct: true }],
     })
   }
 
@@ -127,23 +130,23 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
     const secs = Math.round(elapsed / 1000)
     stage.showOverlay({
-      title: 'Los dos a salvo',
+      title: 'Both rovers made it',
       tone: 'win',
       score:
         gemsTaken +
         ' / ' +
         totalGems +
-        ' muestras - ' +
+        ' samples - ' +
         secs +
         ' s - ' +
         resets +
-        (resets === 1 ? ' apagon' : ' apagones') +
-        (practice ? '' : ' - ' + score + ' puntos'),
+        (resets === 1 ? ' stop' : ' stops') +
+        (practice ? '' : ' - ' + score + ' points'),
       text:
-        'Ninguno de los dos habria salido solo: donde uno se apaga, el otro pasa. ' +
-        'Asi se reparten el trabajo las misiones reales.',
+        'Neither rover could have done it alone. Solar panels need sunlight; ' +
+        'a nuclear generator (RTG) makes power from heat, day or night.',
       fact: card?.fact,
-      buttons: [{ label: 'Guardar y continuar', onClick: () => complete(score) }],
+      buttons: [{ label: 'Save and continue', onClick: () => complete(score) }],
     })
   }
 
@@ -155,7 +158,13 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     phase = 'dying'
     dyingMs = 620
     sfx.sweep(380, 90, 420, 'sawtooth', 0.2)
-    stage.flash(who === 'solar' ? 'Solar sin luz' : 'Nuclear sobrecalentado', 'bad')
+    decisions.push({ concept: 'solar-vs-nuclear', correct: false })
+    stage.flash(
+      who === 'solar'
+        ? 'Shade: no sunlight, so the solar panels make no power'
+        : 'Soft sand: the heavy nuclear rover sank (899 kg vs 185 kg)',
+      'bad'
+    )
 
     if (!reduced) {
       const hue = who === 'solar' ? '#ffd27a' : '#c6a8ff'
@@ -207,10 +216,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
   // Mando tactil: mueve al rover seleccionado; el boton "Cambiar" alterna.
   const padDefs: [string, string, 'left' | 'right' | 'jump' | 'swap'][] = [
-    ['<', 'Mover a la izquierda', 'left'],
-    ['>', 'Mover a la derecha', 'right'],
-    ['^', 'Saltar', 'jump'],
-    ['Cambiar', 'Cambiar de rover', 'swap'],
+    ['<', 'Move left', 'left'],
+    ['>', 'Move right', 'right'],
+    ['^', 'Jump', 'jump'],
+    ['Swap', 'Switch rover', 'swap'],
   ]
   const padCleanup: (() => void)[] = []
   for (const [label, aria, kind] of padDefs) {
@@ -249,7 +258,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     })
   }
 
-  stage.setHint('Solar: A D W  ·  Nuclear: flechas  ·  R reinicia  ·  los dos deben llegar')
+  stage.setHint('Solar: A D W  ·  Nuclear: arrows  ·  R restarts  ·  both must reach home')
 
   // --- Simulacion -----------------------------------------------------------
   function update(dtMs: number) {
@@ -308,7 +317,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         if (gem.taken || !overlapsCell(b, gem.x, gem.y)) continue
         gem.taken = true
         gemsTaken++
-        stage.flash('+ muestra')
+        stage.flash('+ sample')
         sfx.tone(820 + gemsTaken * 25, 70, 'sine', 0.14)
       }
 
@@ -316,7 +325,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       for (const plate of level.plates) {
         if (plate.on || !overlapsCell(b, plate.x, plate.y)) continue
         plate.on = true
-        stage.flash('Compuerta abierta')
+        stage.flash('Door open')
         sfx.sweep(300, 760, 260, 'triangle', 0.18)
       }
 
@@ -334,30 +343,30 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     stage.setStats([
       {
         key: 'solar',
-        label: 'Rover solar',
-        value: bodies.solar.home ? 'en casa' : 'fuera',
+        label: 'Solar rover',
+        value: bodies.solar.home ? 'home' : 'out',
         tone: bodies.solar.home ? 'ok' : undefined,
       },
       {
         key: 'nuclear',
-        label: 'Rover nuclear',
-        value: bodies.nuclear.home ? 'en casa' : 'fuera',
+        label: 'Nuclear rover',
+        value: bodies.nuclear.home ? 'home' : 'out',
         tone: bodies.nuclear.home ? 'ok' : undefined,
       },
       {
         key: 'gemas',
-        label: 'Muestras',
+        label: 'Samples',
         value: gemsTaken + ' / ' + totalGems,
         meter: totalGems ? gemsTaken / totalGems : 0,
       },
       {
         key: 'tiempo',
-        label: 'Tiempo',
+        label: 'Time',
         value: String(Math.floor(secs / 60)).padStart(2, '0') + ':' + String(secs % 60).padStart(2, '0'),
       },
       {
         key: 'resets',
-        label: 'Apagones',
+        label: 'Stops',
         value: String(resets),
         tone: resets > 0 ? 'warn' : undefined,
       },
@@ -400,14 +409,16 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         }
 
         if (t === 'L') {
-          // Charco de luz: seguro para el solar.
+          // Arena blanda: aguanta al solar ligero, hunde al nuclear.
           const g = c.createLinearGradient(0, y, 0, y + CELL)
-          g.addColorStop(0, 'rgba(255,226,150,0.95)')
-          g.addColorStop(1, 'rgba(240,170,70,0.85)')
+          g.addColorStop(0, 'rgba(236,190,128,0.95)')
+          g.addColorStop(1, 'rgba(196,132,78,0.9)')
           c.fillStyle = g
           c.fillRect(x, y + 6, CELL, CELL - 6)
-          c.fillStyle = 'rgba(255,255,220,0.9)'
+          c.fillStyle = 'rgba(255,232,190,0.85)'
           c.fillRect(x, y + 5 + wob * 1.5, CELL, 3)
+          c.fillStyle = 'rgba(120,72,40,0.35)'
+          for (let k = 4; k < CELL; k += 8) c.fillRect(x + k, y + 14 + ((k / 8) % 2) * 6, 3, 2)
           continue
         }
 
@@ -645,19 +656,19 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   })
 
   stage.setStats([
-    { key: 'solar', label: 'Rover solar', value: 'fuera' },
-    { key: 'nuclear', label: 'Rover nuclear', value: 'fuera' },
-    { key: 'gemas', label: 'Muestras', value: '0 / ' + totalGems, meter: 0 },
-    { key: 'tiempo', label: 'Tiempo', value: '00:00' },
-    { key: 'resets', label: 'Apagones', value: '0' },
+    { key: 'solar', label: 'Solar rover', value: 'out' },
+    { key: 'nuclear', label: 'Nuclear rover', value: 'out' },
+    { key: 'gemas', label: 'Samples', value: '0 / ' + totalGems, meter: 0 },
+    { key: 'tiempo', label: 'Time', value: '00:00' },
+    { key: 'resets', label: 'Stops', value: '0' },
   ])
 
   stage.showOverlay({
-    title: (card?.title ?? 'Sol y sombra') + ' · ' + spec.name,
+    title: (card?.title ?? 'Sun and Shade') + ' · ' + spec.name,
     text:
       spec.hint +
-      ' Lleva a los DOS rovers a su escotilla. Solar: A D W. Nuclear: flechas. R reinicia.',
-    buttons: [{ label: 'Empezar', onClick: restartLevel }],
+      ' Get BOTH rovers to their hatch. Solar: A D W. Nuclear: arrows. R restarts.',
+    buttons: [{ label: 'Start', onClick: restartLevel }],
   })
 
   render()

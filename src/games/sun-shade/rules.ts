@@ -6,8 +6,11 @@
  *
  * La idea cientifica: un rover SOLAR necesita luz y se apaga en la sombra
  * (asi acabaron Opportunity y Spirit); un rover con generador NUCLEAR (RTG)
- * trabaja en la sombra, pero el calor extra lo funde. Cada uno cruza lo que
- * el otro no puede, y por eso tienen que ayudarse.
+ * no depende del Sol y trabaja en la sombra. La luz NO le hace dano (NASA:
+ * los RPS funcionan "largely independent of changes in sunlight"). Su limite
+ * en el juego es otro, tambien real: los rovers con RTG son grandes y pesados
+ * (Curiosity 899 kg frente a 185 kg de Spirit), asi que la arena blanda que
+ * aguanta al ligero hunde al pesado. Cada uno cruza lo que el otro no puede.
  */
 
 import { CELL } from './levels'
@@ -148,12 +151,12 @@ export function isSolid(level: LevelState, cx: number, cy: number, open: Set<num
   return false
 }
 
-/** Un tile que apaga o funde al rover indicado. */
+/** Un tile que apaga o atasca al rover indicado. */
 export function isLethal(tile: string, who: Who): boolean {
   if (tile === 'X') return true
   // La sombra deja sin luz al rover solar.
   if (who === 'solar') return tile === 'S'
-  // El exceso de luz y calor funde al rover de generador nuclear.
+  // La arena blanda hunde al rover nuclear, que pesa casi cinco veces mas.
   return tile === 'L'
 }
 

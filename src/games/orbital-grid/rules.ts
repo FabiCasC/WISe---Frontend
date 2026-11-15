@@ -1,191 +1,146 @@
 /**
- * TRES EN RAYA ORBITAL - reglas puras.
+ * KEEP THE LINK - pure rules (no DOM, tested with Vitest).
  * -------------------------------------------------------------------------
- * Tablero de 9 sectores. El jugador coloca antenas (1), el rival coloca
- * las suyas (2). Alinear tres = cobertura continua de ese sector del cielo.
+ * Real idea (NASA, Deep Space Network): to talk to a far probe an antenna
+ * must have it above its horizon. The Earth turns once a day, so a single
+ * dish loses the probe for about half of every day. NASA built three
+ * complexes, Goldstone (California), Madrid (Spain) and Canberra
+ * (Australia), "strategically equidistant for full coverage".
  *
- * La IA es un minimax completo: en nivel 3 es literalmente imperfectible, y
- * eso es intencionado. Contra una red bien repartida lo mejor que se puede
- * hacer es empatar, que es justo la idea que el juego quiere dejar.
+ * Model, seen from above the North Pole: the probe sits far away in one
+ * fixed direction (angle 0). A dish at longitude `lon` points at angle
+ * `lon + rotation`. It sees the probe while that angle is within HALF_VIEW
+ * degrees of the probe: about 80 degrees, i.e. the probe is more than
+ * ~10 degrees above the local horizon. One degree of rotation = 4 minutes.
  */
 
-/** 0 vacio, 1 jugador, 2 rival. */
-export type Cell = 0 | 1 | 2
-export type Board = Cell[]
-export type Player = 1 | 2
+/** Half of the sky slice a dish can see, in degrees. */
+export const HALF_VIEW = 80
 
-export const LINES: readonly (readonly [number, number, number])[] = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-]
+/** Minutes of Earth rotation per degree (1440 min / 360 deg). */
+export const MIN_PER_DEG = 4
 
-export function emptyBoard(): Board {
-  return [0, 0, 0, 0, 0, 0, 0, 0, 0]
+export function norm360(a: number): number {
+  return ((a % 360) + 360) % 360
 }
 
-export interface WinInfo {
-  player: Player
-  line: readonly [number, number, number]
+/** Signed difference in (-180, 180]. */
+export function norm180(a: number): number {
+  const n = norm360(a)
+  return n > 180 ? n - 360 : n
 }
 
-export function findWinner(board: Board): WinInfo | null {
-  for (const line of LINES) {
-    const [a, b, c] = line
-    const v = board[a]
-    if (v !== 0 && v === board[b] && v === board[c]) {
-      return { player: v as Player, line }
-    }
-  }
-  return null
+export function sees(lon: number, rotation: number, half = HALF_VIEW): boolean {
+  return Math.abs(norm180(lon + rotation)) <= half
 }
 
-export function freeCells(board: Board): number[] {
-  const out: number[] = []
-  for (let i = 0; i < 9; i++) if (board[i] === 0) out.push(i)
+/** Dishes that see the probe at this rotation. */
+export function inView(dishes: number[], rotation: number, half = HALF_VIEW): number[] {
+  return dishes.filter((lon) => sees(lon, rotation, half))
+}
+
+/** 360 booleans, one per degree of rotation: is there contact? */
+export function contactTimeline(dishes: number[], half = HALF_VIEW): boolean[] {
+  const out: boolean[] = []
+  for (let r = 0; r < 360; r++) out.push(inView(dishes, r, half).length > 0)
   return out
 }
 
-export function isFull(board: Board): boolean {
-  return board.every((c) => c !== 0)
+/** Fraction of the day with contact, 0..1. */
+export function coverage(dishes: number[], half = HALF_VIEW): number {
+  const t = contactTimeline(dishes, half)
+  return t.filter(Boolean).length / 360
 }
 
-export function other(p: Player): Player {
-  return p === 1 ? 2 : 1
+/** Longest blackout of the day, in minutes (circular: wraps midnight). */
+export function longestBlackoutMin(dishes: number[], half = HALF_VIEW): number {
+  const t = contactTimeline(dishes, half)
+  if (t.every((c) => !c)) return 360 * MIN_PER_DEG
+  let best = 0
+  let run = 0
+  // Two laps so a gap that crosses the end of the array is counted once whole.
+  for (let i = 0; i < 720; i++) {
+    if (!t[i % 360]) {
+      run++
+      best = Math.max(best, Math.min(run, 360))
+    } else run = 0
+  }
+  return best * MIN_PER_DEG
+}
+
+export interface Site {
+  id: string
+  name: string
+  lon: number
 }
 
 /**
- * Minimax con poda alfa-beta. Devuelve la puntuacion de la posicion para
- * `me`. Se resta la profundidad al ganar para que prefiera ganar PRONTO, y
- * se suma al perder para que estire la derrota: sin esto la maquina juega
- * de forma desconcertante aunque sea "correcta".
+ * Level 3 offers real places. NASA's three are in the list together with
+ * decoys that bunch up on the same side of the planet.
  */
-export function minimax(
-  board: Board,
-  me: Player,
-  turn: Player,
-  depth: number,
-  alpha: number,
-  beta: number
-): number {
-  const win = findWinner(board)
-  if (win) return win.player === me ? 10 - depth : depth - 10
-  if (isFull(board)) return 0
+export const SITES: Site[] = [
+  { id: 'goldstone', name: 'Goldstone, USA', lon: -116.9 },
+  { id: 'houston', name: 'Houston, USA', lon: -95.4 },
+  { id: 'florida', name: 'Florida, USA', lon: -80.6 },
+  { id: 'madrid', name: 'Madrid, Spain', lon: -4.2 },
+  { id: 'paris', name: 'Paris, France', lon: 2.4 },
+  { id: 'nairobi', name: 'Nairobi, Kenya', lon: 36.8 },
+  { id: 'tokyo', name: 'Tokyo, Japan', lon: 139.7 },
+  { id: 'canberra', name: 'Canberra, Australia', lon: 149.0 },
+]
 
-  const cells = freeCells(board)
+export const DSN_IDS = ['goldstone', 'madrid', 'canberra']
 
-  if (turn === me) {
-    let best = -Infinity
-    for (const i of cells) {
-      board[i] = turn
-      const v = minimax(board, me, other(turn), depth + 1, alpha, beta)
-      board[i] = 0
-      if (v > best) best = v
-      if (best > alpha) alpha = best
-      if (alpha >= beta) break
-    }
-    return best
-  }
-
-  let best = Infinity
-  for (const i of cells) {
-    board[i] = turn
-    const v = minimax(board, me, other(turn), depth + 1, alpha, beta)
-    board[i] = 0
-    if (v < best) best = v
-    if (best < beta) beta = best
-    if (alpha >= beta) break
-  }
-  return best
+export interface LevelSpec {
+  name: string
+  /** Dishes you must place before the day can run. */
+  dishes: number
+  /** Coverage needed to pass, 0..1. */
+  goal: number
+  /** Only these sites can hold a dish; null = any longitude (snapped). */
+  sites: Site[] | null
+  intro: string
 }
 
-/** Jugada optima para `me`. Entre varias igual de buenas, elige una al azar. */
-export function bestMove(board: Board, me: Player, rand: () => number): number {
-  const cells = freeCells(board)
-  if (cells.length === 0) return -1
-
-  let best = -Infinity
-  let picks: number[] = []
-
-  for (const i of cells) {
-    board[i] = me
-    const v = minimax(board, me, other(me), 0, -Infinity, Infinity)
-    board[i] = 0
-    if (v > best) {
-      best = v
-      picks = [i]
-    } else if (v === best) {
-      picks.push(i)
-    }
-  }
-
-  return picks[Math.floor(rand() * picks.length)]
+export const LEVELS: Record<1 | 2 | 3, LevelSpec> = {
+  1: {
+    name: 'One dish is not enough',
+    dishes: 2,
+    goal: 0.85,
+    sites: null,
+    intro:
+      'A dish only hears the probe while the probe is above its horizon. Run a day with one dish and watch the Earth turn it away. Then place two dishes so the link stays up at least 85% of the day.',
+  },
+  2: {
+    name: 'No blackouts',
+    dishes: 3,
+    goal: 1,
+    sites: null,
+    intro:
+      'Mission control wants contact 24 hours a day. You have three dishes. Where must they go so there is never a blackout?',
+  },
+  3: {
+    name: 'Pick real places',
+    dishes: 3,
+    goal: 1,
+    sites: SITES,
+    intro:
+      'Now choose from real places on the map. Three dishes, zero blackouts. Can you find a set that works, and the one NASA really built?',
+  },
 }
 
-/** Jugada que gana ya, o que impide que el rival gane en la siguiente. */
-export function tacticalMove(board: Board, me: Player): number {
-  const rival = other(me)
-  for (const who of [me, rival]) {
-    for (const i of freeCells(board)) {
-      board[i] = who
-      const win = findWinner(board)
-      board[i] = 0
-      if (win) return i
-    }
-  }
-  return -1
+/** Longitudes are snapped so placing a dish by touch is easy. */
+export const SNAP = 15
+
+export function snapLon(lon: number): number {
+  return norm180(Math.round(lon / SNAP) * SNAP)
 }
 
-export type Difficulty = 1 | 2 | 3
-
-/**
- * Rival por nivel.
- *   1 - novato: casi siempre al azar, a veces ve la jugada obvia.
- *   2 - atento: nunca falla lo evidente, pero no calcula a fondo.
- *   3 - perfecto: minimax puro. No se le puede ganar; se le puede empatar.
- */
-export function aiMove(board: Board, me: Player, level: Difficulty, rand: () => number): number {
-  const cells = freeCells(board)
-  if (cells.length === 0) return -1
-
-  if (level === 3) return bestMove(board, me, rand)
-
-  if (level === 2) {
-    const tactical = tacticalMove(board, me)
-    if (tactical >= 0) return tactical
-    // Sin jugada forzada: el centro y las esquinas son mejores que los lados.
-    if (board[4] === 0 && rand() < 0.8) return 4
-    const corners = [0, 2, 6, 8].filter((i) => board[i] === 0)
-    if (corners.length && rand() < 0.65) return corners[Math.floor(rand() * corners.length)]
-    return cells[Math.floor(rand() * cells.length)]
-  }
-
-  // Nivel 1: solo a veces se da cuenta.
-  if (rand() < 0.3) {
-    const tactical = tacticalMove(board, me)
-    if (tactical >= 0) return tactical
-  }
-  return cells[Math.floor(rand() * cells.length)]
+export function passed(dishes: number[], spec: LevelSpec): boolean {
+  return dishes.length === spec.dishes && coverage(dishes) >= spec.goal - 1e-9
 }
 
-export interface MatchScore {
-  wins: number
-  draws: number
-  losses: number
-  level: Difficulty
-}
-
-/** Objetivo de cada nivel. En el 3, empatar al rival perfecto ya es exito. */
-export function matchPassed({ wins, losses, level }: MatchScore): boolean {
-  if (level === 3) return losses === 0
-  return wins >= 2
-}
-
-export function scoreMatch({ wins, draws, level }: MatchScore): number {
-  return wins * 320 + draws * (level === 3 ? 180 : 70) + level * 60
+/** 0..1000: coverage first, fewer test runs a little better. */
+export function scoreLink(cov: number, runs: number): number {
+  return Math.max(100, Math.round(cov * 1000) - Math.max(0, runs - 1) * 50)
 }

@@ -17,6 +17,9 @@ import {
   type Obstacle,
   type ObstacleKind,
   type Pickup,
+  directSunlight,
+  drainFactor,
+  tauAt,
 } from './rules'
 
 /**
@@ -31,7 +34,8 @@ import {
 export function mountGame(container: HTMLElement, ctx: GameContext): GameController {
   const card = getArcade('dust-run')
   // Contrato v2: LevelId es number; este juego tiene los niveles 1 a 3.
-  const tuning = LEVELS[ctx.levelId as 1 | 2 | 3] ?? LEVELS[1]
+  const levelKey = (ctx.levelId >= 1 && ctx.levelId <= 3 ? ctx.levelId : 1) as 1 | 2 | 3
+  const tuning = LEVELS[levelKey]
   const rng = createRng(ctx.seed)
   const sfx = createSfx(ctx.settings.volume)
   const reduced = ctx.settings.reducedMotion
@@ -61,6 +65,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let graceMs = 0
   let shake = 0
   let settled = false
+  /** One per run, kept across retries: a lost run is a lesson too. */
+  const decisions: { concept: string; correct: boolean }[] = []
 
   let obstacles: Obstacle[] = []
   let pickups: Pickup[] = []
@@ -116,6 +122,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   function finish(won: boolean) {
     if (phase === 'over' || phase === 'won') return
     phase = won ? 'won' : 'over'
+    decisions.push({ concept: 'sin-luz-sin-energia', correct: won })
 
     const score = practice
       ? 0
@@ -128,20 +135,28 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     // resultado se informa SOLO cuando el jugador pulsa el boton: primero
     // ve su marca y el dato real.
     stage.showOverlay({
-      title: won ? 'Mision cumplida' : 'Sin energia',
+      title: won ? 'Mission complete' : 'Out of power',
       tone: won ? 'win' : 'lose',
       score: won
-        ? Math.floor(meters) + ' m - ' + pickupCount + ' claros de luz - ' + score + ' puntos'
-        : Math.floor(meters) + ' m de ' + tuning.targetDistance + ' m',
+        ? Math.floor(meters) + ' m - ' + pickupCount + ' sun breaks - ' + score + ' points'
+        : Math.floor(meters) + ' m of ' + tuning.targetDistance + ' m',
       text: won
-        ? 'Llegaste con los paneles cargados. Cada claro de luz que atrapaste era energia entrando.'
-        : 'El polvo tapo el sol y los paneles dejaron de cargar. Asi se apago Opportunity.',
+        ? 'You made it before the sky closed. Each sun break was energy coming in. The dust opacity τ reached ' +
+          tauAt(levelKey, 1).toFixed(1) +
+          ': only ' +
+          pctSun(tauAt(levelKey, 1)) +
+          ' of direct sunlight got through.'
+        : 'At τ ' +
+          tauAt(levelKey, meters / tuning.targetDistance).toFixed(1) +
+          ' only ' +
+          pctSun(tauAt(levelKey, meters / tuning.targetDistance)) +
+          ' of direct sunlight reached the panels. That is how Opportunity went silent in June 2018, at τ ≈ 10.8.',
       fact: card?.fact,
       buttons: won
-        ? [{ label: 'Guardar y continuar', onClick: () => complete(true, score) }]
+        ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
         : [
-            { label: 'Reintentar', onClick: begin },
-            { label: 'Volver al portal', variant: 'quiet', onClick: () => ctx.onExit() },
+            { label: 'Try again', onClick: begin },
+            { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
           ],
     })
   }
@@ -158,6 +173,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       evidenceIds: won ? (card?.evidence.map((e) => e.id) ?? []) : [],
       // Sin choques: el recorrido se leyo bien a la primera.
       firstAnswerCorrect: won && crashes === 0,
+      decisions,
     })
   }
 
@@ -189,8 +205,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   }
   stage.canvas.addEventListener('pointerdown', onPointer)
 
-  const jumpBtn = stage.addTouchButton('Saltar', 'Saltar')
-  const duckBtn = stage.addTouchButton('Agachar', 'Agacharse')
+  const jumpBtn = stage.addTouchButton('Jump', 'Jump')
+  const duckBtn = stage.addTouchButton('Duck', 'Duck')
   let duckHeld = false
 
   const onJumpTap = (e: PointerEvent) => {
@@ -212,8 +228,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
   stage.setHint(
     tuning.gusts
-      ? 'Espacio o flecha arriba para saltar - flecha abajo para agacharte bajo las rafagas'
-      : 'Espacio o flecha arriba para saltar - atrapa los claros de luz'
+      ? 'Space or Up to jump · Down to duck under the gusts · watch the τ meter'
+      : 'Space or Up to jump · grab the sun breaks · watch the τ meter'
   )
 
   // --- Generacion de terreno ------------------------------------------------
@@ -245,7 +261,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     meters += advance / WORLD.pxPerMeter
 
     // Energia: la tormenta tapa el sol. En practica no baja nunca.
-    if (!practice) energy -= tuning.drainPerSec * dt
+    const tau = tauAt(levelKey, meters / tuning.targetDistance)
+    if (!practice) energy -= tuning.drainPerSec * drainFactor(tau) * dt
     if (graceMs > 0) graceMs -= dtMs
     if (shake > 0) shake = Math.max(0, shake - dtMs * 0.02)
 
@@ -298,9 +315,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         sfx.noise(180, 0.22)
         if (!practice) {
           energy -= WORLD.crashCost
-          stage.flash('-' + WORLD.crashCost + ' energia', 'bad')
+          stage.flash('-' + WORLD.crashCost + ' energy', 'bad')
         } else {
-          stage.flash('Choque', 'bad')
+          stage.flash('Crash', 'bad')
         }
         // El obstaculo golpeado desaparece: evita choques encadenados.
         obstacles = obstacles.filter((x) => x !== o)
@@ -313,7 +330,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       p.taken = true
       pickupCount++
       energy = Math.min(WORLD.maxEnergy, energy + WORLD.pickupGain)
-      stage.flash('+' + WORLD.pickupGain + ' energia')
+      stage.flash('+' + WORLD.pickupGain + ' energy')
       sfx.tone(880, 80, 'sine', 0.16)
     }
 
@@ -333,18 +350,25 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     stage.setStats([
       {
         key: 'dist',
-        label: 'Distancia',
+        label: 'Distance',
         value: Math.floor(meters) + ' / ' + tuning.targetDistance + ' m',
         meter: meters / tuning.targetDistance,
       },
       {
         key: 'energy',
-        label: practice ? 'Energia (practica)' : 'Energia',
+        label: practice ? 'Energy (practice)' : 'Energy',
         value: Math.max(0, Math.round(energy)) + '%',
         meter: pct,
         tone: pct > 0.5 ? 'ok' : pct > 0.25 ? 'warn' : 'bad',
       },
-      { key: 'light', label: 'Claros de luz', value: String(pickupCount) },
+      {
+        key: 'tau',
+        label: 'Dust τ · sunlight',
+        value: tau.toFixed(1) + ' · ' + pctSun(tau),
+        meter: directSunlight(tau),
+        tone: tau < 2 ? 'ok' : tau < 5 ? 'warn' : 'bad',
+      },
+      { key: 'light', label: 'Sun breaks', value: String(pickupCount) },
     ])
   }
 
@@ -577,18 +601,19 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   })
 
   stage.setStats([
-    { key: 'dist', label: 'Distancia', value: '0 / ' + tuning.targetDistance + ' m', meter: 0 },
+    { key: 'dist', label: 'Distance', value: '0 / ' + tuning.targetDistance + ' m', meter: 0 },
     { key: 'energy', label: 'Energia', value: '100%', meter: 1, tone: 'ok' },
-    { key: 'light', label: 'Claros de luz', value: '0' },
+    { key: 'tau', label: 'Dust τ · sunlight', value: tauAt(levelKey, 0).toFixed(1) + ' · ' + pctSun(tauAt(levelKey, 0)), meter: directSunlight(tauAt(levelKey, 0)) },
+    { key: 'light', label: 'Sun breaks', value: '0' },
   ])
 
   stage.showOverlay({
-    title: card?.title ?? 'Tormenta en Meridiani',
+    title: card?.title ?? 'Storm over Meridiani',
     text:
       'Avanza ' +
       tuning.targetDistance +
-      ' m antes de quedarte sin energia. El polvo tapa el sol: atrapa los claros de luz para recargar los paneles.' +
-      (tuning.gusts ? ' Agachate bajo las rafagas altas.' : ''),
+      ' m before you run out of power. Watch the τ meter: it measures how much dust blocks the Sun. The higher τ goes, the less sunlight reaches your panels. Grab the sun breaks to recharge.' +
+      (tuning.gusts ? ' Duck under the high gusts.' : ''),
     buttons: [{ label: 'Empezar', onClick: begin }],
   })
 
@@ -617,4 +642,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       return Promise.resolve()
     },
   }
+}
+
+function pctSun(tau: number): string {
+  const p = directSunlight(tau) * 100
+  return (p >= 10 ? Math.round(p) : p >= 1 ? p.toFixed(1) : p.toFixed(3)) + '%'
 }

@@ -9,7 +9,7 @@
  * Leyenda:
  *   #  pared
  *   .  muestra de suelo (hay que recogerlas todas)
- *   o  evento de limpieza (deja dispersar remolinos un rato)
+ *   o  suelo brillante (muestra rara, vale mas)
  *   P  posicion inicial del rover
  *   G  casa de remolinos (sin muestra)
  *   ' ' pasillo sin muestra
@@ -25,8 +25,10 @@ export interface MazeTuning {
   playerSpeed: number
   /** Velocidad de los remolinos. */
   ghostSpeed: number
-  /** Segundos que dura un evento de limpieza. */
+  /** Segundos que dura el brillo tras una limpieza. */
   cleanSecs: number
+  /** Segundos hasta que el polvo cubre del todo los paneles. */
+  dustSecs: number
 }
 
 const L1 = [
@@ -78,9 +80,9 @@ const L3 = [
 ]
 
 export const MAZE_LEVELS: Record<1 | 2 | 3, MazeTuning> = {
-  1: { map: L1, ghosts: 2, playerSpeed: 5.6, ghostSpeed: 4.2, cleanSecs: 7 },
-  2: { map: L2, ghosts: 3, playerSpeed: 6, ghostSpeed: 5, cleanSecs: 6 },
-  3: { map: L3, ghosts: 4, playerSpeed: 6.4, ghostSpeed: 5.7, cleanSecs: 5 },
+  1: { map: L1, ghosts: 2, playerSpeed: 5.6, ghostSpeed: 4.2, cleanSecs: 1.5, dustSecs: 40 },
+  2: { map: L2, ghosts: 3, playerSpeed: 6, ghostSpeed: 5, cleanSecs: 1.5, dustSecs: 32 },
+  3: { map: L3, ghosts: 4, playerSpeed: 6.4, ghostSpeed: 5.7, cleanSecs: 1.5, dustSecs: 26 },
 }
 
 export const MAZE_MAPS = [L1, L2, L3]

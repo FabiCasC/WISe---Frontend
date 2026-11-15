@@ -11,8 +11,8 @@ import {
   createMover,
   key,
   moverPos,
-  opposite,
   parseMaze,
+  panelPower,
   scoreMaze,
   stepMover,
   type Dir,
@@ -27,10 +27,11 @@ const PAD = 10
 /**
  * LABERINTO DE GUSEV
  * -------------------------------------------------------------------------
- * El rover recorre el crater recogiendo muestras mientras los remolinos de
- * polvo rondan. Un "evento de limpieza" invierte la situacion: durante unos
- * segundos el remolino limpia los paneles en vez de estorbar, y se puede
- * dispersar. Es el hecho real que sostiene la mecanica.
+ * El rover recorre el crater recogiendo muestras. El polvo se va posando en
+ * sus paneles: cada vez hay menos energia y el rover va mas lento, y si los
+ * cubre del todo se detiene. Los remolinos de polvo NO son enemigos: cruzarse
+ * con uno limpia los paneles, como les paso de verdad a Spirit y Opportunity
+ * ("eventos de limpieza"). La estrategia es ir a buscarlos cuando hace falta.
  */
 export function mountGame(container: HTMLElement, ctx: GameContext): GameController {
   const card = getArcade('gusev-maze')
@@ -59,7 +60,11 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let powersTaken = 0
   let scattered = 0
   let cleanMs = 0
+  /** Polvo en los paneles, 0..1. */
+  let dust = 0
   let respawnMs = 0
+  const decisions: { concept: string; correct: boolean }[] = []
+  const CONCEPT = 'remolinos-limpian-paneles'
   let elapsed = 0
   let settled = false
 
@@ -111,6 +116,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     player.want = 'none'
     spawnGhosts()
     cleanMs = 0
+    dust = 0
   }
 
   function resetAll() {
@@ -156,6 +162,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       completed: won,
       evidenceIds: won ? (card?.evidence.map((e) => e.id) ?? []) : [],
       firstAnswerCorrect: won && lives === START_LIVES,
+      decisions,
     })
   }
 
@@ -172,20 +179,20 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     // Igual que en el resto del arcade: el resultado se informa al portal
     // cuando el jugador pulsa, para que le de tiempo a leer el dato real.
     stage.showOverlay({
-      title: won ? 'Crater recorrido' : 'Rover detenido',
+      title: won ? 'Crater explored' : 'Rover stopped',
       tone: won ? 'win' : 'lose',
       score: won
-        ? pelletsTaken + ' muestras - ' + scattered + ' remolinos dispersados - ' + score + ' puntos'
-        : 'Te quedaban ' + left + ' muestras por recoger',
+        ? pelletsTaken + ' samples - ' + scattered + ' cleaning events - ' + score + ' points'
+        : left + ' samples were left to collect',
       text: won
-        ? 'Recogiste todas las muestras del sector. Los eventos de limpieza te dieron el margen de energia que necesitabas.'
-        : 'Los remolinos te alcanzaron tres veces. Busca los eventos de limpieza: mientras duran, el remolino juega a tu favor.',
+        ? 'You used dust devils to blow the dust off your panels. Spirit lasted over six years on Mars, far longer than its 90-day plan, partly thanks to these cleaning events.'
+        : 'Dust covered your panels three times. When power drops, drive toward a dust devil: its wind cleans the panels.',
       fact: card?.fact,
       buttons: won
-        ? [{ label: 'Guardar y continuar', onClick: () => complete(true, score) }]
+        ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
         : [
-            { label: 'Reintentar', onClick: begin },
-            { label: 'Volver al portal', variant: 'quiet', onClick: () => ctx.onExit() },
+            { label: 'Try again', onClick: begin },
+            { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
           ],
     })
   }
@@ -214,10 +221,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   // Botonera tactil con las cuatro direcciones.
   const padButtons: { el: HTMLButtonElement; dir: Dir; handler: (e: PointerEvent) => void }[] = []
   for (const [label, dir, aria] of [
-    ['A', 'up', 'Arriba'],
-    ['I', 'left', 'Izquierda'],
-    ['D', 'right', 'Derecha'],
-    ['B', 'down', 'Abajo'],
+    ['↑', 'up', 'Up'],
+    ['←', 'left', 'Left'],
+    ['→', 'right', 'Right'],
+    ['↓', 'down', 'Down'],
   ] as const) {
     const el = stage.addTouchButton(label, aria)
     const handler = (e: PointerEvent) => {
@@ -247,7 +254,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   stage.canvas.addEventListener('pointerdown', onDown)
   stage.canvas.addEventListener('pointerup', onUp)
 
-  stage.setHint('Flechas o WASD para moverte - recoge todas las muestras')
+  stage.setHint('Arrows or WASD to move · collect every sample · meet dust devils to clean your panels')
 
   // --- Simulacion -----------------------------------------------------------
   function loseLife() {
@@ -278,8 +285,17 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     elapsed += dtMs
     if (cleanMs > 0) cleanMs = Math.max(0, cleanMs - dtMs)
 
+    // --- Polvo en los paneles: menos energia, rover mas lento.
+    dust = Math.min(1, dust + dt / (tuning.dustSecs * (practice ? 2 : 1)))
+    if (dust >= 1) {
+      decisions.push({ concept: CONCEPT, correct: false })
+      stage.flash('Panels covered in dust: no power', 'bad')
+      loseLife()
+      return
+    }
+
     // --- Jugador
-    if (stepMover(maze, player, tuning.playerSpeed, dt)) {
+    if (stepMover(maze, player, tuning.playerSpeed * panelPower(dust), dt)) {
       const k = key(player.x, player.y)
       if (maze.pellets.delete(k)) {
         pelletsTaken++
@@ -287,17 +303,16 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       }
       if (maze.powers.delete(k)) {
         powersTaken++
-        cleanMs = tuning.cleanSecs * 1000
-        stage.flash('Evento de limpieza')
+        stage.flash('Bright soil sample')
         sfx.sweep(380, 900, 260, 'triangle', 0.2)
-        // Los remolinos se dan la vuelta: se nota al instante quien manda.
-        for (const g of ghosts) if (g.goneMs <= 0) g.mover.want = opposite(g.mover.dir)
       }
     }
 
     // --- Remolinos
-    const fleeing = cleanMs > 0
+    const fleeing = false
+    let gi = 0
     for (const g of ghosts) {
+      gi++
       if (g.waitMs > 0) {
         g.waitMs -= dtMs
         continue
@@ -318,10 +333,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         continue
       }
 
-      // Alterna perseguir y patrullar su esquina: sin esto, acorralan siempre.
-      const patrol = Math.floor(elapsed / 7000) % 3 === 2
-      const target = fleeing ? g.corner : patrol ? g.corner : { x: player.x, y: player.y }
-      const speed = tuning.ghostSpeed * (fleeing ? 0.62 : 1)
+      // Los remolinos no persiguen: vagan de esquina en esquina, como el
+      // viento. Hay que ir a buscarlos.
+      const target = CORNERS[(gi + Math.floor(elapsed / 6000)) % CORNERS.length]
+      const speed = tuning.ghostSpeed * 0.7
 
       if (g.mover.dir === 'none') {
         g.mover.want = chooseGhostDir(maze, g.mover, target, fleeing, rng.next)
@@ -343,15 +358,17 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       const near = Math.abs(gp.x - pp.x) < 0.6 && Math.abs(gp.y - pp.y) < 0.6
       if (!near) continue
 
-      if (fleeing) {
-        g.goneMs = 4000
-        scattered++
-        stage.flash('+200')
-        sfx.tone(980, 120, 'sine', 0.2)
-      } else {
-        loseLife()
-        return
-      }
+      // Cleaning event: the devil's wind blows the dust off the panels.
+      const before = dust
+      g.goneMs = 4000
+      if (before < 0.15) continue
+      dust = 0
+      cleanMs = tuning.cleanSecs * 1000
+      scattered++
+      // Going for a devil when power was low is the smart call.
+      if (before >= 0.35) decisions.push({ concept: CONCEPT, correct: true })
+      stage.flash('Cleaning event! Power ' + Math.round(panelPower(before) * 100) + '% → 100%')
+      sfx.tone(980, 120, 'sine', 0.2)
     }
 
     // --- Victoria
@@ -363,24 +380,24 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     stage.setStats([
       {
         key: 'muestras',
-        label: 'Muestras',
+        label: 'Samples',
         value: pelletsTaken + ' / ' + maze.totalPellets,
         meter: pelletsTaken / Math.max(1, maze.totalPellets),
       },
       {
         key: 'vidas',
-        label: practice ? 'Intentos (practica)' : 'Rovers',
+        label: practice ? 'Tries (practice)' : 'Rovers',
         value: '*'.repeat(Math.max(0, lives)),
         tone: lives > 1 ? 'ok' : 'bad',
       },
       {
         key: 'limpieza',
-        label: 'Limpieza',
-        value: cleanMs > 0 ? Math.ceil(cleanMs / 1000) + ' s' : '-',
-        meter: cleanMs / (tuning.cleanSecs * 1000),
-        tone: cleanMs > 0 ? 'ok' : undefined,
+        label: 'Panel power',
+        value: Math.round(panelPower(dust) * 100) + '%',
+        meter: 1 - dust,
+        tone: dust > 0.7 ? 'bad' : dust > 0.4 ? 'warn' : 'ok',
       },
-      { key: 'puntos', label: 'Puntos', value: String(currentScore(false)) },
+      { key: 'puntos', label: 'Points', value: String(currentScore(false)) },
     ])
   }
 
@@ -451,7 +468,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     c.fillStyle = '#dcc9a6'
     c.fillRect(cx - 11, cy - 8, 22, 15)
     // Paneles: brillan durante el evento de limpieza.
-    c.fillStyle = protectedNow ? '#aef0d2' : '#7fb6e0'
+    c.fillStyle = protectedNow ? '#aef0d2' : mixDust(dust)
     c.fillRect(cx - 13, cy - 12, 26, 5)
     // Ruedas.
     c.fillStyle = '#3a3550'
@@ -483,7 +500,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     const p = moverPos(g.mover)
     const cx = px(p.x)
     const cy = py(p.y)
-    const fleeing = cleanMs > 0
+    const fleeing = false
 
     if (g.goneMs > 0) {
       // Dispersado: solo queda un rastro tenue volviendo a casa.
@@ -557,19 +574,19 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
   spawnGhosts()
   stage.setStats([
-    { key: 'muestras', label: 'Muestras', value: '0 / ' + maze.totalPellets, meter: 0 },
+    { key: 'muestras', label: 'Samples', value: '0 / ' + maze.totalPellets, meter: 0 },
     { key: 'vidas', label: 'Rovers', value: '*'.repeat(START_LIVES), tone: 'ok' },
-    { key: 'limpieza', label: 'Limpieza', value: '-', meter: 0 },
-    { key: 'puntos', label: 'Puntos', value: '0' },
+    { key: 'limpieza', label: 'Panel power', value: '100%', meter: 1, tone: 'ok' },
+    { key: 'puntos', label: 'Points', value: '0' },
   ])
 
   stage.showOverlay({
-    title: card?.title ?? 'Laberinto de Gusev',
+    title: card?.title ?? 'Gusev Maze',
     text:
-      'Recoge las ' +
+      'Collect all ' +
       maze.totalPellets +
-      ' muestras del sector sin que te alcancen los remolinos de polvo. Las luces grandes son eventos de limpieza: durante unos segundos puedes dispersarlos.',
-    buttons: [{ label: 'Empezar', onClick: begin }],
+      ' samples. Dust keeps settling on your solar panels: less power, slower rover. If they get fully covered, you stop. Dust devils are your friends: drive into one and its wind cleans the panels.',
+    buttons: [{ label: 'Start', onClick: begin }],
   })
 
   render()
@@ -594,4 +611,11 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       return Promise.resolve()
     },
   }
+}
+
+/** Panel colour: clean blue fading to dusty brown. */
+function mixDust(dust: number): string {
+  const d = Math.min(1, Math.max(0, dust))
+  const lerp = (a: number, b: number) => Math.round(a + (b - a) * d)
+  return 'rgb(' + lerp(127, 168) + ',' + lerp(182, 120) + ',' + lerp(224, 80) + ')'
 }

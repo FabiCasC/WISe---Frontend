@@ -252,7 +252,7 @@ describe('fisica', () => {
 
   it('reconoce el terreno mortal de cada rover', () => {
     const level = parseLevel(SUN_MAPS[0])
-    // El charco de luz del mapa 1 esta en la fila 13.
+    // La arena blanda del mapa 1 esta en la fila 13.
     const lit = { x: 8, y: 13 }
     expect(tileAt(level, lit.x, lit.y)).toBe('L')
 

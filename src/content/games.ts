@@ -161,7 +161,7 @@ export const GAMES: GameEntry[] = [
     icon: 'astro',
     levels: 3,
     concepts: [
-      { id: 'solar-vs-nuclear', label: 'Solar rovers need light; nuclear (RTG) rovers work in the shade' },
+      { id: 'solar-vs-nuclear', label: 'Solar rovers stop in the shade; nuclear (RTG) rovers do not need sunlight' },
     ],
     status: 'live',
     isNew: true,
@@ -169,11 +169,14 @@ export const GAMES: GameEntry[] = [
   },
   {
     id: 'orbital-grid',
-    title: 'Orbital Tic-Tac-Toe',
+    title: 'Keep the Link',
     destination: 'earth',
     icon: 'wave',
     levels: 3,
-    concepts: [{ id: 'tres-estaciones-cobertura', label: 'Three well-spaced antennas keep probes always in contact' }],
+    concepts: [
+      { id: 'la-tierra-gira-oculta-antena', label: 'The Earth turns, so one antenna loses a probe for half the day' },
+      { id: 'tres-estaciones-cobertura', label: 'Three antennas spread around the world keep probes always in contact' },
+    ],
     status: 'live',
     isNew: true,
   },
