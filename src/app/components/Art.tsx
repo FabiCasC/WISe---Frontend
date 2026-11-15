@@ -65,14 +65,29 @@ export function IconInfo({ size = 18 }: IconProps) {
   )
 }
 
+/**
+ * Settings.
+ *
+ * This used to be a small disc with eight thin rays reaching outwards -
+ * which is a sun, not a gear, and sat next to the theme toggle's actual sun
+ * looking almost the same. A gear is told apart from a sun by three things,
+ * so it has all three: a RING rather than a filled centre, teeth that are
+ * short and thick instead of long and thin, and a hole through the middle.
+ */
 export function IconGear({ size = 20 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="3.2" {...stroke} />
+      {/* Eight stubby teeth around the rim, every 45 degrees. */}
       <path
-        d="M12 3v2.2M12 18.8V21M21 12h-2.2M5.2 12H3M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6M18.4 18.4l-1.6-1.6M7.2 7.2 5.6 5.6"
-        {...stroke}
+        d="M18 12h2.6M16.24 16.24l1.84 1.84M12 18v2.6M7.76 16.24 5.92 18.08M6 12H3.4M7.76 7.76 5.92 5.92M12 6V3.4M16.24 7.76l1.84-1.84"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="butt"
+        fill="none"
       />
+      {/* The rim itself, and the hole. */}
+      <circle cx="12" cy="12" r="6" {...stroke} />
+      <circle cx="12" cy="12" r="2.6" {...stroke} />
     </svg>
   )
 }
