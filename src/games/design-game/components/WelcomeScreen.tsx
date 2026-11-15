@@ -104,16 +104,16 @@ const GENRE_OPTIONS: {
   desc: string
   Icon: () => JSX.Element
 }[] = [
-    { genre: 'arcade', label: 'Arcade', desc: 'Recolecta objetos, esquiva enemigos', Icon: IconGamepad },
-    { genre: 'platformer', label: 'Plataformas', desc: 'Salta, corre, llega a la meta', Icon: IconRun },
-    { genre: 'maze', label: 'Laberinto', desc: 'Explora, encuentra la salida', Icon: IconMaze },
+    { genre: 'arcade', label: 'Arcade', desc: 'Collect things, keep away from enemies', Icon: IconGamepad },
+    { genre: 'platformer', label: 'Platformer', desc: 'Run, jump, reach the goal', Icon: IconRun },
+    { genre: 'maze', label: 'Maze', desc: 'Explore and find the way out', Icon: IconMaze },
   ]
 
 const EXAMPLES = [
-  'Un robot que recolecta cristales y evita enemigos que se mueven de un lado a otro',
-  'Un héroe que salta entre plataformas flotantes para llegar al portal de salida',
-  'Un explorador que busca la llave para salir del laberinto antes de que lleguen los guardias',
-  'Una nave que recolecta fragmentos de roca y esquiva asteroides en movimiento',
+  'A robot that collects crystals and keeps away from enemies walking side to side',
+  'A hero that jumps across floating platforms to reach the exit portal',
+  'An explorer looking for the key to get out of the maze before the guards arrive',
+  'A ship that picks up pieces of rock and dodges moving asteroids',
 ]
 
 interface Props {
@@ -163,12 +163,12 @@ export default function WelcomeScreen({
             Design Game
           </div>
           <h1 className="dg-welcome__title">
-            Crea tu propio{' '}
-            <span className="dg-welcome__title-accent">videojuego 2D</span>
+            Make your own{' '}
+            <span className="dg-welcome__title-accent">2D game</span>
           </h1>
           <p className="dg-welcome__subtitle">
-            Describe tu idea, elige el género y la IA generará una propuesta.
-            Tú programas, ajustas y ejecutas tu videojuego.
+            Describe your idea, pick a kind of game, and the assistant drafts a
+            starting point. You program it, change it and play it.
           </p>
         </header>
 
@@ -178,13 +178,13 @@ export default function WelcomeScreen({
           {/* Nombre */}
           <div className="dg-field">
             <label className="dg-field__label" htmlFor="dg-project-name">
-              Nombre del videojuego
+              Game name
             </label>
             <input
               id="dg-project-name"
               className="dg-field__input"
               type="text"
-              placeholder="Ej: Aventura en el espacio"
+              placeholder="Example: Space Adventure"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={60}
@@ -194,7 +194,7 @@ export default function WelcomeScreen({
 
           {/* Género */}
           <div className="dg-field">
-            <span className="dg-field__label">Tipo de videojuego</span>
+            <span className="dg-field__label">Kind of game</span>
             <div className="dg-genre-grid">
               {GENRE_OPTIONS.map(({ genre: g, label, desc, Icon }) => (
                 <button
@@ -216,26 +216,26 @@ export default function WelcomeScreen({
           {/* Descripción */}
           <div className="dg-field">
             <label className="dg-field__label" htmlFor="dg-description">
-              Describe tu videojuego
-              <span className="dg-field__label-note">(mínimo 10 caracteres)</span>
+              Describe your game
+              <span className="dg-field__label-note">(at least 10 characters)</span>
             </label>
             <textarea
               id="dg-description"
               className="dg-field__textarea"
-              placeholder="Ej: Quiero crear un videojuego donde un personaje recolecte estrellas, evite enemigos y llegue a una meta antes de que termine el tiempo…"
+              placeholder="Example: a player who picks up stars, keeps away from enemies and reaches the goal before time runs out…"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               required
             />
             <div className="dg-field__hint">
-              <span className="dg-field__char-count">{description.length} caracteres</span>
+              <span className="dg-field__char-count">{description.length} characters</span>
             </div>
           </div>
 
           {/* Ejemplos */}
           <div className="dg-examples">
-            <p className="dg-examples__title">Ejemplos para comenzar</p>
+            <p className="dg-examples__title">Ideas to start from</p>
             <div className="dg-examples__list">
               {EXAMPLES.map((ex, i) => (
                 <button
@@ -259,10 +259,10 @@ export default function WelcomeScreen({
             {isGenerating ? (
               <>
                 <span className="dg-spinner" />
-                Generando propuesta…
+                Making a draft…
               </>
             ) : (
-              'Generar videojuego'
+              'Make my game'
             )}
           </button>
         </form>
@@ -270,7 +270,7 @@ export default function WelcomeScreen({
         {/* Proyectos recientes */}
         {recentProjects.length > 0 && (
           <section className="dg-recent">
-            <h2 className="dg-recent__title">Proyectos recientes</h2>
+            <h2 className="dg-recent__title">Recent projects</h2>
             <div className="dg-recent__list">
               {recentProjects.map((project) => {
                 const GenreIcon = GENRE_OPTIONS.find((g) => g.genre === project.genre)?.Icon ?? IconFile
@@ -288,7 +288,7 @@ export default function WelcomeScreen({
                         <span className="dg-recent__meta">
                           {GENRE_OPTIONS.find((g) => g.genre === project.genre)?.label}
                           {' · '}
-                          {project.entities.length} entidades
+                          {project.entities.length} sprites
                           {project.buildStatus !== 'draft' && (
                             <span className={`dg-status dg-status--${project.buildStatus}`} style={{ marginLeft: 6 }}>
                               {STATUS_LABELS[project.buildStatus]}
@@ -301,8 +301,8 @@ export default function WelcomeScreen({
                     <button
                       className="dg-recent__delete"
                       onClick={() => setShowDeleteConfirm(project.id)}
-                      aria-label={`Eliminar ${project.name}`}
-                      title="Eliminar proyecto"
+                      aria-label={`Delete ${project.name}`}
+                      title="Delete project"
                     >
                       <IconTrash />
                     </button>
@@ -334,20 +334,20 @@ export default function WelcomeScreen({
         <div className="dg-overlay" onClick={() => setShowDeleteConfirm(null)}>
           <div className="dg-modal" onClick={(e) => e.stopPropagation()}>
             <div className="dg-modal__header">
-              <h2 className="dg-modal__title">Eliminar proyecto</h2>
+              <h2 className="dg-modal__title">Delete project</h2>
             </div>
             <div className="dg-modal__body">
-              <p className="dg-modal__text">Esta acción no se puede deshacer.</p>
+              <p className="dg-modal__text">This cannot be undone.</p>
             </div>
             <div className="dg-modal__footer">
               <button className="dg-btn dg-btn--quiet" onClick={() => setShowDeleteConfirm(null)}>
-                Cancelar
+                Cancel
               </button>
               <button
                 className="dg-btn dg-btn--danger"
                 onClick={() => { onDeleteProject(showDeleteConfirm); setShowDeleteConfirm(null) }}
               >
-                Eliminar
+                Delete
               </button>
             </div>
           </div>
@@ -362,21 +362,21 @@ export default function WelcomeScreen({
    ------------------------------------------------------------------------- */
 
 const INFO_CARDS = [
-  { Icon: IconBot, title: 'IA como asistente', desc: 'La IA sugiere cambios, tú decides qué aceptar. El aprendizaje es tuyo.' },
-  { Icon: IconBlocks, title: 'Programación visual', desc: 'Conecta bloques para programar. Sin código difícil.' },
-  { Icon: IconPlay, title: 'Prueba al instante', desc: 'El simulador ejecuta tus instrucciones en tiempo real.' },
+  { Icon: IconBot, title: 'The assistant helps', desc: 'It suggests changes. You decide what to keep. The learning is yours.' },
+  { Icon: IconBlocks, title: 'Program with blocks', desc: 'Snap blocks together. No hard typing.' },
+  { Icon: IconPlay, title: 'Try it right away', desc: 'Run what you built and watch it play.' },
 ]
 
 const STATUS_LABELS: Record<string, string> = {
-  draft: 'Borrador',
-  in_review: 'En revisión',
-  changes_requested: 'Con observaciones',
-  approved: 'Aprobado',
+  draft: 'Draft',
+  in_review: 'In review',
+  changes_requested: 'Changes asked for',
+  approved: 'Approved',
 }
 
 function formatDate(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString('es', {
+    return new Date(iso).toLocaleDateString('en', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',

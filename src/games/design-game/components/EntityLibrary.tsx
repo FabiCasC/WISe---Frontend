@@ -34,7 +34,7 @@ function IconClose()       { return <svg width="11" height="11" viewBox="0 0 24 
 function IconAdd()         { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" {...stroke} /></svg> }
 
 /* -------------------------------------------------------------------------
-   Mapa tipo → icono
+   Mapa de tipo a icono
    ------------------------------------------------------------------------- */
 const TYPE_ICON: Record<EntityType | 'all', () => JSX.Element> = {
   all:         IconAll,
@@ -47,13 +47,13 @@ const TYPE_ICON: Record<EntityType | 'all', () => JSX.Element> = {
 }
 
 const TYPE_LABELS: Record<EntityType | 'all', string> = {
-  all:         'Todos',
-  player:      'Jugador',
-  enemy:       'Enemigo',
-  collectible: 'Coleccionable',
-  obstacle:    'Obstáculo',
-  platform:    'Plataforma',
-  goal:        'Meta',
+  all:         'All',
+  player:      'Player',
+  enemy:       'Enemy',
+  collectible: 'Collectible',
+  obstacle:    'Obstacle',
+  platform:    'Platform',
+  goal:        'Goal',
 }
 
 /* -------------------------------------------------------------------------
@@ -80,13 +80,13 @@ export default function EntityLibrary({ spec }: Props) {
           className={`dg-entity-lib__tab ${tab === 'scene' ? 'dg-entity-lib__tab--active' : ''}`}
           onClick={() => setTab('scene')}
         >
-          En el juego ({spec.entities.length})
+          In the game ({spec.entities.length})
         </button>
         <button
           className={`dg-entity-lib__tab ${tab === 'add' ? 'dg-entity-lib__tab--active' : ''}`}
           onClick={() => setTab('add')}
         >
-          + Agregar
+          + Add
         </button>
       </div>
 
@@ -95,7 +95,7 @@ export default function EntityLibrary({ spec }: Props) {
           {spec.entities.length === 0 ? (
             <div className="dg-empty-state">
               <span className="dg-empty-state__icon"><IconAll /></span>
-              <p>Sin objetos en el escenario. Agrégalos desde la pestaña Agregar.</p>
+              <p>Nothing in the scene yet. Add something from the Add tab.</p>
             </div>
           ) : (
             <div className="dg-entity-lib__list">
@@ -187,7 +187,7 @@ function EntityItem({ entity, isSelected, onSelect, onDelete }: {
       <button
         className="dg-entity-item__delete"
         onClick={(e) => { e.stopPropagation(); onDelete() }}
-        aria-label={`Eliminar ${entity.name}`}
+        aria-label={`Delete ${entity.name}`}
       >
         <IconClose />
       </button>
@@ -211,7 +211,7 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
       <div className="dg-entity-props__fields">
         {/* Posición */}
         <div className="dg-entity-props__group">
-          <span className="dg-entity-props__group-label">Posición</span>
+          <span className="dg-entity-props__group-label">Position</span>
           <div className="dg-entity-props__row">
             <label>X
               <input type="number" className="dg-entity-props__input"
@@ -230,15 +230,15 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
 
         {/* Tamaño */}
         <div className="dg-entity-props__group">
-          <span className="dg-entity-props__group-label">Tamaño</span>
+          <span className="dg-entity-props__group-label">Size</span>
           <div className="dg-entity-props__row">
-            <label>Ancho
+            <label>Width
               <input type="number" className="dg-entity-props__input"
                 value={entity.size.width} min={8} max={400}
                 onChange={(e) => updateEntity(entity.id, { size: { ...entity.size, width: Number(e.target.value) } })}
               />
             </label>
-            <label>Alto
+            <label>Height
               <input type="number" className="dg-entity-props__input"
                 value={entity.size.height} min={8} max={400}
                 onChange={(e) => updateEntity(entity.id, { size: { ...entity.size, height: Number(e.target.value) } })}
@@ -251,7 +251,7 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
         {entity.properties.speed !== undefined && (
           <div className="dg-entity-props__group">
             <label className="dg-entity-props__group-label">
-              Velocidad — {entity.properties.speed} px/s
+              Speed — {entity.properties.speed} px/s
               <input type="range" className="dg-entity-props__range"
                 value={entity.properties.speed} min={20} max={500} step={10}
                 onChange={(e) => updateEntity(entity.id, { properties: { ...entity.properties, speed: Number(e.target.value) } })}
@@ -264,7 +264,7 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
         {entity.type === 'collectible' && (
           <div className="dg-entity-props__group">
             <label className="dg-entity-props__group-label">
-              Puntos al recolectar
+              Points when collected
               <input type="number" className="dg-entity-props__input"
                 value={entity.properties.points ?? 10} min={0} max={1000}
                 onChange={(e) => updateEntity(entity.id, { properties: { ...entity.properties, points: Number(e.target.value) } })}
@@ -277,15 +277,15 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
         {entity.type === 'enemy' && entity.properties.behavior && (
           <div className="dg-entity-props__group">
             <label className="dg-entity-props__group-label">
-              Comportamiento
+              Behaviour
               <select className="dg-entity-props__select"
                 value={entity.properties.behavior}
                 onChange={(e) => updateEntity(entity.id, { properties: { ...entity.properties, behavior: e.target.value as Entity['properties']['behavior'] } })}
               >
-                <option value="static">Estático</option>
-                <option value="patrol">Patrulla</option>
-                <option value="follow">Seguir al jugador</option>
-                <option value="random">Aleatorio</option>
+                <option value="static">Stays still</option>
+                <option value="patrol">Walks side to side</option>
+                <option value="follow">Follows the player</option>
+                <option value="random">Moves randomly</option>
               </select>
             </label>
           </div>
