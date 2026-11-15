@@ -255,8 +255,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     // Live explanation
     if (noteT > 0 && note) {
       c.fillStyle = 'rgba(13,16,23,0.9)'
-      c.fillRect(20, 14, W - 40, 34)
-      text(c, note, W / 2, 36, { size: 13, align: 'center' })
+      c.fillRect(20, 444, W - 40, 34)
+      text(c, note, W / 2, 466, { size: 13, align: 'center' })
     }
 
     // Buttons

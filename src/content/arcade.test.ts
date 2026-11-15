@@ -9,6 +9,7 @@ import { conceptFor as sojourner } from '../games/sojourner-commands/rules'
 import { conceptFor as phoenix } from '../games/phoenix-ice/rules'
 import { conceptFor as ingenuity } from '../games/ingenuity-flight/rules'
 import { conceptFor as lro } from '../games/lro-search/rules'
+import { conceptFor as snake } from '../games/snake-express/rules'
 
 /**
  * The seven abandoned-hardware games: every concept a game reports must be
@@ -23,6 +24,7 @@ const GAMES_CONCEPTS: Record<string, (level: 1 | 2 | 3) => string> = {
   'phoenix-ice': phoenix,
   'ingenuity-flight': ingenuity,
   'lro-search': lro,
+  'snake-express': snake,
 }
 
 describe('abandoned-hardware games are wired into the catalog', () => {

@@ -114,6 +114,13 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html',
     accessed: '2026-11-15',
   },
+  'nasa-moon-composition': {
+    id: 'nasa-moon-composition',
+    title: 'Moon Composition (bright highlands are older crust; dark maria are seas of cooled lava)',
+    publisher: 'NASA Science',
+    url: 'https://science.nasa.gov/moon/composition/',
+    accessed: '2026-11-15',
+  },
   'nasa-apollo11-overview': {
     id: 'nasa-apollo11-overview',
     title: 'Apollo 11 Mission Overview (ascent burn of 435 s to an 11 x 55 mile orbit, below Columbia; docking about 3.5 hours later)',

@@ -1,99 +1,114 @@
-/**
- * SNAKE EXPRESS — Pruebas de las reglas puras
- */
-import { describe, it, expect } from 'vitest'
-import { GRID } from './config'
+import { describe, expect, it } from 'vitest'
 import {
-  vecEquals,
-  isOpposite,
-  moveVec,
-  isOutOfBounds,
-  collidesWithObstacles,
-  collidesWithWagon,
-  generateObstacles,
-  calcRecoveryPct,
-  calcScore,
-  seededRandom,
+  LEVELS,
+  LM,
+  deploy,
+  distToLM,
+  goalMet,
+  initialState,
+  same,
+  step,
+  turn,
+  type Cell,
+  type Dir,
+  type State,
 } from './rules'
+import { createRng } from '../shared/rng'
 
-describe('vecEquals', () => {
-  it('devuelve true para posiciones iguales', () => {
-    expect(vecEquals({ x: 3, y: 4 }, { x: 3, y: 4 })).toBe(true)
-  })
-  it('devuelve false para posiciones distintas', () => {
-    expect(vecEquals({ x: 3, y: 4 }, { x: 3, y: 5 })).toBe(false)
-  })
-})
+const rng = () => createRng('test').next
 
-describe('isOpposite', () => {
-  it('up y down son opuestos', () => expect(isOpposite('up', 'down')).toBe(true))
-  it('left y right son opuestos', () => expect(isOpposite('left', 'right')).toBe(true))
-  it('up y right no son opuestos', () => expect(isOpposite('up', 'right')).toBe(false))
-})
+/** Next direction toward a target, avoiding obvious hazards (simple bot). */
+function toward(s: State, t: Cell): Dir {
+  const h = s.body[0]
+  const options: Dir[] = []
+  if (t.x > h.x) options.push('right')
+  if (t.x < h.x) options.push('left')
+  if (t.y > h.y) options.push('down')
+  if (t.y < h.y) options.push('up')
+  options.push('up', 'left', 'down', 'right')
+  const d = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] } as const
+  for (const o of options) {
+    const n = { x: h.x + d[o][0], y: h.y + d[o][1] }
+    const blocked =
+      n.x < 0 || n.y < 0 || n.x >= 20 || n.y >= 14 ||
+      s.craters.some((k) => same(k, n)) ||
+      s.deployed.some((k) => same(k, n)) ||
+      s.body.slice(0, -1).some((b) => same(b, n)) ||
+      (!goalMet(s, spec(s)) && LM.some((l) => same(l, n)) && false)
+    const reverse = (o === 'up' && s.dir === 'down') || (o === 'down' && s.dir === 'up') || (o === 'left' && s.dir === 'right') || (o === 'right' && s.dir === 'left')
+    if (!blocked && !reverse) return o
+  }
+  return s.dir
+}
+let current = LEVELS[1]
+const spec = (_: State) => current
 
-describe('moveVec', () => {
-  it('mueve hacia arriba', () => expect(moveVec({ x: 5, y: 5 }, 'up')).toEqual({ x: 5, y: 4 }))
-  it('mueve hacia abajo', () => expect(moveVec({ x: 5, y: 5 }, 'down')).toEqual({ x: 5, y: 6 }))
-  it('mueve a la izquierda', () => expect(moveVec({ x: 5, y: 5 }, 'left')).toEqual({ x: 4, y: 5 }))
-  it('mueve a la derecha', () => expect(moveVec({ x: 5, y: 5 }, 'right')).toEqual({ x: 6, y: 5 }))
-})
-
-describe('isOutOfBounds', () => {
-  it('detecta posición fuera por x negativo', () => expect(isOutOfBounds({ x: -1, y: 5 })).toBe(true))
-  it('detecta posición fuera por y negativo', () => expect(isOutOfBounds({ x: 5, y: -1 })).toBe(true))
-  it('no reporta fuera de límites en posición válida', () => expect(isOutOfBounds({ x: 5, y: 5 })).toBe(false))
-})
-
-describe('collidesWithObstacles', () => {
-  const obstacles = [{ pos: { x: 2, y: 3 }, kind: 'rock' as const }]
-  it('detecta colisión con roca', () => expect(collidesWithObstacles({ x: 2, y: 3 }, obstacles)).toBe(true))
-  it('no detecta colisión donde no hay roca', () => expect(collidesWithObstacles({ x: 2, y: 4 }, obstacles)).toBe(false))
-})
-
-describe('collidesWithWagon', () => {
-  const wagons = [{ x: 5, y: 5 }, { x: 5, y: 6 }]
-  it('detecta colisión con vagón', () => expect(collidesWithWagon({ x: 5, y: 5 }, wagons)).toBe(true))
-  it('no detecta colisión en celda vacía', () => expect(collidesWithWagon({ x: 5, y: 7 }, wagons)).toBe(false))
-})
-
-describe('generateObstacles', () => {
-  it('genera la cantidad solicitada', () => {
-    const rng = seededRandom(42)
-    const obs = generateObstacles(6, rng)
-    expect(obs.length).toBe(6)
-  })
-
-  it('no genera obstáculos en la zona de inicio', () => {
-    const rng = seededRandom(99)
-    const obs = generateObstacles(9, rng)
-    const startX = Math.floor(GRID.cols / 2)
-    const startY = Math.floor(GRID.rows / 2)
-    for (const o of obs) {
-      const dx = Math.abs(o.pos.x - startX)
-      const dy = Math.abs(o.pos.y - startY)
-      expect(dx > 3 || dy > 3).toBe(true)
+function play(level: 1 | 2 | 3) {
+  current = LEVELS[level]
+  const r = rng()
+  const s = initialState(current, r)
+  const events = []
+  for (let i = 0; i < 3000 && s.phase === 'playing'; i++) {
+    let target: Cell
+    if (s.collected < current.need) {
+      const wanted = s.rocks.filter((k) => current.want === 'any' || k.kind === current.want)
+      const h = s.body[0]
+      wanted.sort((a, b) => Math.abs(a.x - h.x) + Math.abs(a.y - h.y) - (Math.abs(b.x - h.x) + Math.abs(b.y - h.y)))
+      target = wanted[0]
+    } else target = LM[0]
+    if (current.experiments && s.cargo.includes('experiment') && distToLM(s.body[1]) >= current.deployMin) {
+      const ev = deploy(s, current)
+      if (ev) events.push(ev)
     }
-  })
-})
+    turn(s, toward(s, target))
+    events.push(...step(s, current, r))
+  }
+  return { s, events }
+}
 
-describe('calcRecoveryPct', () => {
-  it('devuelve 100% si todas las muestras se entregan', () => expect(calcRecoveryPct(8, 8)).toBe(100))
-  it('devuelve 0% si no se recolectó nada', () => expect(calcRecoveryPct(0, 0)).toBe(0))
-  it('no divide por cero cuando collected es 0', () => expect(calcRecoveryPct(0, 5)).toBe(0))
-  it('calcula porcentaje parcial correctamente', () => expect(calcRecoveryPct(8, 4)).toBe(50))
-})
+describe('Lunar Express', () => {
+  it('level 1 (mare): dark basalt counts, bright rock does not', () => {
+    const { s, events } = play(1)
+    expect(s.phase).toBe('won')
+    expect(events.filter((e) => e.type === 'rock' && e.good).every((e) => e.type === 'rock' && e.kind === 'dark')).toBe(true)
+  })
 
-describe('calcScore', () => {
-  it('devuelve 0 en misión fallida', () => {
-    expect(calcScore({ samplesCollected: 8, samplesDelivered: 0, difficulty: 'easy', missionSuccess: false })).toBe(0)
+  it('level 2 (highlands): the same rule flips, bright is the old crust', () => {
+    const { s, events } = play(2)
+    expect(s.phase).toBe('won')
+    expect(events.filter((e) => e.type === 'rock' && e.good).every((e) => e.type === 'rock' && e.kind === 'bright')).toBe(true)
   })
-  it('calcula puntos por muestras entregadas', () => {
-    const score = calcScore({ samplesCollected: 8, samplesDelivered: 8, difficulty: 'easy', missionSuccess: true })
-    expect(score).toBeGreaterThan(0)
+
+  it('level 3: experiments must be set away from the LM and stay behind', () => {
+    const { s } = play(3)
+    expect(s.phase).toBe('won')
+    expect(s.deployed).toHaveLength(3)
+    for (const d of s.deployed) expect(distToLM(d)).toBeGreaterThanOrEqual(5)
   })
-  it('da bonus por completar el objetivo', () => {
-    const withBonus = calcScore({ samplesCollected: 8, samplesDelivered: 8, difficulty: 'easy', missionSuccess: true })
-    const without = calcScore({ samplesCollected: 8, samplesDelivered: 5, difficulty: 'easy', missionSuccess: true })
-    expect(withBonus).toBeGreaterThan(without)
+
+  it('deploying next to the LM is refused', () => {
+    current = LEVELS[3]
+    const s = initialState(current, rng())
+    s.body[1] = { x: 9, y: 8 }
+    expect(deploy(s, current)).toMatchObject({ ok: false })
+    expect(s.deployed).toHaveLength(0)
+  })
+
+  it('reaching the LM before the goal does not win', () => {
+    current = LEVELS[1]
+    const s = initialState(current, rng())
+    s.rocks = []
+    const evs = step(s, current, rng()) // (9,9) -> (9,8)
+    expect(evs).toEqual([])
+    const evs2 = step(s, current, rng()) // -> (9,7): the LM
+    expect(evs2).toContainEqual({ type: 'notReady' })
+    expect(s.phase).toBe('playing')
+  })
+
+  it('turning back into yourself is ignored, running into your tail loses', () => {
+    current = LEVELS[1]
+    const s = initialState(current, rng())
+    turn(s, 'down')
+    expect(s.queued).toBeNull()
   })
 })

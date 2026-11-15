@@ -7,6 +7,7 @@ export type ArcadeId =
   | 'orbital-grid'
   | 'sun-shade'
   | 'eagle-liftoff'
+  | 'snake-express'
   | 'lunar-rover'
   | 'pathfinder-bounce'
   | 'sojourner-commands'
@@ -54,6 +55,32 @@ export interface ArcadeCard {
 }
 
 export const ARCADE: ArcadeCard[] = [
+  {
+    gameId: 'snake-express',
+    title: 'Lunar Express',
+    kicker: 'Moonwalk · Apollo samples and experiments',
+    genre: 'Snake-style moonwalk',
+    fact:
+      'The Moon has two kinds of ground. The bright highlands are older crust that survived giant impacts; the dark maria are seas of lava that cooled between 4.2 and 1.2 billion years ago. Apollo crews brought back rocks from both (Apollo 11 alone collected 21.55 kg) and left science packages on purpose: Apollo\'s seismometers sent data until 1977.',
+    dramatization:
+      'Astronauts did not walk in a line dragging their samples, and the oxygen times, the map and the rule of how far from the lunar module to set down a package are game numbers. The two rock colours are simplified: real samples come in many shades.',
+    learning: 'You can read the Moon\'s history from its rocks, and some hardware was left behind on purpose to keep doing science.',
+    accent: '#C8CEDA',
+    durationMin: [2, 4],
+    levels: [
+      { id: 1, name: 'Sea of Tranquility', goal: 'Bring back 5 dark basalt rocks from the lava plain' },
+      { id: 2, name: 'The highlands', goal: 'Bring back 5 bright rocks of the oldest crust' },
+      { id: 3, name: 'Leave science behind', goal: 'Set down 3 packages away from the LM and bring 3 rocks' },
+    ],
+    evidence: [
+      {
+        id: 'ev-alsep',
+        label: 'Science packages left on the Moon',
+        meaning: 'Apollo crews set up experiments that stayed on the Moon and kept sending data to Earth for years after they left.',
+      },
+    ],
+    sources: ['nasa-moon-composition', 'nssdc-apollo11-lm', 'nssdc-apollo15-alsep'],
+  },
   {
     gameId: 'dust-run',
     title: 'Storm over Meridiani',
