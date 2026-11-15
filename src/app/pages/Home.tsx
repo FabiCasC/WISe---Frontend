@@ -1,27 +1,26 @@
-import { GAMES, LIVE_GAMES, type GameEntry } from '../../content/games'
+import { GAMES, type GameEntry } from '../../content/games'
+import type { Role } from '../../shared/accounts'
 import type { Membership } from '../../shared/classroom'
 import { getRank, learnedConcepts, nextRank } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
 import { IconPlay, IconStar, IconTeacher } from '../components/Art'
-import { GameWall } from '../components/GameWall'
+import GamesSection from '../components/GamesSection'
 import Horizons from '../components/Horizons'
 import JoinBox from '../components/JoinBox'
 import SiteFooter from '../components/SiteFooter'
 
 interface Props {
+  role: Role
   progress: Progress
   membership: Membership | null
   onOpenGame: (game: GameEntry) => void
 }
 
-/** How many tiles the lobby previews before "Open the arcade". */
-const PREVIEW = 16
-
 /**
- * Lobby: join a class with a code, play solo or open teacher mode.
- * The full wall of games lives in #/arcade.
+ * Home: join a class with a code, then every game on the same page, just
+ * below (#/games). The arcade is not a separate page.
  */
-export default function Home({ progress, membership, onOpenGame }: Props) {
+export default function Home({ role, progress, membership, onOpenGame }: Props) {
   const rank = getRank(progress)
   const next = nextRank(progress)
   const learned = learnedConcepts(progress).length
@@ -47,8 +46,8 @@ export default function Home({ progress, membership, onOpenGame }: Props) {
                 <p className="joincard__label">You are in class {membership.code}</p>
                 <p className="joincard__nick">{membership.nickname}</p>
                 <div className="joincard__row">
-                  <a className="btn btn--primary btn--lg" href="#/arcade">
-                    <IconPlay /> Open the arcade
+                  <a className="btn btn--primary btn--lg" href="#/games">
+                    <IconPlay /> Play a game
                   </a>
                   <a className="btn btn--quiet" href="#/class">
                     My class
@@ -61,12 +60,14 @@ export default function Home({ progress, membership, onOpenGame }: Props) {
           </div>
 
           <div className="band__links">
-            <a className="band__link" href="#/arcade">
+            <a className="band__link" href="#/games">
               <IconPlay size={18} /> Play solo
             </a>
-            <a className="band__link" href="#/teacher">
-              <IconTeacher size={18} /> I am a teacher: create a class
-            </a>
+            {role === 'teacher' && (
+              <a className="band__link" href="#/teacher">
+                <IconTeacher size={18} /> Create a class
+              </a>
+            )}
           </div>
         </div>
 
@@ -100,23 +101,8 @@ export default function Home({ progress, membership, onOpenGame }: Props) {
         </section>
       </div>
 
-      {/* ======================================================= PREVIEW */}
-      <section className="wrap games" id="games" aria-labelledby="games-title">
-        <div className="games__head">
-          <h2 className="games__title" id="games-title">
-            Games
-          </h2>
-          <span className="games__count">{LIVE_GAMES.length} ready to play · more every week</span>
-        </div>
-
-        <GameWall games={GAMES.slice(0, PREVIEW)} progress={progress} onOpen={onOpenGame} />
-
-        <div className="games__more">
-          <a className="btn btn--primary btn--lg" href="#/arcade">
-            <IconPlay /> Open the arcade · {GAMES.length} games
-          </a>
-        </div>
-      </section>
+      {/* ========================================================= GAMES */}
+      <GamesSection progress={progress} membership={membership} onOpenGame={onOpenGame} />
 
       <SiteFooter />
     </>

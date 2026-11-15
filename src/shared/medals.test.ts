@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { applyResult, createEmptyProgress } from './progress'
-import { computeMedals, earnedMedals, gamesFinished, medalStatsFromProgress, type MedalStats } from './medals'
+import {
+  computeMedals,
+  earnedMedals,
+  gamesFinished,
+  medalStatsFromProgress,
+  medalStatsFromStudent,
+  type MedalStats,
+} from './medals'
 import type { GameResult } from './types'
 
 const none: MedalStats = { totalScore: 0, gamesPlayed: 0, conceptsLearned: 0, gamesFinished: 0, gamesCreated: 0, classesCreated: 0 }
@@ -58,5 +65,16 @@ describe('medals', () => {
     const s = medalStatsFromProgress(p, { gamesCreated: 0, classesCreated: 0 })
     expect(s).toMatchObject({ totalScore: 600, gamesPlayed: 1, conceptsLearned: 1, gamesFinished: 1 })
     expect(ids(s)).toEqual(['first-launch', 'full-mission', 'first-spark', 'rising-star'])
+  })
+
+  it('a teacher can see a student\'s medals from the class report', () => {
+    const stats = medalStatsFromStudent({
+      totalScore: 700,
+      gamesPlayed: 2,
+      conceptsLearned: 1,
+      games: { 'dust-run': [1, 2, 3], spirit: [1] },
+    })
+    expect(stats).toMatchObject({ gamesFinished: 1, gamesCreated: 0 })
+    expect(ids(stats)).toEqual(['first-launch', 'full-mission', 'first-spark', 'rising-star'])
   })
 })

@@ -31,7 +31,7 @@ export default function Topbar({ account, progress, membership, onSettings }: Pr
         <span className="topbar__spacer" />
 
         <nav className="topbar__nav" aria-label="Sections">
-          <a className="navlink" href="#/arcade">
+          <a className="navlink" href="#/games">
             Arcade
           </a>
           <a className="navlink" href="#/studio">

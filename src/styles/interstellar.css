@@ -1848,3 +1848,41 @@ main {
   color: var(--text-dim);
   font-size: 14px;
 }
+
+/* --- Navigation must exist on small screens too -------------------------------
+   The sections nav used to be hidden under 720px, which left phones and
+   narrow windows with no way to reach Studio or the games. It now drops to a
+   second row. */
+@media (max-width: 720px) {
+  .topbar__inner {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    padding-bottom: 6px;
+  }
+
+  .topbar .topbar__nav {
+    display: flex;
+    order: 10;
+    flex: 1 0 100%;
+    gap: 4px;
+  }
+
+  .topbar .topbar__nav .navlink {
+    flex: 1 1 0;
+    text-align: center;
+    padding: 8px 6px;
+    font-size: 14px;
+    border: 1px solid var(--hairline-soft);
+  }
+}
+
+/* --- Sign-up form: room around the button ------------------------------------ */
+.auth__form {
+  display: grid;
+  gap: 18px;
+}
+
+.auth__form .btn {
+  justify-self: stretch;
+  margin-top: 6px;
+}

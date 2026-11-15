@@ -3,9 +3,8 @@ import { DESTINATIONS, GAMES, type Destination, type GameEntry } from '../../con
 import type { Membership } from '../../shared/classroom'
 import { getRank, learnedConcepts } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
-import { IconStar } from '../components/Art'
-import { GameWall } from '../components/GameWall'
-import SiteFooter from '../components/SiteFooter'
+import { IconStar } from './Art'
+import { GameWall } from './GameWall'
 
 interface Props {
   progress: Progress
@@ -29,8 +28,11 @@ function scattered(list: GameEntry[]): GameEntry[] {
   return [...live, ...rest]
 }
 
-/** #/arcade — every game, Friv style. No game locks another one. */
-export default function Arcade({ progress, membership, onOpenGame }: Props) {
+/**
+ * Every game, Friv style, at the bottom of the home page (#/games). It is a
+ * section, not a page of its own. No game locks another one.
+ */
+export default function GamesSection({ progress, membership, onOpenGame }: Props) {
   const [filter, setFilter] = useState<'all' | Destination>('all')
   const [query, setQuery] = useState('')
   const rank = getRank(progress)
@@ -47,9 +49,9 @@ export default function Arcade({ progress, membership, onOpenGame }: Props) {
   return (
     <>
       <section className="arcade wrap" id="games" aria-labelledby="arcade-title">
-        <h1 className="sr-only" id="arcade-title">
+        <h2 className="sr-only" id="arcade-title">
           Arcade: all games
-        </h1>
+        </h2>
 
         <div className="hud">
           <div className="hud__who">
@@ -114,7 +116,6 @@ export default function Arcade({ progress, membership, onOpenGame }: Props) {
           <a href="#/profile">Your medals</a>
         </p>
       </section>
-      <SiteFooter />
     </>
   )
 }

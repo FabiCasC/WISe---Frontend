@@ -7,7 +7,8 @@ import { getGame } from '../../content/games'
  * estático. Lo pide el plan (capa "Publicación").
  *
  *   #/                       -> lobby: join a class, play solo or teacher
- *   #/arcade                 -> the game wall (every game, Friv style)
+ *   #/games                  -> the home page, scrolled to the wall of games
+ *                               (#/arcade is the same: the arcade is not a page)
  *   #/studio                 -> game studio (build your own game)
  *   #/profile                -> your profile: points and medals
  *   #/play/spirit/2          -> game (overlays the current page)
@@ -22,7 +23,6 @@ import { getGame } from '../../content/games'
  */
 export type Route =
   | { name: 'landing' }
-  | { name: 'arcade' }
   | { name: 'studio' }
   | { name: 'profile' }
   | { name: 'play'; gameId: GameId; levelId: LevelId }
@@ -41,7 +41,6 @@ function parse(hash: string): Route | null {
 
   const parts = hash.slice(2).split('/').filter(Boolean)
 
-  if (parts[0] === 'arcade') return { name: 'arcade' }
   if (parts[0] === 'studio') return { name: 'studio' }
   if (parts[0] === 'profile') return { name: 'profile' }
   // English routes; the Spanish ones stay as aliases so shared links keep working.
@@ -56,8 +55,8 @@ function parse(hash: string): Route | null {
     if (game && game.status === 'live' && Number.isInteger(level) && level >= 1 && level <= game.levels) {
       return { name: 'play', gameId: game.id, levelId: level }
     }
-    // Unknown or not-yet-playable game: back to the wall.
-    return { name: 'arcade' }
+    // Unknown or not-yet-playable game: back to the wall of games.
+    return { name: 'landing' }
   }
 
   return { name: 'landing' }

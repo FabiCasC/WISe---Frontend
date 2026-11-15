@@ -1,5 +1,16 @@
 
-  VITE v5.4.11  ready in 279 ms
+  VITE v5.4.11  ready in 285 ms
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: http://192.0.2.2:5173/
+3:34:15 PM [vite] hmr update /src/app/pages/Home.tsx
+3:34:15 PM [vite] hmr update /src/app/App.tsx, /src/app/pages/Teacher.tsx, /src/app/components/JoinBox.tsx
+3:34:15 PM [vite] hmr update /src/app/App.tsx
+3:34:15 PM [vite] hmr update /src/app/pages/JoinClass.tsx
+3:34:15 PM [vite] hmr update /src/app/components/Topbar.tsx
+3:34:15 PM [vite] hmr update /src/app/pages/Arcade.tsx
+3:34:15 PM [vite] hmr update /src/app/pages/Auth.tsx
+3:34:24 PM [vite] hmr update /src/app/pages/Home.tsx
+3:34:43 PM [vite] hmr update /src/app/App.tsx, /src/app/pages/Profile.tsx
+3:34:43 PM [vite] hmr update /src/app/pages/Panel.tsx
+3:34:43 PM [vite] hmr update /src/styles/interstellar.css

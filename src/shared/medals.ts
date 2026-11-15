@@ -55,6 +55,29 @@ export function gamesFinished(games: Record<string, number[]>): number {
   }).length
 }
 
+/** What the teacher's dashboard knows about a student (see classroom.ts). */
+export interface StudentLike {
+  totalScore: number
+  gamesPlayed: number
+  conceptsLearned: number
+  games: Record<string, number[]>
+}
+
+/**
+ * Medals a student has earned from the results the class receives. Creator
+ * medals live in the student's own account and are not part of the class report.
+ */
+export function medalStatsFromStudent(s: StudentLike): MedalStats {
+  return {
+    totalScore: s.totalScore,
+    gamesPlayed: s.gamesPlayed,
+    conceptsLearned: s.conceptsLearned,
+    gamesFinished: gamesFinished(s.games),
+    gamesCreated: 0,
+    classesCreated: 0,
+  }
+}
+
 export function medalStatsFromProgress(
   progress: Progress,
   extras: { gamesCreated: number; classesCreated: number },

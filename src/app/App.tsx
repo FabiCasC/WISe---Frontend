@@ -29,7 +29,6 @@ import Topbar from './components/Topbar'
 import GameHost from './GameHost'
 import { navigate, useHashRoute, useScrollReset, type PageRoute } from './hooks/useHashRoute'
 import { useProgress } from './hooks/useProgress'
-import Arcade from './pages/Arcade'
 import Auth from './pages/Auth'
 import Home from './pages/Home'
 import JoinClass from './pages/JoinClass'
@@ -129,7 +128,17 @@ function Portal({ account, onLogout, onClassCreated }: PortalProps) {
   // A #/play link to an unknown or not-yet-playable game shows the arcade:
   // keep the address bar in step with what is on screen.
   useEffect(() => {
-    if (route.name === 'arcade' && /^#\/(play|jugar)\b/.test(window.location.hash)) navigate('#/arcade')
+    if (route.name === 'landing' && /^#\/(play|jugar)\b/.test(window.location.hash)) navigate('#/games')
+  }, [route])
+
+  // The arcade is the wall of games at the bottom of the home page: both
+  // #/games and #/arcade scroll there, also when the home is already open.
+  useEffect(() => {
+    if (route.name !== 'landing' || !/^#\/(games|arcade)$/.test(window.location.hash)) return
+    const id = window.requestAnimationFrame(() =>
+      document.getElementById('games')?.scrollIntoView({ block: 'start' }),
+    )
+    return () => window.cancelAnimationFrame(id)
   }, [route])
 
   // Cambiar de página vuelve arriba; moverse por anclas no.
@@ -245,9 +254,6 @@ function Portal({ account, onLogout, onClassCreated }: PortalProps) {
         />
 
         <main id="main">
-          {page.name === 'arcade' && (
-            <Arcade progress={progress} membership={membership} onOpenGame={setSheetGame} />
-          )}
           {page.name === 'studio' && <Studio />}
           {page.name === 'profile' && (
             <Profile
@@ -285,7 +291,7 @@ function Portal({ account, onLogout, onClassCreated }: PortalProps) {
             <Panel key={page.token} token={page.token} service={classService} />
           )}
           {page.name === 'landing' && (
-            <Home progress={progress} membership={membership} onOpenGame={setSheetGame} />
+            <Home role={account.role} progress={progress} membership={membership} onOpenGame={setSheetGame} />
           )}
         </main>
       </div>
