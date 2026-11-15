@@ -80,9 +80,11 @@ const L3 = [
 ]
 
 export const MAZE_LEVELS: Record<1 | 2 | 3, MazeTuning> = {
-  1: { map: L1, ghosts: 4, playerSpeed: 6.5, ghostSpeed: 4.7, cleanSecs: 1.5, dustSecs: 26 },
-  2: { map: L2, ghosts: 3, playerSpeed: 6, ghostSpeed: 5.3, cleanSecs: 1.5, dustSecs: 32 },
-  3: { map: L3, ghosts: 2, playerSpeed: 5.0, ghostSpeed: 6, cleanSecs: 1.5, dustSecs: 40 },
+  // Difficulty has to rise with the level: level 1 is the gentle one (two
+  // devils, slow dust), level 3 the hardest (four devils, fast dust).
+  1: { map: L1, ghosts: 2, playerSpeed: 5.6, ghostSpeed: 4.2, cleanSecs: 1.5, dustSecs: 40 },
+  2: { map: L2, ghosts: 3, playerSpeed: 6, ghostSpeed: 5, cleanSecs: 1.5, dustSecs: 32 },
+  3: { map: L3, ghosts: 4, playerSpeed: 6.4, ghostSpeed: 5.7, cleanSecs: 1.5, dustSecs: 26 },
 }
 
 export const MAZE_MAPS = [L1, L2, L3]

@@ -200,7 +200,7 @@ function Practice({
       if (step.keys?.includes(e.code)) finish()
     }
     const onPointer = (e: PointerEvent) => {
-      if (step.pointer && !(e.target as Element | null)?.closest?.('.coach')) finish()
+      if (step.pointer && !(e.target as Element | null)?.closest?.('.coach, .mg__overlay')) finish()
     }
     document.addEventListener('keydown', onKey, true)
     document.addEventListener('pointerdown', onPointer, true)

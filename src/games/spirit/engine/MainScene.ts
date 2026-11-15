@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { MAX_DT, padZone, type PadZone } from './config';
+import { BACK_BOX, MAX_DT, padZone, type PadZone } from './config';
 import { EventBus, type HudSnapshot } from './EventBus';
 import { Renderer } from './Renderer';
 import { GameModel, type Decision } from './state';
@@ -69,11 +69,31 @@ export class MainScene extends Phaser.Scene {
       this.model.togglePause();
       return;
     }
+    // A level is only reported when the player has read its result screen.
+    if (this.model.phase === 'complete') {
+      this.finish(true);
+      return;
+    }
+    if (this.model.phase === 'lost' && this.inBackBox(p.x, p.y)) {
+      this.finish(false);
+      return;
+    }
     if (this.model.phase !== 'playing') {
       this.model.handleEnter();
       return;
     }
     this.held.set(p.id, zone);
+  }
+
+  private inBackBox(x: number, y: number): boolean {
+    return x >= BACK_BOX.x && x <= BACK_BOX.x + BACK_BOX.w && y >= BACK_BOX.y && y <= BACK_BOX.y + BACK_BOX.h;
+  }
+
+  /** Tells the portal how the run ended. Only once, and only when the player is done with it. */
+  private finish(completed: boolean): void {
+    if (this.finishSent) return;
+    this.finishSent = true;
+    this.options.onFinish(completed, this.model.score, this.model.decisions);
   }
 
   private onPointerUp(p: Phaser.Input.Pointer): void {
@@ -89,7 +109,14 @@ export class MainScene extends Phaser.Scene {
   private onKeyDown(e: KeyboardEvent): void {
     if (e.repeat) return;
     switch (e.key) {
-      case 'Enter': this.model.handleEnter(); break;
+      case 'Enter':
+        if (this.model.phase === 'complete') this.finish(true);
+        else this.model.handleEnter();
+        break;
+      case 'b':
+      case 'B':
+        if (this.model.phase === 'lost') this.finish(false);
+        break;
       case 'p':
       case 'P': this.model.togglePause(); break;
       default: break;
@@ -114,14 +141,6 @@ export class MainScene extends Phaser.Scene {
     this.sceneRenderer.render(this.model, this.options.reducedMotion);
     this.publishHud();
 
-    if (!this.finishSent && ['complete', 'lost'].includes(this.model.phase)) {
-      this.finishSent = true;
-      this.options.onFinish(
-        this.model.phase !== 'lost',
-        this.model.score,
-        this.model.decisions,
-      );
-    }
   }
 
   /** Avisa a React solo cuando cambia algún valor visible. */

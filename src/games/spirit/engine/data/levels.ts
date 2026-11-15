@@ -71,6 +71,22 @@ export const INSTRUCTIONS: Record<number, string[]> = {
   ],
 };
 
+/** What the player has just seen, said back to them when a level is won. */
+export const TAKEAWAY: Record<number, string[]> = {
+  1: [
+    'Soft sand drains a rover’s power and can trap it for good.',
+    'That is what ended Spirit’s driving in 2009, near Home Plate.',
+  ],
+  2: [
+    'The bright soil Spirit’s broken wheel uncovered was rich in silica.',
+    'On Earth silica like that forms in hot springs: a clue that hot water was once there.',
+  ],
+  3: [
+    'South of the equator the winter Sun stays low in the north.',
+    'Panels tilted toward it make more power, so parking on that slope kept Spirit alive.',
+  ],
+};
+
 const rock = (x: number): Rect => ({ x, y: 468, w: 48, h: 32 });
 const battery = (x: number): Rect => ({ x, y: 425, w: 28, h: 32 });
 
