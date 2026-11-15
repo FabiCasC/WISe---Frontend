@@ -217,7 +217,10 @@ export function crearReglasLocal(
 
         // REGLA EDUCATIVA NIVEL 2:
         // El jugador DEBE completar primero las 6 unidades de RAT antes de contabilizar espectrómetros.
+        // Solo cuenta como mala decision el intercambio del jugador (k === 0):
+        // una cascada automatica no la decidio nadie y no debe castigarse.
         if (levelId === 2 && g.ficha === 'espectrometro' && (conteo.rat ?? 0) < 6) {
+          if (k > 0) continue
           malas++
           const desc =
             lang === 'en'

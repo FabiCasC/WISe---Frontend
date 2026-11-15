@@ -94,9 +94,9 @@ export const GAMES: GameEntry[] = [
     icon: 'rover',
     levels: 3,
     concepts: [
-      { id: 'instrumento-correcto', label: 'Use the right instrument for each question' },
-      { id: 'pulir-antes-de-analizar', label: 'Grind the rock before you analyze it' },
-      { id: 'agua-no-es-vida', label: 'Clues of ancient water are not evidence of life' },
+      { id: 'observar-primero', label: 'Image the rock with cameras before touching it' },
+      { id: 'pulir-antes-de-analizar', label: 'Grind off the dusty crust before you analyze a rock' },
+      { id: 'varias-evidencias', label: 'A conclusion needs several lines of evidence (images, chemistry, power)' },
     ],
     status: 'live',
     art: 'assets/missions/opportunity.webp',
