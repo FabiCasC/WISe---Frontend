@@ -40,14 +40,11 @@ export default function Studio({ accountId }: { accountId?: string }) {
 
   return (
     <>
+      {/* No page header here: with the switcher, a back button and a mission
+          title stacked on top of it, the bench - the only part the student
+          actually uses - started below the fold. The room owns its heading
+          and drops it entirely once a mission is open. */}
       <section className="section wrap page studio">
-        <header className="page__head">
-          <h1 className="page__title">Studio</h1>
-          <p className="page__lede">
-            You have played these games. Now you are the one who fixes them.
-          </p>
-        </header>
-
         <StudioTabs room={room} onChange={setRoom} />
         <RepairBay accountId={accountId} />
       </section>

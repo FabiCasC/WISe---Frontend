@@ -518,3 +518,72 @@
   .bench__rover,
   .bench__barfill { transition: none; }
 }
+
+/* --- Compact mission header --------------------------------------------- */
+
+.bay__h1 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.4vw, 34px);
+  margin: 0 0 8px;
+}
+
+.bay__crumb {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.bay__backlink {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--panel);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bay__backlink:hover { color: var(--text); border-color: var(--action); }
+
+.bay__backlink:focus-visible {
+  outline: 3px solid var(--action);
+  outline-offset: 2px;
+}
+
+.bay__crumb-sep { color: var(--text-faint); }
+
+.bay__crumb-game {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.bay__crumb-title {
+  font-family: var(--font-display);
+  font-size: clamp(19px, 2.4vw, 23px);
+  font-weight: 700;
+  margin: 0;
+}
+
+/* The switcher is navigation, not a heading: keep it tight to the top. */
+.studio .studio__switch { margin: 10px 0 16px; }
+
+/* --- Keep the bench above the fold --------------------------------------- */
+
+/* The stage is the only thing the student needs on screen when a mission
+   opens. Stretched to the full column width the SVG was 400px tall, which
+   pushed its own controls below the fold on a laptop. Capping its height
+   letterboxes the drawing instead, which costs nothing: the viewBox keeps
+   its aspect and centres itself. */
+
+.studio.page { padding-top: 20px; }
+
+.bench__svg {
+  max-height: min(40vh, 300px);
+}
+
+.bench { margin-top: 10px; }

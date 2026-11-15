@@ -71,6 +71,7 @@ export default function RepairBay({ accountId }: { accountId?: string }) {
 
   return (
     <div className="bay">
+      <h1 className="bay__h1">Repair bay</h1>
       <p className="bay__lede">
         Every game here was checked rule by rule. Some were teaching things that are not true.
         Run the test yourself, then repair the game.
@@ -145,15 +146,19 @@ function Mission({
 
   return (
     <div className="bay">
-      <button type="button" className="bay__back" onClick={onBack}>
-        Back to the list
-      </button>
-
-      <p className="bay__game">{game?.title ?? mission.gameId}</p>
-      <h2 className="bay__h2">
-        {mission.title}
-        {solved ? <span className="bay__state is-fixed bay__state--inline">Repaired</span> : null}
-      </h2>
+      {/* One slim row instead of four stacked ones, so the bench starts at
+          the top of the screen and the student can work without scrolling. */}
+      <div className="bay__crumb">
+        <button type="button" className="bay__backlink" onClick={onBack}>
+          All repairs
+        </button>
+        <span className="bay__crumb-sep" aria-hidden="true">
+          /
+        </span>
+        <span className="bay__crumb-game">{game?.title ?? mission.gameId}</span>
+        <h2 className="bay__crumb-title">{mission.title}</h2>
+        {solved ? <span className="bay__state is-fixed">Repaired</span> : null}
+      </div>
 
       <BenchFor id={mission.bench} onUsed={() => setUsed(true)} />
 
