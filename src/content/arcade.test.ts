@@ -25,6 +25,7 @@ const GAMES_CONCEPTS: Record<string, (level: 1 | 2 | 3) => string> = {
   'ingenuity-flight': ingenuity,
   'lro-search': lro,
   'snake-express': snake,
+  'nasa-numbers': (level) => `nasa-numbers-${level}`,
 }
 
 describe('abandoned-hardware games are wired into the catalog', () => {
