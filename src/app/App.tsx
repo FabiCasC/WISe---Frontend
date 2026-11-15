@@ -1,17 +1,26 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { ArchiveItem } from '../content/archive'
 import { getGame, type GameEntry } from '../content/games'
 import { getMission } from '../content/missions'
 import {
-  getPlayerId,
   loadMembership,
   localClassService,
   saveMembership,
   type Membership,
 } from '../shared/classroom'
+import {
+  addClassIn,
+  currentAccount,
+  loadAccountDb,
+  logInIn,
+  logOutIn,
+  saveAccountDb,
+  signUpIn,
+  type Account,
+  type AccountDb,
+} from '../shared/accounts'
+import { computeMedals, medalStatsFromProgress } from '../shared/medals'
 import { applyResult, isLevelUnlocked, nextPlayableLevel } from '../shared/progress'
 import type { GameId, GameResult, LevelId } from '../shared/types'
-import ArchiveCard from './components/ArchiveCard'
 import Dossier from './components/Dossier'
 import { GameSheet } from './components/GameWall'
 import SettingsPanel from './components/SettingsPanel'
@@ -21,10 +30,12 @@ import GameHost from './GameHost'
 import { navigate, useHashRoute, useScrollReset, type PageRoute } from './hooks/useHashRoute'
 import { useProgress } from './hooks/useProgress'
 import Arcade from './pages/Arcade'
-import Archive from './pages/Archive'
+import Auth from './pages/Auth'
 import Home from './pages/Home'
 import JoinClass from './pages/JoinClass'
 import Panel from './pages/Panel'
+import Profile from './pages/Profile'
+import Studio from './pages/Studio'
 import Teacher from './pages/Teacher'
 
 /** Servicio de clases. Cuando exista el backend se cambia aquí por el cliente de API. */
@@ -36,14 +47,66 @@ function pageKey(page: PageRoute): string {
   return page.name
 }
 
+/**
+ * Accounts are simulated for the MVP (see shared/accounts.ts). Nothing in the
+ * portal opens without one, and each account keeps its own progress.
+ */
 export default function App() {
-  const route = useHashRoute()
-  const { progress, storageOk, record, updateSettings, reset } = useProgress()
+  const [db, setDb] = useState<AccountDb>(loadAccountDb)
+  const account = currentAccount(db)
 
-  const [playerId] = useState(getPlayerId)
-  const [membership, setMembership] = useState<Membership | null>(loadMembership)
+  useEffect(() => {
+    saveAccountDb(db)
+  }, [db])
+
+  if (!account) {
+    return (
+      <>
+        <Sky reducedMotion={false} />
+        <Auth
+          db={db}
+          onSignUp={(input) => {
+            const r = signUpIn(db, input)
+            if (r.ok) setDb(r.db)
+            return r
+          }}
+          onLogIn={(username) => {
+            const r = logInIn(db, username)
+            if (r.ok) setDb(r.db)
+            return r
+          }}
+        />
+      </>
+    )
+  }
+
+  return (
+    <Portal
+      key={account.id}
+      account={account}
+      onLogout={() => {
+        navigate('#/')
+        setDb(logOutIn(db))
+      }}
+      onClassCreated={(code) => setDb(addClassIn(db, account.id, code))}
+    />
+  )
+}
+
+interface PortalProps {
+  account: Account
+  onLogout: () => void
+  onClassCreated: (code: string) => void
+}
+
+function Portal({ account, onLogout, onClassCreated }: PortalProps) {
+  const route = useHashRoute()
+  const { progress, storageOk, record, updateSettings, reset } = useProgress(account.id)
+
+  // The account id doubles as the anonymous id the class dashboard sees.
+  const playerId = account.id
+  const [membership, setMembership] = useState<Membership | null>(() => loadMembership(account.id))
   const [dossierId, setDossierId] = useState<GameId | null>(null)
-  const [archiveItem, setArchiveItem] = useState<ArchiveItem | null>(null)
   const [sheetGame, setSheetGame] = useState<GameEntry | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -100,7 +163,6 @@ export default function App() {
     (gameId: GameId, levelId?: LevelId) => {
       const game = getGame(gameId)
       setDossierId(null)
-      setArchiveItem(null)
       setSheetGame(null)
       if (!game || game.status !== 'live') {
         if (game) setSheetGame(game)
@@ -147,18 +209,24 @@ export default function App() {
   )
 
   const joined = useCallback((m: Membership) => {
-    saveMembership(m)
+    saveMembership(m, account.id)
     setMembership(m)
-  }, [])
+  }, [account.id])
 
   const leaveClass = useCallback(() => {
-    saveMembership(null)
+    saveMembership(null, account.id)
     setMembership(null)
     setToast('You left the class. Your progress is still here, in solo mode.')
     navigate('#/')
-  }, [])
+  }, [account.id])
 
   const dossierMission = dossierId ? getMission(dossierId) : undefined
+
+  const medalStats = medalStatsFromProgress(progress, {
+    gamesCreated: account.gamesCreated,
+    classesCreated: account.classCodes.length,
+  })
+  const medals = computeMedals(medalStats, account.role)
 
   return (
     <>
@@ -170,6 +238,7 @@ export default function App() {
 
       <div className="shell">
         <Topbar
+          account={account}
           progress={progress}
           membership={membership}
           onSettings={() => setSettingsOpen(true)}
@@ -179,10 +248,28 @@ export default function App() {
           {page.name === 'arcade' && (
             <Arcade progress={progress} membership={membership} onOpenGame={setSheetGame} />
           )}
-          {page.name === 'archive' && (
-            <Archive progress={progress} onPlay={(m) => play(m.gameId)} onItem={setArchiveItem} />
+          {page.name === 'studio' && <Studio />}
+          {page.name === 'profile' && (
+            <Profile
+              account={account}
+              progress={progress}
+              stats={medalStats}
+              medals={medals}
+              onLogout={onLogout}
+            />
           )}
-          {page.name === 'teacher' && <Teacher service={classService} />}
+          {page.name === 'teacher' &&
+            (account.role === 'teacher' ? (
+              <Teacher service={classService} onCreated={onClassCreated} />
+            ) : (
+              <section className="section wrap page">
+                <h1 className="page__title">Teachers only</h1>
+                <p className="page__lede">
+                  Classes are created by teachers. Ask your teacher for a class code and type it on
+                  the home page.
+                </p>
+              </section>
+            ))}
           {page.name === 'join' && (
             <JoinClass
               key={page.code ?? ''}
@@ -219,14 +306,6 @@ export default function App() {
           mission={dossierMission}
           onClose={() => setDossierId(null)}
           onPlay={() => play(dossierMission.gameId)}
-        />
-      )}
-
-      {archiveItem && (
-        <ArchiveCard
-          item={archiveItem}
-          onClose={() => setArchiveItem(null)}
-          onPlay={(m) => play(m.gameId)}
         />
       )}
 

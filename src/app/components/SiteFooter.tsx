@@ -33,7 +33,7 @@ export default function SiteFooter() {
               <li>Every game teaches concepts; levels vary by game</li>
               <li>Solo play and local co-op on PC</li>
               <li>Touch controls, pause and restart</li>
-              <li>No accounts: in class, each student uses a nickname</li>
+              <li>Accounts use a nickname only: no real name or email</li>
               <li>No online multiplayer or global ranking</li>
             </ul>
           </div>

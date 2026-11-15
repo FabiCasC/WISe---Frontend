@@ -38,7 +38,7 @@ export default function Home({ progress, membership, onOpenGame }: Props) {
           <p className="band__lede">
             Humanity left machines on the Moon and Mars. In {GAMES.length} short games you use
             their real science, the instruments, the energy and the light, to find out what they
-            discovered. No account, no quizzes.
+            discovered. No quizzes: the science is the game.
           </p>
 
           <div className="joincard">

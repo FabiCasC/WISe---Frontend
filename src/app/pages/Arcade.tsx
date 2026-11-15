@@ -111,7 +111,7 @@ export default function Arcade({ progress, membership, onOpenGame }: Props) {
 
         <p className="arcade__foot">
           {games.length} games · new games appear here as the team ships them ·{' '}
-          <a href="#/archive">Spacecraft archive</a>
+          <a href="#/profile">Your medals</a>
         </p>
       </section>
       <SiteFooter />
