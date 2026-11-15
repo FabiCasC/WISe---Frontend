@@ -29,6 +29,7 @@ const LOADERS: Record<GameId, () => Promise<GameModule>> = {
   'lunar-rover': () => import('../games/lunar-rover'),
   'pathfinder-bounce': () => import('../games/pathfinder-bounce'),
   'sojourner-commands': () => import('../games/sojourner-commands'),
+  'phoenix-ice': () => import('../games/phoenix-ice'),
 }
 
 type Status = 'loading' | 'ready' | 'error'

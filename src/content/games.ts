@@ -239,6 +239,20 @@ export const GAMES: GameEntry[] = [
     status: 'live',
     isNew: true,
   },
+  {
+    id: 'phoenix-ice',
+    title: 'Phoenix Ice Dig',
+    destination: 'mars',
+    icon: 'astro',
+    levels: 3,
+    concepts: [
+      { id: 'hielo-sublima', label: 'On Mars, exposed water ice turns straight into gas: watching it vanish over days proves it is ice' },
+      { id: 'muestra-fresca', label: 'An ice sample must be fresh: ice left in the open sublimates and shows no water' },
+      { id: 'invierno-sin-energia', label: 'As winter comes, a solar lander gets less energy each day until it goes silent' },
+    ],
+    status: 'live',
+    isNew: true,
+  },
 
   // ------------------------------------------------------- COMING SOON
   soon('hubble-focus', 'Hubble Focus', 'orbit', 'scope', 7, ['Mirrors focus light', 'A blurry image has a cause', 'Telescopes can be repaired in orbit'], { size: 'big', isNew: true }),

@@ -10,6 +10,7 @@ export type ArcadeId =
   | 'lunar-rover'
   | 'pathfinder-bounce'
   | 'sojourner-commands'
+  | 'phoenix-ice'
 
 /**
  * SALA ARCADE — minijuegos cortos.
@@ -255,6 +256,32 @@ export const ARCADE: ArcadeCard[] = [
       },
     ],
     sources: ['nssdc-sojourner', 'pia00629-yogi', 'pia00906-wedge', 'nasa-pathfinder'],
+  },
+  {
+    gameId: 'phoenix-ice',
+    title: 'Phoenix Ice Dig',
+    kicker: 'Dig and observe · Phoenix lander',
+    genre: 'Time-lapse science',
+    fact:
+      'Phoenix landed in the Martian arctic on 25 May 2008 and dug 12 trenches with its robotic arm. Three bright clumps in one trench vanished in four days: water ice turning straight into gas. Its first oven sample showed no water, most likely because it sat in the open for days. As summer ended there was less sunlight, heaters were switched off one by one, and the last signal came on 2 November 2008. In winter carbon dioxide frost covered the lander and most likely broke a solar panel.',
+    dramatization:
+      'The salt chunks that look like ice are a game invention (Phoenix did find salts such as perchlorate mixed in the soil). Ice depths, arm actions per sol, the number of ovens per level (Phoenix had 8) and the "2 sols" freshness rule are game numbers.',
+    learning: 'Watching how something changes over time can tell you what it is, and a solar lander lives only as long as the sunlight lasts.',
+    accent: '#9FD8FF',
+    durationMin: [2, 4],
+    levels: [
+      { id: 1, name: 'Bright chunks', goal: 'Watch the chunks for a few sols and label ice and salt' },
+      { id: 2, name: 'A fresh sample', goal: 'Find water with fresh ice before the ovens run out' },
+      { id: 3, name: 'Before the winter', goal: '3 water readings while the sunlight fades' },
+    ],
+    evidence: [
+      {
+        id: 'ev-phoenix-ice',
+        label: 'Ice that vanished',
+        meaning: 'Bright clumps in the Dodo-Goldilocks trench disappeared in four days, showing they were water ice turning into gas.',
+      },
+    ],
+    sources: ['nasa-phoenix', 'nasa-phoenix-history', 'nssdc-phoenix', 'pia12338-phoenix-winter'],
   },
 ]
 
