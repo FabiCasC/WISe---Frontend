@@ -6,6 +6,13 @@ export type ArcadeId =
   | 'gusev-maze'
   | 'orbital-grid'
   | 'sun-shade'
+  | 'apollo11-descent'
+  | 'lunar-rover'
+  | 'pathfinder-bounce'
+  | 'sojourner-commands'
+  | 'phoenix-ice'
+  | 'ingenuity-flight'
+  | 'lro-search'
   | 'dart-impact'
   | 'artemis-landing'
 
@@ -42,6 +49,8 @@ export interface ArcadeCard {
   levels: ArcadeLevel[]
   /** Evidencia que sella la partida, con el mismo formato que las misiones. */
   evidence: { id: string; label: string; meaning: string }[]
+  /** Ids in content/sources.ts that back the fact (official NASA pages). */
+  sources?: string[]
 }
 
 export const ARCADE: ArcadeCard[] = [
@@ -146,6 +155,189 @@ export const ARCADE: ArcadeCard[] = [
         meaning: 'Three antenna complexes spread around the planet keep in touch with probes while the Earth turns.',
       },
     ],
+  },
+  {
+    gameId: 'apollo11-descent',
+    title: 'Land the Eagle',
+    kicker: 'Lunar landing · Apollo lunar module',
+    genre: 'Landing physics',
+    fact:
+      'The Moon pulls with 1.62 m/s², about one sixth of Earth’s 9.80 m/s². The Apollo lunar module had two stages: the descent stage, with the landing rocket and four legs, was the launch pad for the ascent stage and was left behind on the Moon. On Apollo 11, Neil Armstrong saw the computer taking Eagle into a boulder-strewn area, flew past it and landed on smoother ground. The low-fuel light had come on at about 100 feet (30 m).',
+    dramatization:
+      'The real landing burn lasted about 12.6 minutes and the engine could throttle up and down. Here the engine is only on or off, the side jets are simplified, fuel is counted in seconds of burn, and the safe limits (2 m/s down, 1 m/s sideways) are game numbers. The lander is drawn a little bigger than life; only the 9.4 m leg span is real.',
+    learning: 'Low gravity lets a small engine land you, but only if you stop sliding and pick flat ground.',
+    accent: '#F3B54A',
+    durationMin: [1, 3],
+    levels: [
+      { id: 1, name: 'One-sixth gravity', goal: 'Touch down slower than 2 m/s with a few seconds of fuel' },
+      { id: 2, name: 'Stop the drift', goal: 'Cancel an 8 m/s sideways slide before touchdown' },
+      { id: 3, name: 'Fly past the boulders', goal: 'Find the smooth ground and land there' },
+    ],
+    evidence: [
+      {
+        id: 'ev-lm-descent-stage',
+        label: 'Lunar module descent stage',
+        meaning:
+          'The bottom half of each Apollo lunar module stayed on the Moon as a launch pad. Six of them are still there, from Apollo 11, 12, 14, 15, 16 and 17.',
+      },
+    ],
+    sources: ['nssdc-moon-facts', 'nssdc-apollo11-lm', 'nasa-apollo11-landing', 'nssdc-apollo17-lm'],
+  },
+  {
+    gameId: 'lunar-rover',
+    title: 'Moon Buggy Run',
+    kicker: 'Drive and return · Lunar Roving Vehicle',
+    genre: 'Top-down driving',
+    fact:
+      'Three Lunar Roving Vehicles were driven on the Moon, on Apollo 15, 16 and 17, and all three were left there. Each ran on two 36-volt batteries that could not be recharged. A navigation computer kept track of the direction and distance back to the lunar module. The farthest the rovers got from their lunar module was 5.0 km, 4.5 km and 7.6 km.',
+    dramatization:
+      'Time is sped up and the map is small. The battery is counted in metres of driving, and the size of the walk-back circle is a game number: Apollo planners did keep drives close enough for the crew to walk back if the rover failed, but their real limits changed during each moonwalk. Station names on level 1 come from Apollo 15; their places on the map are invented.',
+    learning: 'An explorer with a battery that never recharges must plan the route and always know the way home.',
+    accent: '#9FD0FF',
+    durationMin: [2, 4],
+    levels: [
+      { id: 1, name: 'No charger on the Moon', goal: '3 samples and back with a battery that never recharges' },
+      { id: 2, name: 'Walking distance', goal: 'Never leave the walk-back circle' },
+      { id: 3, name: 'Find the way home', goal: 'Hills hide the LM: follow the navigation arrow' },
+    ],
+    evidence: [
+      {
+        id: 'ev-lrv',
+        label: 'Lunar Roving Vehicle',
+        meaning: 'Three electric rovers carried astronauts across the Moon in 1971 and 1972. They are still parked at the Apollo 15, 16 and 17 sites.',
+      },
+    ],
+    sources: ['nssdc-lrv', 'nssdc-apollo15-alsep', 'nasa-apollo15-hadley'],
+  },
+  {
+    gameId: 'pathfinder-bounce',
+    title: 'Pathfinder Bounce',
+    kicker: 'Entry, descent and landing · Mars Pathfinder',
+    genre: 'Mission-control timing',
+    fact:
+      'On 4 July 1997 Mars Pathfinder hit the Martian air at about 7300 m/s. Its heat shield slowed it to 400 m/s, then a 12.5 m parachute slowed it to about 70 m/s. Airbags inflated about 10 s before landing, three rockets fired at 98 m and the tether was cut 21.5 m above the ground. Wrapped in airbags it hit at about 18 m/s and bounced at least 15 times. The lander is still in Ares Vallis.',
+    dramatization:
+      'The clock is sped up high in the sky and slowed down near the ground, and the falling physics is simplified. The tear limit of the parachute (600 m/s), the airbag limit (26 m/s) and the rocket push are game numbers. In 1997 the computer, not a person, triggered every step: nobody on Earth could react in time.',
+    learning: 'Landing on Mars needs teamwork between a heat shield, a parachute, rockets and airbags, because its air is thin.',
+    accent: '#E68A68',
+    durationMin: [1, 3],
+    levels: [
+      { id: 1, name: 'Let the heat shield work', goal: 'Open the parachute below 600 m/s' },
+      { id: 2, name: 'Thin air', goal: 'Fire the braking rockets at about 100 m' },
+      { id: 3, name: 'Bounce to a stop', goal: 'Parachute, airbags, rockets and cut the cord' },
+    ],
+    evidence: [
+      {
+        id: 'ev-pathfinder-airbags',
+        label: 'Airbag landing',
+        meaning: 'Pathfinder was the first spacecraft to land inside airbags. It bounced like a giant beach ball and then rolled to a stop.',
+      },
+    ],
+    sources: ['nssdc-pathfinder', 'nasa-pathfinder', 'nssdc-mars-facts'],
+  },
+  {
+    gameId: 'sojourner-commands',
+    title: 'Sojourner’s Plan',
+    kicker: 'Program the rover · Sojourner',
+    genre: 'Programming puzzle',
+    fact:
+      'Sojourner, the first rover on Mars (1997), was driven by an operator on Earth using pictures from the rover and the Pathfinder lander. Radio signals took 10 to 15 minutes to arrive, so it carried a hazard-avoidance system. All its messages went through the lander. Its APXS, which measured what rocks are made of, was on an arm at the back. Barnacle Bill was the first rock it measured and Yogi the second.',
+    dramatization:
+      'The terrain is a grid of 1 m squares, one plan per sol, at most 12 commands per plan, and the number of sols are game rules. The rock names are real but their places on the grid are simplified. The hidden rocks on level 3 are invented.',
+    learning: 'When a robot is minutes of radio away, you plan ahead and the robot must be smart enough to stop by itself.',
+    accent: '#F2A65A',
+    durationMin: [2, 5],
+    levels: [
+      { id: 1, name: 'Ten minutes away', goal: 'Reach Barnacle Bill in 2 sols with planned moves' },
+      { id: 2, name: 'Back up to Yogi', goal: 'Measure Yogi with the APXS on the back' },
+      { id: 3, name: 'The rover stops itself', goal: 'Measure Wedge past rocks the lander cannot see' },
+    ],
+    evidence: [
+      {
+        id: 'ev-sojourner',
+        label: 'Sojourner rover',
+        meaning: 'The first wheeled robot on Mars: 10.5 kg, six wheels, driven from Earth with plans sent minutes ahead.',
+      },
+    ],
+    sources: ['nssdc-sojourner', 'pia00629-yogi', 'pia00906-wedge', 'nasa-pathfinder'],
+  },
+  {
+    gameId: 'phoenix-ice',
+    title: 'Phoenix Ice Dig',
+    kicker: 'Dig and observe · Phoenix lander',
+    genre: 'Time-lapse science',
+    fact:
+      'Phoenix landed in the Martian arctic on 25 May 2008 and dug 12 trenches with its robotic arm. Three bright clumps in one trench vanished in four days: water ice turning straight into gas. Its first oven sample showed no water, most likely because it sat in the open for days. As summer ended there was less sunlight, heaters were switched off one by one, and the last signal came on 2 November 2008. In winter carbon dioxide frost covered the lander and most likely broke a solar panel.',
+    dramatization:
+      'The salt chunks that look like ice are a game invention (Phoenix did find salts such as perchlorate mixed in the soil). Ice depths, arm actions per sol, the number of ovens per level (Phoenix had 8) and the "2 sols" freshness rule are game numbers.',
+    learning: 'Watching how something changes over time can tell you what it is, and a solar lander lives only as long as the sunlight lasts.',
+    accent: '#9FD8FF',
+    durationMin: [2, 4],
+    levels: [
+      { id: 1, name: 'Bright chunks', goal: 'Watch the chunks for a few sols and label ice and salt' },
+      { id: 2, name: 'A fresh sample', goal: 'Find water with fresh ice before the ovens run out' },
+      { id: 3, name: 'Before the winter', goal: '3 water readings while the sunlight fades' },
+    ],
+    evidence: [
+      {
+        id: 'ev-phoenix-ice',
+        label: 'Ice that vanished',
+        meaning: 'Bright clumps in the Dodo-Goldilocks trench disappeared in four days, showing they were water ice turning into gas.',
+      },
+    ],
+    sources: ['nasa-phoenix', 'nasa-phoenix-history', 'nssdc-phoenix', 'pia12338-phoenix-winter'],
+  },
+  {
+    gameId: 'ingenuity-flight',
+    title: 'Ingenuity: Fly in Thin Air',
+    kicker: 'Rotor flight · Ingenuity Mars Helicopter',
+    genre: 'Flight control',
+    fact:
+      'Ingenuity, a 1.8 kg helicopter, made the first powered, controlled flight on another planet on 19 April 2021, in air less than 1% as dense as Earth’s. For its first flight the blades spun up to 2,537 rpm. Its solar panel charged enough energy for about one 90-second flight per Martian day. After 72 flights, on 18 January 2024 a rotor blade was damaged at landing: over steep, featureless sand ripples its navigation camera had too little texture to track. It still stands on Mars.',
+    dramatization:
+      'The lift model (lift grows with air density × rpm²) is simplified and tuned so hovering on Mars needs about 2,400 rpm; the Earth lift-off speed shown is what this same model gives, not a measured number. Spin-up is faster than the real 12 s, the battery is counted in seconds of hover, and the drift over sand is a game version of the navigation problem.',
+    learning: 'Flying needs air to push on: the thinner the air, the faster the blades must spin, and the more the flight depends on battery and good navigation.',
+    accent: '#C9CCD4',
+    durationMin: [1, 3],
+    levels: [
+      { id: 1, name: 'Spin faster', goal: 'Lift off, hover above 3 m, land softly' },
+      { id: 2, name: 'One flight per sol', goal: 'Take a photo and reach the new base in 90 s' },
+      { id: 3, name: 'Featureless sand', goal: 'Land on pebbly ground, never on the ripples' },
+    ],
+    evidence: [
+      {
+        id: 'ev-ingenuity',
+        label: 'First flight on another planet',
+        meaning: 'Ingenuity proved that a helicopter can fly in Mars’s thin air. It made 72 flights and scouted ahead for Perseverance.',
+      },
+    ],
+    sources: ['nasa-ingenuity', 'nasa-ingenuity-first-flight', 'nasa-ingenuity-ends', 'nasa-ingenuity-investigation', 'nasa-ingenuity-cold'],
+  },
+  {
+    gameId: 'lro-search',
+    title: 'Seen from Orbit',
+    kicker: 'Search orbital pictures · Lunar Reconnaissance Orbiter',
+    genre: 'Search and compare',
+    fact:
+      'Since 2009 NASA’s Lunar Reconnaissance Orbiter has photographed the Apollo landing sites. Its pictures show the lunar module descent stages, the ALSEP experiments and the astronauts’ footpaths: at Apollo 14 a well-worn path joins the lander to the ALSEP about 180 m away. When LRO passed over Apollo 11 again with the Sun 28° higher, shadows were smaller and faint brightness differences stood out. Compared with a 1967 photo, LRO’s image of Apollo 12 shows the lander, Surveyor 3 and the astronauts’ tracks.',
+    dramatization:
+      'The pictures are drawn by the game, not real LRO images: positions are invented and distances are shrunk to fit (the ALSEP trail and Surveyor 3 are closer than in reality). Sizes of the lander and boulders are realistic, and shadows follow the real rule: length = height ÷ tan(Sun angle). The 1967 Sun angle is a game choice.',
+    learning: 'From orbit, light is a tool: low Sun shows height, high Sun shows brightness, and comparing photos needs the same light.',
+    accent: '#C6A8FF',
+    durationMin: [1, 3],
+    levels: [
+      { id: 1, name: 'Long shadows', goal: 'Choose the right Sun and find the descent stage' },
+      { id: 2, name: 'Footpaths', goal: 'Follow the astronauts’ trail to the ALSEP' },
+      { id: 3, name: 'Before and after', goal: 'Find 3 new things; ignore shadows that moved' },
+    ],
+    evidence: [
+      {
+        id: 'ev-lro-apollo',
+        label: 'Apollo sites from orbit',
+        meaning: 'Decades later, an orbiter can still see the landers, experiments and footprints left on the Moon.',
+      },
+    ],
+    sources: ['nasa-lro', 'pia12889-lro-apollo14', 'pia12897-fra-mauro', 'pia12909-apollo11-second-look', 'nasa-lro-apollo12'],
   },
   {
     gameId: 'dart-impact',
