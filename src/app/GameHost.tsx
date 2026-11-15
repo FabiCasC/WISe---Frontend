@@ -21,6 +21,10 @@ const LOADERS: Record<GameId, () => Promise<GameModule>> = {
   opportunity: () => import('../games/opportunity'),
   'lunar-signals': () => import('../games/lunar-signals'),
   spirit: () => import('../games/spirit'),
+  'dust-run': () => import('../games/dust-run'),
+  'gusev-maze': () => import('../games/gusev-maze'),
+  'orbital-grid': () => import('../games/orbital-grid'),
+  'sun-shade': () => import('../games/sun-shade'),
 }
 
 type Status = 'loading' | 'ready' | 'error'
