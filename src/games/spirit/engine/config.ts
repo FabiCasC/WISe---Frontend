@@ -49,6 +49,8 @@ export type PadZone = 'left' | 'right' | 'jump' | 'pause';
 /** Everything above the horizon is one big jump button. */
 export const SKY_Y = 330;
 export const PAUSE_BOX = { x: W - 110, y: 0, w: 110, h: 50 } as const;
+/** Loss screen: the button that leaves for the arcade (tap or B). */
+export const BACK_BOX = { x: W / 2 - 150, y: 520, w: 300, h: 56 } as const;
 
 export function padZone(x: number, y: number): PadZone {
   if (y < PAUSE_BOX.h && x > PAUSE_BOX.x) return 'pause';

@@ -1,6 +1,5 @@
 /**
  * DESIGN GAME - EDITOR PRINCIPAL
- * Cuatro áreas: Biblioteca de bloques | Área de programación | Simulador | Entidades
  */
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
@@ -20,6 +19,44 @@ import EntityLibrary from './EntityLibrary'
 import AIAssistant from './AIAssistant'
 import ReviewModal from './ReviewModal'
 
+/* -------------------------------------------------------------------------
+   Iconos SVG
+   ------------------------------------------------------------------------- */
+const stroke = {
+  fill: 'none', stroke: 'currentColor',
+  strokeWidth: 1.9,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+}
+
+function IconBack() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" {...stroke} /></svg>
+}
+function IconSave() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" {...stroke} /><path d="M17 21v-8H7v8M7 3v5h8" {...stroke} /></svg>
+}
+function IconSend() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13M22 2 15 22l-4-9-9-4 20-7z" {...stroke} /></svg>
+}
+function IconBot() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="8" width="16" height="11" rx="3" {...stroke} /><circle cx="9" cy="13" r="1.5" {...stroke} /><circle cx="15" cy="13" r="1.5" {...stroke} /><path d="M12 3v5" {...stroke} /></svg>
+}
+function IconBlocks() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5" {...stroke} /><rect x="13" y="3" width="8" height="8" rx="1.5" {...stroke} /><rect x="3" y="13" width="8" height="8" rx="1.5" {...stroke} /><path d="M13 17h8M17 13v8" {...stroke} /></svg>
+}
+function IconCode() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 7l-4 10" {...stroke} /></svg>
+}
+function IconPlay() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5v15l13-7.5z" fill="currentColor" /></svg>
+}
+function IconEntities() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3.5" {...stroke} /><circle cx="16" cy="16" r="3.5" {...stroke} /><path d="M4 20l16-16" {...stroke} strokeWidth={1.4} /></svg>
+}
+function IconAlert() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.5h3.4L21 20H3L10.3 3.5z" {...stroke} /><path d="M12 10v4M12 17.5v.5" {...stroke} /></svg>
+}
+
 type ActivePanel = 'blocks' | 'editor' | 'simulator' | 'entities' | 'ai'
 
 interface Props {
@@ -30,7 +67,7 @@ interface Props {
 }
 
 export default function EditorScreen({ project, onBack }: Props) {
-  const [, forceUpdate] = useReducer((n) => n + 1, 0)
+  const [, forceUpdate] = useReducer((n: number) => n + 1, 0)
   const [activePanel, setActivePanel] = useState<ActivePanel>('editor')
   const [showAI, setShowAI] = useState(false)
   const [showReview, setShowReview] = useState(false)
@@ -46,15 +83,10 @@ export default function EditorScreen({ project, onBack }: Props) {
   const { project: current } = getState()
   const spec = current ?? project
 
-  // Auto-guardado con debounce
   useEffect(() => {
     if (saveTimeout.current) window.clearTimeout(saveTimeout.current)
-    saveTimeout.current = window.setTimeout(() => {
-      saveCurrentProject()
-    }, 2000)
-    return () => {
-      if (saveTimeout.current) window.clearTimeout(saveTimeout.current)
-    }
+    saveTimeout.current = window.setTimeout(() => { saveCurrentProject() }, 2000)
+    return () => { if (saveTimeout.current) window.clearTimeout(saveTimeout.current) }
   }, [spec])
 
   useEffect(() => {
@@ -66,39 +98,29 @@ export default function EditorScreen({ project, onBack }: Props) {
   const handleSave = useCallback(() => {
     setIsSaving(true)
     saveCurrentProject()
-    setTimeout(() => {
-      setIsSaving(false)
-      setToast('Project saved')
-    }, 400)
+    setTimeout(() => { setIsSaving(false); setToast('Proyecto guardado') }, 400)
   }, [])
 
   const handleReviewClick = useCallback(() => {
     const validation = validateProject(spec)
-    if (!validation.valid) {
-      setToast(`Not ready to send: ${validation.errors[0]?.message}`)
-      return
-    }
+    if (!validation.valid) { setToast(validation.errors[0]?.message ?? 'Corrige los errores primero'); return }
     setShowReview(true)
   }, [spec])
 
   const handleSubmitReview = useCallback(() => {
     const result = submitForReview()
     setShowReview(false)
-    if (result) {
-      setToast('Sent to your teacher')
-    } else {
-      setToast('It did not send. Check the list first.')
-    }
+    setToast(result ? 'Enviado a revisión correctamente' : 'No se pudo enviar. Verifica los requisitos.')
   }, [])
 
   const latestReview = getLatestReview()
   const reviewStatus = spec.buildStatus
 
-  const MOBILE_TABS: Array<{ key: ActivePanel; label: string }> = [
-    { key: 'blocks',    label: 'Blocks' },
-    { key: 'editor',    label: 'Scripts' },
-    { key: 'simulator', label: 'Run' },
-    { key: 'entities',  label: 'Sprites' },
+  const MOBILE_TABS: Array<{ key: ActivePanel; label: string; Icon: () => JSX.Element }> = [
+    { key: 'blocks',    label: 'Bloques',  Icon: IconBlocks },
+    { key: 'editor',    label: 'Editor',   Icon: IconCode },
+    { key: 'simulator', label: 'Simular',  Icon: IconPlay },
+    { key: 'entities',  label: 'Objetos',  Icon: IconEntities },
   ]
 
   return (
@@ -106,8 +128,8 @@ export default function EditorScreen({ project, onBack }: Props) {
       {/* Top bar */}
       <header className="dg-editor__topbar">
         <div className="dg-editor__topbar-left">
-          <button className="dg-btn dg-btn--ghost dg-btn--sm" onClick={onBack}>
-            Back
+          <button className="dg-btn dg-btn--quiet dg-btn--sm" onClick={onBack}>
+            <IconBack /> Inicio
           </button>
           <div className="dg-editor__title">
             <span className="dg-editor__title-name">{spec.name}</span>
@@ -119,36 +141,31 @@ export default function EditorScreen({ project, onBack }: Props) {
 
         <div className="dg-editor__topbar-actions">
           {latestReview?.status === 'changes_requested' && (
-            <button
-              className="dg-btn dg-btn--warn dg-btn--sm"
-              onClick={() => setShowReview(true)}
-            >
-              See the feedback
+            <button className="dg-btn dg-btn--warn dg-btn--sm" onClick={() => setShowReview(true)}>
+              <IconAlert /> Ver observaciones
             </button>
           )}
-
           <button
-            className="dg-btn dg-btn--ghost dg-btn--sm"
+            className="dg-btn dg-btn--quiet dg-btn--sm"
             onClick={() => setShowAI(!showAI)}
             aria-pressed={showAI}
           >
-            AI
+            <IconBot /> IA
           </button>
-
           <button
-            className="dg-btn dg-btn--ghost dg-btn--sm"
+            className="dg-btn dg-btn--quiet dg-btn--sm"
             onClick={handleSave}
             disabled={isSaving}
           >
-            {isSaving ? 'Saving…' : 'Save'}
+            <IconSave /> {isSaving ? 'Guardando…' : 'Guardar'}
           </button>
-
           <button
             className="dg-btn dg-btn--primary dg-btn--sm"
             onClick={handleReviewClick}
             disabled={spec.buildStatus === 'in_review'}
           >
-            {spec.buildStatus === 'in_review' ? 'In review' : 'Send to teacher'}
+            <IconSend />
+            {spec.buildStatus === 'in_review' ? 'En revisión' : 'Enviar a revisión'}
           </button>
         </div>
       </header>
@@ -163,58 +180,48 @@ export default function EditorScreen({ project, onBack }: Props) {
             className={`dg-editor__mobile-tab ${activePanel === tab.key ? 'dg-editor__mobile-tab--active' : ''}`}
             onClick={() => setActivePanel(tab.key)}
           >
-            {tab.label}
+            <tab.Icon /> {tab.label}
           </button>
         ))}
       </div>
 
       {/* Layout de cuatro paneles */}
       <div className="dg-editor__workspace">
-        {/* Panel izquierdo: Biblioteca de bloques */}
         <aside
           className={`dg-editor__panel dg-editor__panel--left ${activePanel === 'blocks' ? 'dg-editor__panel--active' : ''}`}
-          role="tabpanel"
-          aria-label="Block library"
+          role="tabpanel" aria-label="Biblioteca de bloques"
         >
           <BlockLibrary spec={spec} />
         </aside>
 
-        {/* Panel central: Editor de scripts */}
         <main
           className={`dg-editor__panel dg-editor__panel--center ${activePanel === 'editor' ? 'dg-editor__panel--active' : ''}`}
-          role="tabpanel"
-          aria-label="Script editor"
+          role="tabpanel" aria-label="Editor de programación"
         >
           <ScriptEditor spec={spec} />
         </main>
 
-        {/* Panel derecho superior: Simulador */}
         <section
           className={`dg-editor__panel dg-editor__panel--right-top ${activePanel === 'simulator' ? 'dg-editor__panel--active' : ''}`}
-          role="tabpanel"
-          aria-label="Game simulator"
+          role="tabpanel" aria-label="Simulador"
         >
           <Simulator spec={spec} />
         </section>
 
-        {/* Panel derecho inferior: Entidades */}
         <section
           className={`dg-editor__panel dg-editor__panel--right-bottom ${activePanel === 'entities' ? 'dg-editor__panel--active' : ''}`}
-          role="tabpanel"
-          aria-label="Sprite library"
+          role="tabpanel" aria-label="Entidades"
         >
           <EntityLibrary spec={spec} />
         </section>
       </div>
 
-      {/* Panel de IA (drawer lateral) */}
       {showAI && (
         <div className="dg-editor__ai-drawer">
           <AIAssistant spec={spec} onClose={() => setShowAI(false)} />
         </div>
       )}
 
-      {/* Modal de revisión */}
       {showReview && (
         <ReviewModal
           spec={spec}
@@ -224,19 +231,14 @@ export default function EditorScreen({ project, onBack }: Props) {
         />
       )}
 
-      {/* Toast */}
-      {toast && (
-        <div className="dg-toast" role="status">
-          {toast}
-        </div>
-      )}
+      {toast && <div className="dg-toast" role="status">{toast}</div>}
     </div>
   )
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  draft: 'Draft',
-  in_review: 'In review',
-  changes_requested: 'Changes asked for',
-  approved: 'Approved',
+  draft: 'Borrador',
+  in_review: 'En revisión',
+  changes_requested: 'Con observaciones',
+  approved: 'Aprobado',
 }
