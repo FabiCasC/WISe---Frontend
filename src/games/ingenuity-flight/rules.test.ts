@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   EARTH_G,
   FIRST_FLIGHT_RPM,
+  IDLE_RPM,
   LEVELS,
   MARS_G,
   RHO_EARTH,
@@ -60,6 +61,33 @@ describe('thin air needs fast blades', () => {
     expect(h.y).toBe(0)
   })
 
+  it('the blades start turning, past Earth lift-off and still stuck on Mars', () => {
+    const spec = LEVELS[1]
+    expect(createHeli(spec).rpm).toBe(IDLE_RPM)
+    // The whole lesson in one number: this speed flies easily in Earth air...
+    expect(IDLE_RPM).toBeGreaterThan(hoverRpm(RHO_EARTH, EARTH_G) * 2)
+    expect(liftAccel(IDLE_RPM, RHO_EARTH)).toBeGreaterThan(EARTH_G)
+    // ...and on Mars it never leaves the ground, however long you idle.
+    expect(liftAccel(IDLE_RPM)).toBeLessThan(MARS_G)
+    let h = createHeli(spec)
+    for (let i = 0; i < 60 * 5; i++) h = stepHeli(spec, h, { faster: false, slower: false, left: false, right: false }, DT).heli
+    expect(h.airborne).toBe(false)
+    expect(h.y).toBe(0)
+  })
+
+  it('holding "faster" lifts off in about a second and a half, not five', () => {
+    const spec = LEVELS[1]
+    const up: Controls = { faster: true, slower: false, left: false, right: false }
+    let h = createHeli(spec)
+    for (let i = 0; i < 60 * 20 && !h.airborne; i++) h = stepHeli(spec, h, up, DT).heli
+    expect(h.airborne).toBe(true)
+    // Long enough that spinning up is something you watch happen...
+    expect(h.t).toBeGreaterThan(0.8)
+    // ...short enough that nobody thinks the game is broken.
+    expect(h.t).toBeLessThan(2)
+    expect(h.rpm).toBeGreaterThan(hoverRpm())
+  })
+
   it('level 1: take off, hover above 3 m, land softly', () => {
     const spec = LEVELS[1]
     const r = fly(
@@ -71,6 +99,9 @@ describe('thin air needs fast blades', () => {
     const v = judge(1, spec, r.h, r.event, r.reason)
     expect(v.won).toBe(true)
     expect(v.conceptOk).toBe(true)
+    // The whole level, climb and 6 s hover included, fits in well under 20 s:
+    // none of it is spent watching a number rise on the ground.
+    expect(r.h.t).toBeLessThan(20)
   })
 
   it('cutting the rotors in the air means a hard landing', () => {
@@ -114,8 +145,11 @@ describe('level 3: the camera needs texture', () => {
 
   it('over pebbles the helicopter holds still; over smooth ripples it drifts', () => {
     const hold = (h: Heli): Controls => autopilot({ x: h.x, alt: 4, land: false })(h)
-    let a = createHeli(spec)
-    let b: Heli = { ...createHeli(spec), x: 44 }
+    // Both start already hovering, so this measures navigation drift alone and
+    // not how long the rotor took to spin up.
+    const air = (x: number): Heli => ({ ...createHeli(spec), x, y: 4, rpm: hoverRpm(), airborne: true })
+    let a = air(spec.start)
+    let b = air(44)
     for (let i = 0; i < 60 * 8; i++) {
       a = stepHeli(spec, a, hold(a), DT).heli
       b = stepHeli(spec, b, { ...autopilot({ x: 44, alt: 4, land: false })(b), left: false, right: false }, DT).heli

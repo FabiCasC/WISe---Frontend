@@ -12,11 +12,13 @@ import {
   orbitHeading,
   orbitPosition,
   periodSeconds,
+  previewImpact,
   resolveImpact,
   scoreShot,
   semiMajorAxis,
   shotPassed,
   unit,
+  type AimPreviewInput,
   type LevelConfig,
 } from './rules'
 
@@ -265,5 +267,146 @@ describe('hitGrade', () => {
     expect(hitGrade(-0.7)).toBe('angled')
     expect(hitGrade(-0.2)).toBe('glancing')
     expect(hitGrade(0.6)).toBe('wrong way')
+  })
+})
+
+describe('previewImpact', () => {
+  /**
+   * A toy system in screen-like units: Didymos at the origin, the moonlet
+   * parked at the top of a 100-unit orbit, and the probe running in from
+   * the right. Travelling in -x is exactly against the moonlet's heading
+   * there, so this base case is a perfect head-on line.
+   */
+  function aimSetup(over: Partial<AimPreviewInput> = {}): AimPreviewInput {
+    return {
+      spec: DART,
+      probe: { x: 300, y: -100 },
+      probeVelocity: { x: -120, y: 0 },
+      center: { x: 0, y: 0 },
+      orbitRadius: 100,
+      orbitAngle: -Math.PI / 2,
+      angularRateRadS: 0,
+      captureRadius: 10,
+      blockerRadius: 40,
+      horizonS: 5,
+      ...over,
+    }
+  }
+
+  it('reads a head-on line as head-on, with the bar full', () => {
+    const p = previewImpact(aimSetup())
+    expect(p.hits).toBe(true)
+    expect(p.alignment).toBeCloseTo(-1, 10)
+    expect(hitGrade(p.alignment)).toBe('head-on')
+    expect(p.quality).toBeCloseTo(1, 6)
+    expect(p.changeMin).toBeLessThan(0)
+    expect(p.impactPoint.y).toBeCloseTo(-100, 6)
+  })
+
+  it('predicts a head-on line that really does deliver the best cut', () => {
+    const setup = aimSetup()
+    const p = previewImpact(setup)
+    // Resolve the shot the preview described, with the same maths the real
+    // impact uses: the promise on screen has to be the thing that lands.
+    const resolved = resolveImpact({
+      spec: setup.spec,
+      orbitAngle: p.impactAngle,
+      probeDirection: setup.probeVelocity,
+    })
+    expect(-resolved.changeMin).toBeCloseTo(bestPossibleCutMin(DART), 6)
+    expect(p.changeMin).toBeCloseTo(resolved.changeMin, 12)
+  })
+
+  it('says nothing when the line never reaches the moonlet', () => {
+    const p = previewImpact(aimSetup({ probe: { x: 300, y: 400 } }))
+    expect(p.hits).toBe(false)
+    expect(p.quality).toBe(0)
+    expect(p.changeMin).toBe(0)
+    expect(p.impactPoint).toEqual({ x: 0, y: 0 })
+  })
+
+  it('counts a line that buries itself in the parent asteroid as a miss', () => {
+    // The moonlet is on the far side, so this line only reaches it by
+    // going straight through Didymos.
+    const through = aimSetup({ orbitAngle: Math.PI, probe: { x: 300, y: 0 } })
+    expect(previewImpact(through).hits).toBe(false)
+    // Without the big rock in the way the very same line does connect,
+    // which is what makes the blocker the reason for the miss.
+    expect(previewImpact({ ...through, blockerRadius: 0 }).hits).toBe(true)
+  })
+
+  it('leads a moonlet that is still coming round', () => {
+    const rate = 0.35
+    const setup = aimSetup({
+      angularRateRadS: rate,
+      orbitAngle: -Math.PI / 2 - rate * 2.5,
+    })
+    const p = previewImpact(setup)
+    expect(p.hits).toBe(true)
+    // Where it says they meet, they really do meet.
+    const px = setup.probe.x + setup.probeVelocity.x * p.timeS
+    const py = setup.probe.y + setup.probeVelocity.y * p.timeS
+    expect(Math.hypot(px - p.impactPoint.x, py - p.impactPoint.y)).toBeLessThanOrEqual(
+      setup.captureRadius + 1e-9,
+    )
+    expect(p.quality).toBeGreaterThan(0.9)
+  })
+
+  it('fills less the further the line strays from head-on', () => {
+    // The blocker is off here: the steeper lines pass near the asteroid,
+    // and this test is about the quality ordering, not the geometry.
+    const quals = [0, 0.4, 0.8, 1.4].map((off) => {
+      const dir = { x: -Math.cos(off), y: -Math.sin(off) }
+      return previewImpact(
+        aimSetup({
+          blockerRadius: 0,
+          probe: { x: -dir.x * 200, y: -100 - dir.y * 200 },
+          probeVelocity: { x: dir.x * 120, y: dir.y * 120 },
+        }),
+      ).quality
+    })
+    expect(quals[0]).toBeCloseTo(1, 6)
+    for (let i = 1; i < quals.length; i++) {
+      expect(quals[i]!).toBeLessThan(quals[i - 1]!)
+    }
+  })
+
+  it('gives no quality at all to a push from behind', () => {
+    const p = previewImpact(
+      aimSetup({ probe: { x: -300, y: -100 }, probeVelocity: { x: 120, y: 0 } }),
+    )
+    expect(p.hits).toBe(true)
+    expect(p.alignment).toBeCloseTo(1, 10)
+    expect(hitGrade(p.alignment)).toBe('wrong way')
+    expect(p.changeMin).toBeGreaterThan(0)
+    expect(p.quality).toBe(0)
+  })
+
+  it('cannot promise more than the impact delivers', () => {
+    for (const off of [0.2, 0.9, 2.3]) {
+      const dir = { x: -Math.cos(off), y: -Math.sin(off) }
+      const setup = aimSetup({
+        blockerRadius: 0,
+        probe: { x: -dir.x * 200, y: -100 - dir.y * 200 },
+        probeVelocity: { x: dir.x * 120, y: dir.y * 120 },
+      })
+      const p = previewImpact(setup)
+      expect(p.hits).toBe(true)
+      const resolved = resolveImpact({
+        spec: setup.spec,
+        orbitAngle: p.impactAngle,
+        probeDirection: setup.probeVelocity,
+      })
+      expect(p.changeMin).toBeCloseTo(resolved.changeMin, 12)
+      expect(p.alignment).toBeCloseTo(resolved.alignment, 12)
+      expect(p.quality).toBeLessThanOrEqual(1)
+    }
+  })
+
+  it('has nothing to say without a line to look along', () => {
+    expect(previewImpact(aimSetup({ probeVelocity: { x: 0, y: 0 } })).hits).toBe(false)
+    expect(previewImpact(aimSetup({ horizonS: 0 })).hits).toBe(false)
+    // Too short a look-ahead and the probe has not arrived yet.
+    expect(previewImpact(aimSetup({ horizonS: 0.5 })).hits).toBe(false)
   })
 })

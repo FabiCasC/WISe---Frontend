@@ -6,6 +6,7 @@ import { createInput, createLoop } from '../shared/loop'
 import { createStage } from '../shared/stage'
 import {
   EARTH_G,
+  IDLE_RPM,
   LEVELS,
   MAX_ALT,
   MAX_RPM,
@@ -47,6 +48,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   const sfx = createSfx(ctx.settings.volume)
   const MARS_HOVER = hoverRpm()
   const EARTH_HOVER = hoverRpm(RHO_EARTH, EARTH_G)
+  /** Half-width of the "you are hovering" band on the gauge (about 2% of the hover speed). */
+  const HOVER_BAND = 48
 
   const stage = createStage(container, { width: W, height: H, accent: card?.accent ?? '#c9ccd4' })
   const input = createInput(stage.root)
@@ -61,6 +64,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let settled = false
   let spin = 0
   let lowWarned = false
+  /** Seconds flying with no key down, to teach once that the setting holds. */
+  let coasting = 0
+  let holdExplained = false
   const decisions: { concept: string; correct: boolean }[] = []
   const touch = { faster: false, slower: false, left: false, right: false }
 
@@ -77,10 +83,15 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   function begin() {
     heli = createHeli(spec)
     lowWarned = false
+    coasting = 0
+    holdExplained = false
     tries++
     phase = 'flying'
     stage.hideOverlay()
     sfx.tone(440, 90, 'triangle', 0.12)
+    // The blades already spin faster than Earth would ever need, and nothing
+    // happens: that is the lesson, so say it at the moment the player sees it.
+    if (levelKey === 1) stage.flash('Blades already at ' + IDLE_RPM + ' rpm — enough to fly on Earth. Not on Mars.')
   }
 
   function finish(event: 'landed' | 'crash' | 'battery', reason: string) {
@@ -201,7 +212,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     padHandlers.push({ el, down, up })
   }
 
-  stage.setHint('Up / Down change the rotor speed (it stays where you leave it) · Left / Right fly sideways · on a phone: top = faster, bottom = slower, edges = sideways')
+  stage.setHint(
+    'Up spins the blades faster, Down slower. You do not hold the key: the speed stays where you leave it, like a dial. Left / Right fly sideways · on a phone: top = faster, bottom = slower, edges = sideways'
+  )
 
   // --- Simulation -----------------------------------------------------------------
   function update(dtMs: number) {
@@ -219,6 +232,13 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     if (!wasAir && heli.airborne) {
       stage.flash('Lift-off at ' + Math.round(heli.rpm) + ' rpm!')
       sfx.tone(880, 120, 'sine', 0.12)
+    }
+    // First time the player lets go in the air, name what they are seeing:
+    // the rotor did not stop, because the speed is a setting, not a push.
+    coasting = !ctrl.faster && !ctrl.slower && heli.airborne ? coasting + dt : 0
+    if (!holdExplained && coasting > 0.7) {
+      holdExplained = true
+      stage.flash('Keys up — the blades keep the speed you set. Press Down to slow them.')
     }
     if (!practice && !lowWarned && heli.battery < spec.battery * 0.2) {
       lowWarned = true
@@ -243,7 +263,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         key: 'rpm',
         label: 'Rotor speed',
         value: Math.round(heli.rpm) + ' rpm',
-        tone: heli.rpm >= MARS_HOVER ? 'ok' : heli.rpm > 1500 ? 'warn' : undefined,
+        tone: heli.rpm >= MARS_HOVER - HOVER_BAND ? 'ok' : heli.rpm > 1500 ? 'warn' : undefined,
       },
       { key: 'alt', label: 'Height', value: heli.y.toFixed(1) + ' m' },
       {
@@ -435,33 +455,72 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     c.fill()
   }
 
-  /** RPM dial: shows where Mars needs you and where Earth would. */
+  /** What the current setting is doing, in the words a child would use. */
+  function throttleState(): { label: string; color: string } {
+    if (heli.rpm < MARS_HOVER - HOVER_BAND)
+      return heli.airborne
+        ? { label: 'Sinking — spin faster', color: COLORS.gold }
+        : { label: 'Too slow to lift in Mars air', color: COLORS.gold }
+    if (heli.rpm <= MARS_HOVER + HOVER_BAND) return { label: 'Holding height', color: COLORS.ok }
+    return { label: 'Climbing', color: COLORS.ok }
+  }
+
+  /**
+   * Throttle gauge. The rotor speed is a SETTING the player leaves somewhere,
+   * not a button they push, so the gauge has to answer three questions at a
+   * glance: where is my setting now, where does it lift off and hover on Mars,
+   * and how far below that is Earth.
+   */
   function drawRpmGauge() {
     const bx = 12
     const by = 12
-    const bw = 196
+    const bw = 244
     c.fillStyle = 'rgba(13,16,23,0.86)'
-    roundRect(c, bx, by, bw, 74, 10)
+    roundRect(c, bx, by, bw, 108, 10)
     c.fill()
     text(c, 'ROTOR SPEED', bx + 12, by + 18, { size: 10, color: COLORS.dim })
-    text(c, Math.round(heli.rpm) + ' rpm', bx + bw - 12, by + 18, { size: 12, weight: 800, align: 'right' })
+    text(c, Math.round(heli.rpm) + ' rpm', bx + bw - 12, by + 18, { size: 13, weight: 800, align: 'right' })
     const tx = bx + 12
     const tw = bw - 24
     const ty = by + 30
+    const th = 14
+    const f = (rpm: number) => tx + (Math.max(0, Math.min(MAX_RPM, rpm)) / MAX_RPM) * tw
     c.fillStyle = '#141925'
-    c.fillRect(tx, ty, tw, 12)
-    const f = (rpm: number) => tx + (Math.min(MAX_RPM, rpm) / MAX_RPM) * tw
-    c.fillStyle = heli.rpm >= MARS_HOVER ? COLORS.ok : COLORS.gold
-    c.fillRect(tx, ty, f(heli.rpm) - tx, 12)
-    // markers
-    c.fillStyle = COLORS.cyan
-    c.fillRect(f(MARS_HOVER) - 1, ty - 4, 2, 20)
-    text(c, 'Mars lift-off', f(MARS_HOVER), ty + 30, { size: 9, color: COLORS.cyan, align: 'center' })
-    if (levelKey === 1) {
-      c.fillStyle = '#7fb6e0'
-      c.fillRect(f(EARTH_HOVER) - 1, ty - 4, 2, 20)
-      text(c, 'Earth lift-off', f(EARTH_HOVER) + 4, ty + 30, { size: 9, color: '#7fb6e0', align: 'center' })
-    }
+    c.fillRect(tx, ty, tw, th)
+    c.fillStyle = heli.rpm >= MARS_HOVER - HOVER_BAND ? COLORS.ok : COLORS.gold
+    c.fillRect(tx, ty, f(heli.rpm) - tx, th)
+    // Green band = lift matches weight, so the helicopter holds its height.
+    // Drawn over the bar, or a full bar would hide the target to aim at.
+    const b0 = f(MARS_HOVER - HOVER_BAND)
+    const b1 = f(MARS_HOVER + HOVER_BAND)
+    c.fillStyle = 'rgba(13,16,23,0.35)'
+    c.fillRect(b0, ty, b1 - b0, th)
+    c.strokeStyle = COLORS.ok
+    c.lineWidth = 2
+    c.strokeRect(b0 - 1, ty - 5, b1 - b0 + 2, th + 10)
+    // Earth mark: the same helicopter would already be flying this far left.
+    c.fillStyle = '#7fb6e0'
+    c.fillRect(f(EARTH_HOVER) - 1, ty - 5, 2, th + 10)
+    // The handle: a slider knob, because the setting stays where it is left.
+    const hx = f(heli.rpm)
+    c.fillStyle = COLORS.star
+    c.fillRect(hx - 2, ty - 7, 4, th + 14)
+    c.beginPath()
+    c.moveTo(hx - 6, ty - 8)
+    c.lineTo(hx + 6, ty - 8)
+    c.lineTo(hx, ty - 1)
+    c.fill()
+    // Legend: left = Earth, right = the Mars hover band the handle must reach.
+    text(c, 'Earth: ' + Math.round(EARTH_HOVER / 10) * 10 + ' rpm', tx, ty + 30, { size: 10, weight: 700, color: '#7fb6e0' })
+    text(c, 'Mars: hover at ' + Math.round(MARS_HOVER / 10) * 10 + ' rpm', tx + tw, ty + 30, {
+      size: 10,
+      weight: 700,
+      color: COLORS.ok,
+      align: 'right',
+    })
+    const st = throttleState()
+    text(c, st.label, tx, ty + 48, { size: 12, weight: 800, color: st.color })
+    text(c, 'Up / Down move the handle · it stays put', tx, ty + 64, { size: 10, color: COLORS.dim })
   }
 
   function drawMinimap() {

@@ -17,6 +17,7 @@ import {
   scoreLiftoff,
   step,
   type Verdict,
+  inWindow,
 } from './rules'
 
 const W = 620
@@ -70,7 +71,14 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   function stats() {
     const g = gap(s)
     stage.setStats([
-      { key: 'gap', label: 'Columbia is', value: s.phase === 'pad' ? '-' : Math.abs(Math.round(g)) + '° ' + (g >= 0 ? 'ahead' : 'behind') },
+      {
+        // Hiding this on the pad hid the one number the launch decision is
+        // made from: the player had to guess when to press Space.
+        key: 'gap',
+        label: s.phase === 'pad' ? 'Columbia is · launch window ' + spec.window[0] + '-' + spec.window[1] + '°' : 'Columbia is',
+        value: Math.abs(Math.round(g)) + '° ' + (g >= 0 ? 'ahead' : 'behind'),
+        tone: s.phase === 'pad' ? (inWindow(g, spec) ? 'ok' : 'warn') : undefined,
+      },
       {
         key: 'speed',
         label: 'Speed · Eagle vs Columbia',
@@ -169,7 +177,13 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     else if (code === 'ArrowDown' || code === 'KeyS') doBurn('down')
     else if (code === 'ArrowUp' || code === 'KeyW') doBurn('up')
   })
-  stage.setHint('Space launches · Down = burn back (lower, faster) · Up = burn forward (higher, slower)')
+  // Level 1 grants no burns at all, so advertising the burn keys there told
+  // the player about controls that do nothing. The hint follows the level.
+  stage.setHint(
+    spec.burns === 0
+      ? 'Space launches. Wait until Columbia reaches the green band, then go.'
+      : 'Space launches · Down = burn back (lower, faster) · Up = burn forward (higher, slower)',
+  )
 
   // --- Loop ----------------------------------------------------------------------
   function update(dtMs: number) {
@@ -207,8 +221,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       c.stroke()
     }
     c.setLineDash([])
-    text(c, 'higher = slower', CX + ringR(4) + 6, CY - 4, { size: 11, color: COLORS.dim })
-    text(c, 'lower = faster', CX + ringR(0) - 92, CY + 14, { size: 11, color: COLORS.dim })
+    // Pinned to the canvas margins: anchored to the outer ring these ran
+    // off the right edge and only the last letters were visible.
+    text(c, 'outer ring = slower', 12, 22, { size: 11, color: COLORS.dim })
+    text(c, 'inner ring = faster', 12, 38, { size: 11, color: COLORS.dim })
 
     // Moon
     const g = c.createRadialGradient(CX - 40, CY - 40, 10, CX, CY, MOON_R)
@@ -231,6 +247,33 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       if (t.r < 0) continue
       const p = pt(t.a, ringR(t.r))
       c.fillRect(p.x - 1, p.y - 1, 2, 2)
+    }
+
+    // The launch window, drawn on Columbia's own ring while Eagle waits.
+    // Level 1 is one decision - when to press Space - and the window lived
+    // only in the verdict afterwards, so the player could not see the right
+    // moment coming. Now the band sweeps towards the pad and they can.
+    if (s.phase === 'pad') {
+      const [lo, hi] = spec.window
+      // Columbia must be lo..hi degrees AHEAD of the pad at lift-off, so the
+      // band sits ahead of the launch site, in the direction of travel.
+      const a0 = ((LAUNCH_SITE + lo) * Math.PI) / 180
+      const a1 = ((LAUNCH_SITE + hi) * Math.PI) / 180
+      const good = inWindow(gap(s), spec)
+      c.save()
+      c.strokeStyle = good ? 'rgba(47,158,107,0.9)' : 'rgba(243,181,74,0.5)'
+      c.lineWidth = 10
+      c.lineCap = 'butt'
+      c.beginPath()
+      c.arc(CX, CY, ringR(CSM_RING), a0, a1)
+      c.stroke()
+      c.restore()
+      const mid = pt(LAUNCH_SITE + (lo + hi) / 2, ringR(CSM_RING) + 20)
+      text(c, good ? 'LAUNCH NOW' : 'launch window', mid.x, mid.y, {
+        size: 11,
+        color: good ? '#2f9e6b' : COLORS.dim,
+        align: 'center',
+      })
     }
 
     // Columbia

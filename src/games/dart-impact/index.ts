@@ -12,9 +12,11 @@ import {
   levelConfig,
   orbitHeading,
   orbitPosition,
+  previewImpact,
   resolveImpact,
   scoreShot,
   shotPassed,
+  type AimPreview,
   type ImpactOutcome,
 } from './rules'
 
@@ -42,6 +44,21 @@ const LAUNCH_X = 28
  * has to be steered for, which is the skill the last level asks for.
  */
 const LAUNCH_Y = CY + ORBIT_PX * 0.72
+
+/**
+ * Colours of the shot-quality readout. They are the same four words the
+ * result screen uses, so what the player steers by is what they are graded
+ * on: green head-on, amber part-wasted, red wasted, grey not even a hit.
+ */
+const Q_GREEN = '#7ee2b0'
+const Q_AMBER = '#ffc46b'
+const Q_RED = '#ff9aa8'
+const Q_GREY = 'rgba(218,232,251,0.4)'
+
+const BAR_W = 240
+const BAR_H = 9
+const BAR_X = (W - BAR_W) / 2
+const BAR_Y = 54
 
 interface Particle {
   x: number
@@ -107,6 +124,16 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let divertLeft = cfg.divertBudgetS
   const trail: { x: number; y: number }[] = []
 
+  /**
+   * What the line the probe is on would do if it stopped steering now.
+   * Recomputed every frame while aiming and flying: this is the whole point
+   * of the change — the player can see the quality of the shot BEFORE it
+   * happens, instead of being told afterwards.
+   */
+  let aim: AimPreview | null = null
+  /** Coarse fingerprint of the readout, so the HUD only redraws on a change. */
+  let aimKey = ''
+
   // Impact state.
   let outcome: ImpactOutcome | null = null
   /** Radius of the post-impact orbit on screen, px. Animated in. */
@@ -133,8 +160,22 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
   // --- HUD ------------------------------------------------------------------
 
+  /** Word for the line the probe is on, or the honest absence of one. */
+  function aimWord(): string {
+    return aim && aim.hits ? hitGrade(aim.alignment) : 'no contact'
+  }
+
+  function aimTone(): 'ok' | 'warn' | 'bad' | undefined {
+    if (!aim || !aim.hits) return undefined
+    const grade = hitGrade(aim.alignment)
+    if (grade === 'head-on') return 'ok'
+    if (grade === 'angled') return 'warn'
+    return 'bad'
+  }
+
   function statLine() {
     const cut = outcome ? -outcome.changeMin : 0
+    const aiming = phase === 'aim' || phase === 'flight'
     stage.setStats([
       {
         key: 'impactors',
@@ -143,6 +184,19 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         tone: cfg.shots - shotsUsed === 0 ? 'bad' : undefined,
       },
       { key: 'target', label: 'Cut needed', value: cfg.requiredMin + ' min' },
+      // Only while there is a line to judge. The canvas bar is the quick
+      // read; this one is the same thing in words, for screen readers.
+      ...(aiming
+        ? [
+            {
+              key: 'aim',
+              label: 'Shot quality',
+              value: aimWord(),
+              meter: aim && aim.hits ? aim.quality : 0,
+              tone: aimTone(),
+            },
+          ]
+        : []),
       {
         key: 'achieved',
         label: 'Orbit cut',
@@ -161,6 +215,40 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
   // --- Flow -----------------------------------------------------------------
 
+  /**
+   * How long the probe has left on screen. The preview must not look past
+   * the point where the shot is already over, or it would promise a hit
+   * the player can never collect.
+   */
+  function flightHorizonS(x: number, y: number, vy: number): number {
+    const tx = (W + 40 - x) / PROBE_SPEED
+    const ty = vy > 0 ? (H + 40 - y) / vy : vy < 0 ? (-40 - y) / vy : Infinity
+    return Math.max(0, Math.min(tx, ty))
+  }
+
+  function refreshAim() {
+    aim = previewImpact({
+      spec: cfg,
+      probe: { x: probeX, y: probeY },
+      probeVelocity: { x: PROBE_SPEED, y: probeVy },
+      center: { x: CX, y: CY },
+      orbitRadius: ORBIT_PX,
+      orbitAngle,
+      angularRateRadS: (Math.PI * 2) / cfg.orbitSeconds,
+      // The same two radii the collision check uses, so the preview and
+      // the real hit agree about what counts as reaching the moonlet.
+      captureRadius: targetPx + PROBE_R,
+      blockerRadius: DIDYMOS_PX + PROBE_R,
+      horizonS: flightHorizonS(probeX, probeY, probeVy),
+    })
+
+    const key = aimWord() + (aim.hits ? Math.round(aim.quality * 20) : 0)
+    if (key !== aimKey) {
+      aimKey = key
+      statLine()
+    }
+  }
+
   function armShot() {
     probeX = LAUNCH_X
     probeY = LAUNCH_Y
@@ -168,7 +256,11 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     divertLeft = cfg.divertBudgetS
     trail.length = 0
     phase = 'aim'
-    stage.setHint('Watch the arrow, then press Space to release. Steer with Up and Down.')
+    aim = null
+    aimKey = ''
+    // The arrow still teaches WHY; the bar only confirms it in a number.
+    stage.setHint('Watch the arrow. Release when the bar turns green: that is a head-on hit.')
+    refreshAim()
     statLine()
   }
 
@@ -187,7 +279,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     if (phase !== 'aim') return
     shotsUsed++
     phase = 'flight'
-    stage.setHint('Steer with Up and Down. Divert fuel is limited.')
+    stage.setHint('Steer with Up and Down to fill the quality bar. Divert fuel is limited.')
     sfx.sweep(240, 520, 260, 'triangle', 0.16)
     statLine()
   }
@@ -314,6 +406,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     outcome = result
     impactAt = elapsed
     phase = 'impact'
+    aim = null
 
     // Freeze the flash and the debris where the moonlet actually was.
     const pos = orbitPosition(orbitAngle)
@@ -418,6 +511,13 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       return
     }
 
+    if (phase === 'aim') {
+      // The moonlet keeps moving, so the line the probe is parked on gets
+      // better and worse all by itself. That is the timing half of the shot.
+      refreshAim()
+      return
+    }
+
     if (phase !== 'flight') return
 
     // Steering: costs divert fuel, and there is not much of it.
@@ -451,7 +551,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     }
     if (probeX > W + 40 || probeY < -40 || probeY > H + 40) {
       wasteShot('The impactor flew past Dimorphos')
+      return
     }
+
+    refreshAim()
   }
 
   // --- Drawing --------------------------------------------------------------
@@ -608,18 +711,83 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     c.fillRect(-5, 5, 3, 7)
     c.restore()
 
-    // While aiming, show the straight run it will take.
-    if (phase === 'aim') {
+    // The line it is on. It tilts with the steering, so the player can see
+    // where this heading takes them and stops shooting blind.
+    const run = aim && aim.hits ? aim.timeS : flightHorizonS(probeX, probeY, probeVy)
+    c.save()
+    c.setLineDash([4, 8])
+    c.strokeStyle = aimColor()
+    c.globalAlpha = 0.55
+    c.lineWidth = 1.4
+    c.beginPath()
+    c.moveTo(probeX, probeY)
+    c.lineTo(probeX + PROBE_SPEED * run, probeY + probeVy * run)
+    c.stroke()
+    c.restore()
+  }
+
+  /** Colour of the whole readout: one glance has to say good or wasted. */
+  function aimColor(): string {
+    if (!aim || !aim.hits) return Q_GREY
+    const grade = hitGrade(aim.alignment)
+    if (grade === 'head-on') return Q_GREEN
+    if (grade === 'angled') return Q_AMBER
+    return Q_RED
+  }
+
+  /**
+   * The bar the whole change exists for. It fills with the share of the
+   * best possible cut this line would actually land, so steering towards a
+   * fuller bar IS steering towards a better hit — no guessing left.
+   */
+  function drawAimReadout() {
+    if (phase !== 'aim' && phase !== 'flight') return
+    const colour = aimColor()
+    const hits = aim !== null && aim.hits
+
+    // A ring where the probe and the moonlet would meet. This is what ties
+    // the bar to the velocity arrow: you can see the two lining up.
+    if (hits && aim) {
       c.save()
-      c.setLineDash([4, 8])
-      c.strokeStyle = 'rgba(244,247,255,0.35)'
-      c.lineWidth = 1.4
+      c.strokeStyle = colour
+      c.globalAlpha = 0.85
+      c.lineWidth = 1.6
       c.beginPath()
-      c.moveTo(probeX, probeY)
-      c.lineTo(W, probeY)
+      c.arc(aim.impactPoint.x, aim.impactPoint.y, targetPx + 7, 0, Math.PI * 2)
       c.stroke()
       c.restore()
     }
+
+    c.save()
+    c.fillStyle = 'rgba(244,247,255,0.1)'
+    c.fillRect(BAR_X, BAR_Y, BAR_W, BAR_H)
+    if (hits && aim) {
+      c.fillStyle = colour
+      c.fillRect(BAR_X, BAR_Y, BAR_W * aim.quality, BAR_H)
+    }
+    c.strokeStyle = 'rgba(244,247,255,0.28)'
+    c.lineWidth = 1
+    c.strokeRect(BAR_X + 0.5, BAR_Y + 0.5, BAR_W - 1, BAR_H - 1)
+    c.restore()
+
+    c.textAlign = 'center'
+    c.font = '500 11px "Space Grotesk", system-ui, sans-serif'
+    c.fillStyle = 'rgba(218,232,251,0.55)'
+    c.fillText('Shot quality', W / 2, BAR_Y - 6)
+
+    c.font = '600 13px "Space Grotesk", system-ui, sans-serif'
+    c.fillStyle = colour
+    c.fillText(
+      hits && aim
+        ? hitGrade(aim.alignment) +
+            ' · ' +
+            (aim.changeMin < 0
+              ? (-aim.changeMin).toFixed(1) + ' min shorter'
+              : aim.changeMin.toFixed(1) + ' min longer')
+        : 'This line misses Dimorphos',
+      W / 2,
+      BAR_Y + BAR_H + 16,
+    )
   }
 
   function drawEjecta() {
@@ -696,6 +864,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     drawDidymos()
     drawMoonlet()
     drawProbe()
+    drawAimReadout()
     drawEjecta()
     drawFlash()
     drawHud()
