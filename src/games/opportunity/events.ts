@@ -1,5 +1,6 @@
+import type { Lang } from '../../shared/types';
+
 // Contrato entre la lógica (reglasLocal.ts) y la escena (scene.ts).
-// La lógica entrega la lista de lo que pasó en cada jugada; la escena la anima en orden.
 export type Pos = [number, number]; // [fila, columna]
 export type Ficha = 'camara' | 'rat' | 'espectrometro' | 'energia';
 export type Conteo = Partial<Record<Ficha, number>>;
@@ -24,6 +25,11 @@ export interface Resultado {
   evidencias: string[];
   sinErroresDecision: boolean;
   practica: boolean;
+  movimientosUsados: number;
+  movimientosRestantes: number;
+  malasDecisiones: number;
+  historialDecisiones: string[];
+  objetivosCompletados: Conteo;
 }
 
 // Lo que la escena necesita de la lógica.
@@ -31,9 +37,15 @@ export interface PuertoReglas {
   tableroInicial(): Ficha[][];
   progresoInicial(): Extract<Evento, { tipo: 'progreso' }>;
   intentarSwap(a: Pos, b: Pos): Evento[];
+  reiniciar(): void;
   objetivo(): string;
   nota(): string;
+  explicacionVictoria(): string;
+  explicacionDerrota(): string;
   movimientosMax(): number;
+  movimientosRestantes(): number;
   zonasNiebla(): number;
   resultado(tiempoMs: number): Resultado;
+  obtenerMalasDecisiones(): number;
+  obtenerLang(): Lang;
 }
