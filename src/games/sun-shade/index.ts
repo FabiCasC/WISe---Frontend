@@ -31,7 +31,8 @@ import {
  */
 export function mountGame(container: HTMLElement, ctx: GameContext): GameController {
   const card = getArcade('sun-shade')
-  const spec = SUN_LEVELS[ctx.levelId]
+  // Contrato v2: LevelId es number; este juego tiene los niveles 1 a 3.
+  const spec = SUN_LEVELS[ctx.levelId as 1 | 2 | 3] ?? SUN_LEVELS[1]
   const sfx = createSfx(ctx.settings.volume)
   const reduced = ctx.settings.reducedMotion
   const practice = ctx.settings.practice

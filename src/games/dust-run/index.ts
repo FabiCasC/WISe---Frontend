@@ -30,7 +30,8 @@ import {
  */
 export function mountGame(container: HTMLElement, ctx: GameContext): GameController {
   const card = getArcade('dust-run')
-  const tuning = LEVELS[ctx.levelId]
+  // Contrato v2: LevelId es number; este juego tiene los niveles 1 a 3.
+  const tuning = LEVELS[ctx.levelId as 1 | 2 | 3] ?? LEVELS[1]
   const rng = createRng(ctx.seed)
   const sfx = createSfx(ctx.settings.volume)
   const reduced = ctx.settings.reducedMotion

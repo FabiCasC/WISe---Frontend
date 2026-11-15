@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ArchiveItem } from '../content/archive'
-import { getGameTitle } from '../content/games'
-import { getMission, type MissionCard } from '../content/missions'
+import { getGame, type GameEntry } from '../content/games'
+import { getMission } from '../content/missions'
 import {
   getPlayerId,
   loadMembership,
@@ -13,6 +13,7 @@ import { applyResult, isLevelUnlocked, nextPlayableLevel } from '../shared/progr
 import type { GameId, GameResult, LevelId } from '../shared/types'
 import ArchiveCard from './components/ArchiveCard'
 import Dossier from './components/Dossier'
+import { GameSheet } from './components/GameWall'
 import SettingsPanel from './components/SettingsPanel'
 import Sky from './components/Sky'
 import Topbar from './components/Topbar'
@@ -20,6 +21,7 @@ import GameHost from './GameHost'
 import { navigate, useHashRoute, useScrollReset, type PageRoute } from './hooks/useHashRoute'
 import { useProgress } from './hooks/useProgress'
 import Arcade from './pages/Arcade'
+import Archive from './pages/Archive'
 import Home from './pages/Home'
 import JoinClass from './pages/JoinClass'
 import Panel from './pages/Panel'
@@ -42,6 +44,7 @@ export default function App() {
   const [membership, setMembership] = useState<Membership | null>(loadMembership)
   const [dossierId, setDossierId] = useState<GameId | null>(null)
   const [archiveItem, setArchiveItem] = useState<ArchiveItem | null>(null)
+  const [sheetGame, setSheetGame] = useState<GameEntry | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -60,13 +63,20 @@ export default function App() {
     }
   }, [route])
 
+  // A #/play link to an unknown or not-yet-playable game shows the arcade:
+  // keep the address bar in step with what is on screen.
+  useEffect(() => {
+    if (route.name === 'arcade' && /^#\/(play|jugar)\b/.test(window.location.hash)) navigate('#/arcade')
+  }, [route])
+
   // Cambiar de página vuelve arriba; moverse por anclas no.
   useScrollReset(pageKey(page))
 
   // Una URL directa a un nivel bloqueado lleva al nivel que sí está abierto.
   useEffect(() => {
     if (route.name === 'play' && !isLevelUnlocked(progress, route.gameId, route.levelId)) {
-      navigate(`#/jugar/${route.gameId}/${nextPlayableLevel(progress, route.gameId)}`)
+      const levels = getGame(route.gameId)?.levels ?? 1
+      navigate(`#/play/${route.gameId}/${nextPlayableLevel(progress, route.gameId, levels)}`)
     }
   }, [route, progress])
 
@@ -74,7 +84,7 @@ export default function App() {
   useEffect(() => {
     if (!storageOk) {
       setToast(
-        'Este navegador bloquea el guardado local: podrás jugar, pero el progreso no se conservará.',
+        'This browser blocks local saving: you can play, but your progress will not be kept.',
       )
     }
   }, [storageOk])
@@ -85,15 +95,22 @@ export default function App() {
     return () => window.clearTimeout(t)
   }, [toast])
 
+  /** Opens a game. Every game is open; inside a game, levels go in order. */
   const play = useCallback(
-    (mission: MissionCard, levelId?: LevelId) => {
+    (gameId: GameId, levelId?: LevelId) => {
+      const game = getGame(gameId)
       setDossierId(null)
       setArchiveItem(null)
+      setSheetGame(null)
+      if (!game || game.status !== 'live') {
+        if (game) setSheetGame(game)
+        return
+      }
       const lvl =
-        levelId && isLevelUnlocked(progress, mission.gameId, levelId)
+        levelId && levelId <= game.levels && isLevelUnlocked(progress, gameId, levelId)
           ? levelId
-          : nextPlayableLevel(progress, mission.gameId)
-      navigate(`#/jugar/${mission.gameId}/${lvl}`)
+          : nextPlayableLevel(progress, gameId, game.levels)
+      navigate(`#/play/${gameId}/${lvl}`)
     },
     [progress],
   )
@@ -109,10 +126,11 @@ export default function App() {
           /* el respaldo local nunca debe interrumpir la partida */
         })
       }
+      const title = getGame(result.gameId)?.title ?? getMission(result.gameId)?.title ?? result.gameId
       setToast(
         result.completed
-          ? `¡Nivel completado en ${getGameTitle(result.gameId)}!`
-          : 'Partida cerrada sin completar. Puedes reintentar cuando quieras.',
+          ? `Level complete in ${title}!`
+          : 'Game closed before finishing. You can try again any time.',
       )
       exitGame()
     },
@@ -127,7 +145,7 @@ export default function App() {
   const leaveClass = useCallback(() => {
     saveMembership(null)
     setMembership(null)
-    setToast('Saliste de la clase. Tu progreso sigue aquí, en modo personal.')
+    setToast('You left the class. Your progress is still here, in solo mode.')
     navigate('#/')
   }, [])
 
@@ -137,13 +155,12 @@ export default function App() {
     <>
       <Sky reducedMotion={progress.settings.reducedMotion} />
 
-      <a className="skip-link" href={page.name === 'landing' ? '#juegos' : '#main'}>
-        {page.name === 'landing' ? 'Saltar a los juegos' : 'Saltar al contenido'}
+      <a className="skip-link" href="#main">
+        Skip to content
       </a>
 
       <div className="shell">
         <Topbar
-          isHome={page.name === 'landing'}
           progress={progress}
           membership={membership}
           onSettings={() => setSettingsOpen(true)}
@@ -151,7 +168,10 @@ export default function App() {
 
         <main id="main">
           {page.name === 'arcade' && (
-            <Arcade progress={progress} onPlay={(m) => play(m)} onItem={setArchiveItem} />
+            <Arcade progress={progress} membership={membership} onOpenGame={setSheetGame} />
+          )}
+          {page.name === 'archive' && (
+            <Archive progress={progress} onPlay={(m) => play(m.gameId)} onItem={setArchiveItem} />
           )}
           {page.name === 'teacher' && <Teacher service={classService} />}
           {page.name === 'join' && (
@@ -169,12 +189,7 @@ export default function App() {
             <Panel key={page.token} token={page.token} service={classService} />
           )}
           {page.name === 'landing' && (
-            <Home
-              progress={progress}
-              membership={membership}
-              onPlay={play}
-              onDossier={setDossierId}
-            />
+            <Home progress={progress} membership={membership} onOpenGame={setSheetGame} />
           )}
         </main>
       </div>
@@ -194,7 +209,7 @@ export default function App() {
         <Dossier
           mission={dossierMission}
           onClose={() => setDossierId(null)}
-          onPlay={() => play(dossierMission)}
+          onPlay={() => play(dossierMission.gameId)}
         />
       )}
 
@@ -202,7 +217,20 @@ export default function App() {
         <ArchiveCard
           item={archiveItem}
           onClose={() => setArchiveItem(null)}
-          onPlay={(m) => play(m)}
+          onPlay={(m) => play(m.gameId)}
+        />
+      )}
+
+      {sheetGame && (
+        <GameSheet
+          game={sheetGame}
+          progress={progress}
+          onClose={() => setSheetGame(null)}
+          onPlay={(g, lvl) => play(g.id, lvl)}
+          onDossier={(id) => {
+            setSheetGame(null)
+            setDossierId(id)
+          }}
         />
       )}
 
@@ -213,7 +241,7 @@ export default function App() {
           onChange={updateSettings}
           onReset={() => {
             reset()
-            setToast('Progreso reiniciado.')
+            setToast('Progress reset.')
           }}
           onClose={() => setSettingsOpen(false)}
         />
@@ -226,9 +254,9 @@ export default function App() {
             type="button"
             className="btn btn--sm btn--quiet"
             onClick={() => setToast(null)}
-            aria-label="Cerrar aviso"
+            aria-label="Close message"
           >
-            Cerrar
+            Close
           </button>
         </div>
       )}

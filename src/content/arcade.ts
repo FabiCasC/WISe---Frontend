@@ -1,4 +1,7 @@
-import type { ArcadeId, LevelId } from '../shared/types'
+import type { LevelId } from '../shared/types'
+
+/** Minijuegos de la sala arcade (también están en content/games.ts). */
+export type ArcadeId = 'dust-run' | 'gusev-maze' | 'orbital-grid' | 'sun-shade'
 
 /**
  * SALA ARCADE — minijuegos cortos.

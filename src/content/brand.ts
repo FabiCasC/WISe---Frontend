@@ -11,7 +11,7 @@
  */
 export const BRAND = {
   /** Palabra grande del logotipo. */
-  wordmark: 'ÓRBITA',
+  wordmark: 'ORBITA',
   /**
    * Versión para el titular gigante. En caja alta tipográfica la tilde se
    * despega del trazo y ensucia el logotipo, así que el display va sin ella
@@ -21,21 +21,21 @@ export const BRAND = {
   /** Segunda linea del logotipo. */
   wordmarkSub: 'ARCADE',
   /** Nombre completo en texto corrido. */
-  full: 'Órbita Arcade',
+  full: 'Orbita Arcade',
   /** Claim de portada. Corto, memorable, honesto. */
-  claim: 'Ecos de otros mundos',
+  claim: 'Echoes from other worlds',
   /** Frase de apertura de la demo de 3 minutos. */
   pitch:
-    'Hay máquinas que dejaron de moverse, pero todavía pueden despertar preguntas.',
+    'Some machines stopped moving, but they can still spark questions.',
   /** Subtitulo explicativo del portal. */
   tagline:
-    'Tres misiones reales. Tres juegos cortos. Recupera el recuerdo científico de los equipos que la humanidad dejó en la Luna y en Marte.',
+    'Three real missions. Three short games. Recover the science behind the machines humanity left on the Moon and Mars.',
   event: 'NASA Space Apps Challenge 2026',
   eventShort: 'Space Apps 2026',
   year: 2026,
   /** Aviso obligatorio: no insinuar respaldo institucional. */
   disclaimer:
-    'Proyecto independiente creado para el NASA Space Apps Challenge 2026. No está afiliado ni respaldado por la NASA. Las voces de los vehículos son dramatizaciones educativas.',
+    'Independent project made for the NASA Space Apps Challenge 2026. It is not affiliated with or endorsed by NASA. The voices of the machines are educational dramatizations.',
 } as const
 
 /** Paleta acordada en el plan. Se refleja 1:1 en src/styles/tokens.css */

@@ -34,7 +34,8 @@ const PAD = 10
  */
 export function mountGame(container: HTMLElement, ctx: GameContext): GameController {
   const card = getArcade('gusev-maze')
-  const tuning = MAZE_LEVELS[ctx.levelId]
+  // Contrato v2: LevelId es number; este juego tiene los niveles 1 a 3.
+  const tuning = MAZE_LEVELS[ctx.levelId as 1 | 2 | 3] ?? MAZE_LEVELS[1]
   const rng = createRng(ctx.seed)
   const sfx = createSfx(ctx.settings.volume)
   const reduced = ctx.settings.reducedMotion

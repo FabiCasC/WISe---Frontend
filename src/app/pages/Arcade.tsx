@@ -1,93 +1,119 @@
-import { ARCADE } from '../../content/arcade'
-import { ARCHIVE_STATS, type ArchiveItem } from '../../content/archive'
-import { MISSIONS, type MissionCard } from '../../content/missions'
-import { GAME_IDS } from '../../shared/progress'
+import { useMemo, useState } from 'react'
+import { DESTINATIONS, GAMES, type Destination, type GameEntry } from '../../content/games'
+import type { Membership } from '../../shared/classroom'
+import { getRank, learnedConcepts } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
-import GameTile from '../components/GameTile'
-import MiniCard from '../components/MiniCard'
-import Mosaic from '../components/Mosaic'
+import { IconStar } from '../components/Art'
+import { GameWall } from '../components/GameWall'
 import SiteFooter from '../components/SiteFooter'
 
 interface Props {
   progress: Progress
-  onPlay: (mission: MissionCard) => void
-  onItem: (item: ArchiveItem) => void
+  membership: Membership | null
+  onOpenGame: (game: GameEntry) => void
 }
 
-export default function Arcade({ progress, onPlay, onItem }: Props) {
-  const levelsDone = GAME_IDS.reduce(
-    (n, id) => n + progress.games[id].levelsCompleted.length,
-    0,
-  )
+/**
+ * Deterministic shuffle of the games still in progress, so the wall looks
+ * scattered like a game portal while live games stay first.
+ */
+function scattered(list: GameEntry[]): GameEntry[] {
+  const live = list.filter((g) => g.status === 'live')
+  const rest = list.filter((g) => g.status !== 'live')
+  let s = 20261114
+  const rand = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296
+  for (let i = rest.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    ;[rest[i], rest[j]] = [rest[j], rest[i]]
+  }
+  return [...live, ...rest]
+}
+
+/** #/arcade — every game, Friv style. No game locks another one. */
+export default function Arcade({ progress, membership, onOpenGame }: Props) {
+  const [filter, setFilter] = useState<'all' | Destination>('all')
+  const [query, setQuery] = useState('')
+  const rank = getRank(progress)
+  const learned = learnedConcepts(progress).length
+
+  const games = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const list = GAMES.filter(
+      (g) => (filter === 'all' || g.destination === filter) && (!q || g.title.toLowerCase().includes(q)),
+    )
+    return filter === 'all' && !q ? scattered(list) : list
+  }, [filter, query])
 
   return (
     <>
-      {/* ====================================================== DESTACADOS
-          Franja a sangre: el fondo cubre todo el bloque, así no queda aire
-          muerto alrededor de las tarjetas. */}
-      <section className="arcade-top" id="juegos">
-        <div className="arcade-top__aurora" aria-hidden="true" />
+      <section className="arcade wrap" id="games" aria-labelledby="arcade-title">
+        <h1 className="sr-only" id="arcade-title">
+          Arcade: all games
+        </h1>
 
-        <div className="arcade-top__inner">
-          <div className="arcade-top__head">
-            <h1 className="arcade-top__title">Elige tu misión</h1>
-            <div className="arcade-top__meta">
-              <span className="chip chip--accent">
-                {MISSIONS.length + ARCADE.length} juegos listos
-              </span>
-              <span className="chip">{levelsDone}/9 niveles</span>
-              <span className="chip">{ARCHIVE_STATS.total} equipos en el archivo</span>
-            </div>
+        <div className="hud">
+          <div className="hud__who">
+            {membership ? (
+              <>
+                <span className="hud__chip hud__chip--me">{membership.nickname}</span>
+                <span className="hud__chip">Class {membership.code}</span>
+              </>
+            ) : (
+              <span className="hud__chip">Solo mode</span>
+            )}
+            <span className="hud__chip hud__chip--rank">
+              <IconStar size={13} /> {rank.name} · {learned} {learned === 1 ? 'concept' : 'concepts'}
+            </span>
           </div>
-
-          {/* El movimiento continuo va DENTRO de la tarjeta (brillo que barre,
-              cinta que late). Desplazar la tarjeta entera dejaría un objetivo
-              móvil, difícil de pulsar y peor para el público objetivo. */}
-          <div className="arcade-top__row">
-            {MISSIONS.map((mission, i) => (
-              <div
-                className="arcade-top__slot"
-                key={mission.gameId}
-                style={{ ['--delay' as string]: `${i * 110}ms` }}
-              >
-                <GameTile
-                  mission={mission}
-                  progress={progress}
-                  variant="featured"
-                  onPlay={() => onPlay(mission)}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================= SALA ARCADE */}
-      <section className="section wrap catalog" id="arcade" aria-labelledby="arcade-title">
-        <div className="catalog__head">
-          <h2 className="section__title" id="arcade-title">
-            Sala arcade
-          </h2>
-          <p className="section__note">
-            Partidas cortas para calentar. Cada una esconde un hecho real de las
-            misiones: lo verás al terminar.
-          </p>
+          <label className="sr-only" htmlFor="game-search">
+            Search games
+          </label>
+          <input
+            id="game-search"
+            className="hud__search"
+            type="search"
+            placeholder="Search games…"
+            autoComplete="off"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </div>
 
-        <div className="catalog__grid">
-          {ARCADE.map((card) => (
-            <MiniCard key={card.gameId} card={card} progress={progress} />
+        <div className="filters" role="group" aria-label="Filter by destination">
+          <button
+            type="button"
+            className="filter"
+            aria-pressed={filter === 'all'}
+            onClick={() => setFilter('all')}
+          >
+            All games
+          </button>
+          {(Object.keys(DESTINATIONS) as Destination[]).map((d) => (
+            <button
+              key={d}
+              type="button"
+              className="filter"
+              aria-pressed={filter === d}
+              onClick={() => setFilter(d)}
+              style={{ ['--c' as string]: DESTINATIONS[d].color }}
+            >
+              <i aria-hidden="true" />
+              {DESTINATIONS[d].label}
+            </button>
           ))}
         </div>
+
+        {games.length ? (
+          <GameWall games={games} progress={progress} onOpen={onOpenGame} withLogo={filter === 'all' && !query} />
+        ) : (
+          <p className="arcade__empty">No games match “{query}”.</p>
+        )}
+
+        <p className="arcade__foot">
+          {games.length} games · new games appear here as the team ships them ·{' '}
+          <a href="#/archive">Spacecraft archive</a>
+        </p>
       </section>
-
-      <Mosaic
-        progress={progress}
-        reducedMotion={progress.settings.reducedMotion}
-        onPlay={onPlay}
-        onItem={onItem}
-      />
-
       <SiteFooter />
     </>
   )

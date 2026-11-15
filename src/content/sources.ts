@@ -30,14 +30,13 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://science.nasa.gov/mission/mer-spirit/',
     accessed: null, // TODO equipo: verificar el día del evento
   },
-    'opportunity-guadalupe': {
+  'opportunity-guadalupe': {
     id: 'opportunity-guadalupe',
-    title: 'Focus on Guadalupe (PIA05479) — mosaico de la cámara microscópica de Opportunity, 2004-03-02',
-    publisher: 'NASA Science · Crédito: NASA/JPL-Caltech/Cornell',
+    title: 'Focus on Guadalupe (PIA05479) — Opportunity microscopic imager mosaic, 2004-03-02',
+    publisher: 'NASA Science · Credit: NASA/JPL-Caltech/Cornell',
     url: 'https://science.nasa.gov/resource/focus-on-guadalupe/',
     accessed: '2026-11-14',
   },
-
   'apollo-15': {
     id: 'apollo-15',
     title: 'Apollo 15 — Mission Overview',
@@ -47,14 +46,14 @@ export const SOURCES: Record<string, Source> = {
   },
   'alsep-pds': {
     id: 'alsep-pds',
-    title: 'Apollo Lunar Surface Experiments Package — archivos sísmicos',
+    title: 'Apollo Lunar Surface Experiments Package — seismic data archive',
     publisher: 'NASA Planetary Data System (Geosciences Node)',
     url: 'https://pds-geosciences.wustl.edu/missions/apollo/',
     accessed: null, // TODO equipo: verificar el día del evento
   },
   'lunar-laser': {
     id: 'lunar-laser',
-    title: 'Lunar Laser Ranging — retrorreflectores en la superficie lunar',
+    title: 'Lunar Laser Ranging — retroreflectors on the lunar surface',
     publisher: 'NASA',
     url: 'https://science.nasa.gov/moon/',
     accessed: null, // TODO equipo: sustituir por la página específica del LRRR
@@ -68,7 +67,7 @@ export const SOURCES: Record<string, Source> = {
   },
   'spaceapps-legal': {
     id: 'spaceapps-legal',
-    title: 'Bases legales y guía de marca',
+    title: 'Legal terms and brand guide',
     publisher: 'NASA Space Apps',
     url: 'https://www.spaceappschallenge.org/legal/',
     accessed: '2026-11-13',

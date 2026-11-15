@@ -3,8 +3,8 @@ import { normalizeClassCode } from '../../shared/classroom'
 import { navigate } from '../hooks/useHashRoute'
 
 /**
- * Recuadro "Escribe el código de tu clase". Solo valida el formato y lleva a
- * #/clase/<CÓDIGO>, que es quien realmente une al alumno.
+ * "Join your class" box. It only checks the format and goes to
+ * #/class/<CODE>, which is what actually adds the student.
  */
 export default function JoinBox({ initial = '' }: { initial?: string }) {
   const [value, setValue] = useState(initial)
@@ -15,17 +15,17 @@ export default function JoinBox({ initial = '' }: { initial?: string }) {
     e.preventDefault()
     const code = normalizeClassCode(value)
     if (!code) {
-      setError('El código tiene una palabra y dos números, por ejemplo LUNA-27.')
+      setError('A class code is one word and two numbers, like MOON-27.')
       return
     }
     setError(null)
-    navigate(`#/clase/${code}`)
+    navigate(`#/class/${code}`)
   }
 
   return (
     <form className="joinbox" onSubmit={submit} noValidate>
       <label className="joinbox__label" htmlFor={id}>
-        ¿Tu profe te dio un código?
+        Join your class
       </label>
       <div className="joinbox__row">
         <input
@@ -33,7 +33,7 @@ export default function JoinBox({ initial = '' }: { initial?: string }) {
           className="joinbox__input"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="LUNA-27"
+          placeholder="Class code, e.g. MOON-27"
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
@@ -42,7 +42,7 @@ export default function JoinBox({ initial = '' }: { initial?: string }) {
           aria-describedby={error ? `${id}-err` : `${id}-hint`}
         />
         <button type="submit" className="btn btn--primary joinbox__btn">
-          Entrar a la clase
+          Join
         </button>
       </div>
       {error ? (
@@ -51,7 +51,7 @@ export default function JoinBox({ initial = '' }: { initial?: string }) {
         </p>
       ) : (
         <p className="joinbox__hint" id={`${id}-hint`}>
-          No necesitas cuenta ni tu nombre: recibirás un apodo espacial.
+          Type the code your teacher gave you. You get a space nickname — no real name needed.
         </p>
       )}
     </form>

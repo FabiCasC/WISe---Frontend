@@ -1162,19 +1162,6 @@ a {
   background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
-.lvl {
-  width: 26px;
-  height: 7px;
-  border-radius: 999px;
-  background: rgb(var(--fg-rgb) / 0.14);
-  transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
-}
-
-.lvl.is-done {
-  background: var(--accent);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent);
-}
-
 /* =========================================================================
    6 · PASAPORTE
    ========================================================================= */
