@@ -9,7 +9,7 @@
  *
  * Leyenda:
  *   #  roca
- *   L  charco de luz    -> seguro para el SOLAR, funde al NUCLEAR
+ *   L  arena blanda     -> aguanta al SOLAR (ligero), hunde al NUCLEAR (pesado)
  *   S  zona de sombra   -> segura para el NUCLEAR, apaga al SOLAR
  *   X  polvo            -> mortal para los dos (el motor lo admite; hoy no
  *                          lo usa ningun mapa: en el nivel 3 cerraba el
@@ -104,18 +104,18 @@ export interface LevelSpec {
 export const SUN_LEVELS: Record<1 | 2 | 3, LevelSpec> = {
   1: {
     map: LEVEL1,
-    name: 'Cada uno por su lado',
-    hint: 'El solar cruza la luz; el nuclear, la sombra. Si se equivocan de charco, se apagan.',
+    name: 'Each on its own side',
+    hint: 'The solar rover can cross soft sand; the nuclear rover can cross shade. Pick the wrong one and it stops.',
   },
   2: {
     map: LEVEL2,
-    name: 'Turno de sombra',
-    hint: 'La puerta del solar solo se abre desde una placa al otro lado de la sombra.',
+    name: 'Shadow shift',
+    hint: 'The solar rover’s door opens only from a plate on the far side of the shade.',
   },
   3: {
     map: LEVEL3,
-    name: 'Relevo',
-    hint: 'Las dos torres estan separadas por roca maciza y cada placa abre la puerta del OTRO rover.',
+    name: 'Relay',
+    hint: 'Solid rock splits the two towers, and each plate opens the OTHER rover’s door.',
   },
 }
 

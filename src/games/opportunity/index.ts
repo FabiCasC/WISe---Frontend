@@ -67,11 +67,18 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         malasDecisiones: r.malasDecisiones,
         objetivosCompletados: r.objetivosCompletados,
         historialDecisiones: r.historialDecisiones,
-        // Contrato v2: el nivel 2 enseña a pulir con el RAT antes de analizar.
-        decisions:
-          ctx.levelId === 2 && !ctx.settings.practice
-            ? [{ concept: 'pulir-antes-de-analizar', correct: r.sinErroresDecision }]
-            : [],
+        // Contrato v2: un concepto por nivel, medido con lo que hizo el jugador.
+        // L1 observar antes de intervenir; L2 cada espectrometro usado antes de
+        // pulir es un error y terminar bien es un acierto; L3 juntar las tres
+        // lineas de evidencia.
+        decisions: ctx.settings.practice
+          ? []
+          : ctx.levelId === 2
+            ? [
+                ...Array.from({ length: r.malasDecisiones }, () => ({ concept: 'pulir-antes-de-analizar', correct: false })),
+                ...(r.completado ? [{ concept: 'pulir-antes-de-analizar', correct: true }] : []),
+              ]
+            : [{ concept: ctx.levelId === 1 ? 'observar-primero' : 'varias-evidencias', correct: r.completado }],
       }
       ctx.onComplete(result)
     },

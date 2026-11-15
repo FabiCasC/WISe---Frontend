@@ -41,105 +41,103 @@ export interface ArcadeCard {
 export const ARCADE: ArcadeCard[] = [
   {
     gameId: 'dust-run',
-    title: 'Tormenta en Meridiani',
-    kicker: 'Carrera sin fin · Opportunity',
-    genre: 'Esquiva y energía',
+    title: 'Storm over Meridiani',
+    kicker: 'Endless run · Opportunity',
+    genre: 'Dodge and power',
     fact:
-      'Opportunity funcionaba con paneles solares. En junio de 2018 una tormenta de polvo global tapó el cielo de Marte: sin luz no había energía, y el 10 de junio llegó su última señal.',
+      'Opportunity ran on solar panels. In June 2018 a planet-wide dust storm darkened the sky: the dust opacity τ climbed to about 10.8, almost no sunlight got through, and its last signal came on June 10.',
     dramatization:
-      'El rover nunca corrió ni saltó: avanzaba a centímetros por segundo. La carrera y los saltos son recursos del juego para que se sienta la pérdida de luz.',
-    learning: 'Sin luz solar no hay energía: por eso la tormenta apagó al rover.',
+      'The rover never ran or jumped: it moved a few centimeters per second. Running and jumping are game tricks so you can feel the light fading.',
+    learning: 'No sunlight, no power: the more dust in the sky (higher τ), the less a solar rover can charge.',
     accent: '#E68A68',
     durationMin: [1, 3],
     levels: [
-      { id: 1, name: 'Cielo claro', goal: 'Recorrer 600 m sin quedarte sin energía' },
-      { id: 2, name: 'Polvo en suspensión', goal: '1000 m · llegan ráfagas altas' },
-      { id: 3, name: 'Noche a mediodía', goal: '1500 m · el cielo se cierra deprisa' },
+      { id: 1, name: 'Clear sky', goal: 'Drive 600 m before you run out of power · τ 0.5 → 2' },
+      { id: 2, name: 'Dust in the air', goal: '1000 m · high gusts arrive · τ 1 → 5' },
+      { id: 3, name: 'Night at noon', goal: '1500 m · τ 3 → 10.8, the real storm' },
     ],
     evidence: [
       {
         id: 'ev-dust-storm',
-        label: 'Tormenta global de 2018',
+        label: '2018 global dust storm',
         meaning:
-          'El polvo en suspensión bloqueó la luz solar durante semanas y dejó sin energía a un rover que dependía de sus paneles.',
+          'Dust in the air blocked sunlight for weeks and left a rover that depended on its panels without power.',
       },
     ],
   },
   {
     gameId: 'gusev-maze',
-    title: 'Laberinto de Gusev',
-    kicker: 'Recoge y escapa · Spirit',
-    genre: 'Laberinto por turnos',
+    title: 'Gusev Maze',
+    kicker: 'Collect and clean · Spirit',
+    genre: 'Maze',
     fact:
-      'En el cráter Gusev los remolinos de polvo (dust devils) pasaban junto a Spirit. Varias veces limpiaron sus paneles solares y le devolvieron energía: un fenómeno que el equipo llamó "eventos de limpieza".',
+      'In Gusev crater, dust settled on Spirit\'s solar panels and cut its power. Passing dust devils sometimes blew the dust away and its power jumped back up: the team called these "cleaning events".',
     dramatization:
-      'Spirit no huía de nada ni recogía muestras moviéndose por un laberinto. El tablero, la persecución y las vidas son convenciones del juego.',
-    learning: 'Un mismo fenómeno puede estorbar y ayudar según cuándo ocurra.',
+      'Spirit did not drive around a maze. The board and the extra rovers are game rules; the dust on the panels and the cleaning winds are real.',
+    learning: 'Dust devils, which look like a danger, actually cleaned the rovers\' panels.',
     accent: '#F2A65A',
     durationMin: [2, 4],
     levels: [
-      { id: 1, name: 'Terreno conocido', goal: 'Reunir todas las muestras · 2 remolinos' },
-      { id: 2, name: 'Suelo blando', goal: 'Laberinto abierto · 3 remolinos más rápidos' },
-      { id: 3, name: 'Última campaña', goal: 'Sin margen · 4 remolinos' },
+      { id: 1, name: 'Known ground', goal: 'Collect every sample · 2 dust devils' },
+      { id: 2, name: 'Dusty season', goal: 'Dust settles faster · 3 dust devils' },
+      { id: 3, name: 'Last campaign', goal: 'Very fast dust · plan your route to the devils' },
     ],
     evidence: [
       {
         id: 'ev-dust-devil',
-        label: 'Evento de limpieza',
-        meaning:
-          'Un remolino de polvo barrió los paneles de Spirit y su energía disponible subió de golpe.',
+        label: 'Cleaning event',
+        meaning: 'A dust devil swept Spirit\'s panels and its available power went up at once.',
       },
     ],
   },
   {
     gameId: 'sun-shade',
-    title: 'Sol y sombra',
-    kicker: 'Cooperativo por parejas · dos fuentes de energía',
-    genre: 'Plataformas en pareja',
+    title: 'Sun and Shade',
+    kicker: 'Two-player co-op · two power sources',
+    genre: 'Co-op platformer',
     fact:
-      'Opportunity y Spirit funcionaban con paneles solares: sin luz se apagaban. Curiosity y Perseverance llevan un generador nuclear (RTG) que produce electricidad a partir del calor de su combustible, así que trabajan de noche, en invierno y dentro de la sombra.',
+      'Spirit and Opportunity ran on solar panels: without light they stopped. Curiosity and Perseverance carry a nuclear generator (RTG) that turns the heat of decaying plutonium-238 into electricity, so they work at night, in winter and in the shade. Curiosity is also much heavier: 899 kg, about five times Spirit.',
     dramatization:
-      'Ningún rover salta ni corre, y jamás trabajaron dos juntos en el mismo terreno. El salto, los charcos y las escotillas son recursos del juego para que se note en qué se diferencian.',
-    learning: 'De dónde saca la energía un rover decide por dónde puede ir.',
+      'Rovers do not jump, and two never worked side by side. Jumping, soft-sand pits and hatches are game tricks to show how the two power sources differ.',
+    learning: 'Where a rover gets its power decides where it can go.',
     accent: '#F2A65A',
     durationMin: [3, 6],
     levels: [
-      { id: 1, name: 'Cada uno por su lado', goal: 'Llevar los dos rovers a su escotilla' },
-      { id: 2, name: 'Turno de sombra', goal: 'El nuclear abre la puerta del solar' },
-      { id: 3, name: 'Relevo', goal: 'Cada uno abre la puerta del otro' },
+      { id: 1, name: 'Each on its own side', goal: 'Bring both rovers to their hatch' },
+      { id: 2, name: 'Shadow shift', goal: 'The nuclear rover opens the solar rover\'s door' },
+      { id: 3, name: 'Relay', goal: 'Each opens the other\'s door' },
     ],
     evidence: [
       {
         id: 'ev-rtg',
-        label: 'Generador nuclear (RTG)',
+        label: 'Nuclear generator (RTG)',
         meaning:
-          'Convierte en electricidad el calor de su combustible, así que no depende del Sol: por eso Curiosity sigue trabajando donde un rover solar se habría apagado.',
+          'It turns the heat of its fuel into electricity, so it does not depend on the Sun: that is why Curiosity keeps working where a solar rover would have stopped.',
       },
     ],
   },
   {
     gameId: 'orbital-grid',
-    title: 'Tres en raya orbital',
-    kicker: 'Alinea tres estaciones · Red de Espacio Profundo',
-    genre: 'Estrategia por turnos',
+    title: 'Keep the Link',
+    kicker: 'Place antennas · Deep Space Network',
+    genre: 'Strategy and simulation',
     fact:
-      'Para hablar con una sonda lejana hace falta que una antena la tenga a la vista. La Red de Espacio Profundo tiene estaciones en California, España y Australia: separadas unos 120° para que siempre haya una apuntando.',
+      'To talk to a far probe, an antenna must have it above its horizon, and the Earth turns once a day. NASA\'s Deep Space Network has three sites, Goldstone (California), Madrid (Spain) and Canberra (Australia), placed around the world so one of them can always see the probe.',
     dramatization:
-      'Las antenas reales no se colocan en un tablero ni compiten entre sí. El tres en raya es solo la excusa para hablar de cobertura continua.',
-    learning: 'Tres estaciones bien repartidas dan cobertura sin huecos.',
+      'The probe direction is fixed and the horizon is simplified to an 80° view on each side. Real antennas also track the probe and need it to be high enough in the sky.',
+    learning: 'Because the Earth turns, you need three antennas spread around the world to never lose a probe.',
     accent: '#75CBD1',
-    durationMin: [1, 3],
+    durationMin: [2, 4],
     levels: [
-      { id: 1, name: 'Enlace de prueba', goal: 'Gana 2 de 3 rondas · rival novato' },
-      { id: 2, name: 'Turno compartido', goal: 'Gana 2 de 3 rondas · rival atento' },
-      { id: 3, name: 'Cobertura total', goal: 'No pierdas ninguna de 3 rondas · rival perfecto' },
+      { id: 1, name: 'One dish is not enough', goal: '2 dishes · contact 85% of the day' },
+      { id: 2, name: 'No blackouts', goal: '3 dishes · contact 100% of the day' },
+      { id: 3, name: 'Pick real places', goal: '3 real sites · zero blackouts' },
     ],
     evidence: [
       {
         id: 'ev-dsn',
-        label: 'Red de Espacio Profundo',
-        meaning:
-          'Tres complejos de antenas repartidos por el planeta mantienen el contacto con las sondas mientras la Tierra gira.',
+        label: 'Deep Space Network',
+        meaning: 'Three antenna complexes spread around the planet keep in touch with probes while the Earth turns.',
       },
     ],
   },

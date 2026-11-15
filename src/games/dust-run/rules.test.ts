@@ -10,6 +10,7 @@ import {
   speedAt,
   WORLD,
 } from './rules'
+import { directSunlight, drainFactor, tauAt } from './rules'
 
 describe('colisiones', () => {
   it('detecta el solape y respeta el contacto justo en el borde', () => {
@@ -102,5 +103,18 @@ describe('puntuacion', () => {
 
   it('nunca devuelve una puntuacion negativa', () => {
     expect(scoreRun({ meters: 0, pickups: 0, energyLeft: 0, completed: false })).toBe(0)
+  })
+})
+
+describe('dust opacity (tau)', () => {
+  it('tau 3 lets through about 5% of direct sunlight', () => {
+    expect(directSunlight(3)).toBeCloseTo(0.05, 2)
+  })
+  it('level 3 ends at the tau of Opportunity last day', () => {
+    expect(tauAt(3, 1)).toBeCloseTo(10.8)
+    expect(tauAt(1, 0)).toBe(0.5)
+  })
+  it('a darker sky drains energy faster', () => {
+    expect(drainFactor(10.8)).toBeGreaterThan(drainFactor(0.5))
   })
 })

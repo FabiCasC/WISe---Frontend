@@ -98,6 +98,33 @@ export const LEVELS: Record<1 | 2 | 3, LevelTuning> = {
   },
 }
 
+/**
+ * Dust opacity tau over the run (real values). NASA: at tau 3 only about 5%
+ * of direct sunlight reaches the surface (PIA22737), and on Opportunity's
+ * last day tau was about 10.8 (PIA22930). Level 3 ends right there.
+ */
+export const TAU: Record<1 | 2 | 3, [number, number]> = {
+  1: [0.5, 2],
+  2: [1, 5],
+  3: [3, 10.8],
+}
+
+export function tauAt(level: 1 | 2 | 3, progress: number): number {
+  const [a, b] = TAU[level]
+  const p = Math.min(1, Math.max(0, progress))
+  return a + (b - a) * p
+}
+
+/** Fraction of direct sunlight that gets through: e^-tau (Beer-Lambert). */
+export function directSunlight(tau: number): number {
+  return Math.exp(-tau)
+}
+
+/** Darker sky, faster drain: the panels make less than the rover uses. */
+export function drainFactor(tau: number): number {
+  return 0.55 + 0.6 * (1 - directSunlight(tau))
+}
+
 /** Solapamiento de rectangulos (AABB). */
 export function hits(a: Box, b: Box): boolean {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y

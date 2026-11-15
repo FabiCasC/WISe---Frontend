@@ -21,14 +21,14 @@ export const SOURCES: Record<string, Source> = {
     title: 'Mars Exploration Rover — Opportunity',
     publisher: 'NASA Science',
     url: 'https://science.nasa.gov/mission/mer-opportunity/',
-    accessed: null, // TODO equipo: verificar el día del evento
+    accessed: '2026-11-15',
   },
   'mer-spirit': {
     id: 'mer-spirit',
     title: 'Mars Exploration Rover — Spirit',
     publisher: 'NASA Science',
     url: 'https://science.nasa.gov/mission/mer-spirit/',
-    accessed: null, // TODO equipo: verificar el día del evento
+    accessed: '2026-11-15',
   },
   'opportunity-guadalupe': {
     id: 'opportunity-guadalupe',
@@ -57,6 +57,55 @@ export const SOURCES: Record<string, Source> = {
     publisher: 'NASA',
     url: 'https://science.nasa.gov/moon/',
     accessed: null, // TODO equipo: sustituir por la página específica del LRRR
+  },
+  'nssdc-apollo15-alsep': {
+    id: 'nssdc-apollo15-alsep',
+    title: 'Apollo 15 Lunar Module / ALSEP (passive seismometer; ALSEP shut down 30 September 1977)',
+    publisher: 'NASA NSSDCA',
+    url: 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1971-063C',
+    accessed: '2026-11-15',
+  },
+  'pia13037-retroreflector': {
+    id: 'pia13037-retroreflector',
+    title: 'PIA13037 — The Apollo 15 Lunar Laser Ranging Retroreflector',
+    publisher: 'NASA Image and Video Library',
+    url: 'https://images.nasa.gov/details/PIA13037',
+    accessed: '2026-11-15',
+  },
+  'pia22930-opportunity-tau': {
+    id: 'pia22930-opportunity-tau',
+    title: 'PIA22930 — Last images Opportunity took (dust opacity tau ≈ 10.8)',
+    publisher: 'NASA/JPL-Caltech/Cornell/ASU',
+    url: 'https://images.nasa.gov/details/PIA22930',
+    accessed: '2026-11-15',
+  },
+  'pia22737-tau': {
+    id: 'pia22737-tau',
+    title: 'PIA22737 — Mars Climate Sounder studies the 2018 dust storm (tau 3 ≈ 5% of direct sunlight)',
+    publisher: 'NASA/JPL-Caltech',
+    url: 'https://images.nasa.gov/details/PIA22737',
+    accessed: '2026-11-15',
+  },
+  'mer-spirit-opportunity': {
+    id: 'mer-spirit-opportunity',
+    title: 'Mars Exploration Rovers Spirit and Opportunity',
+    publisher: 'NASA Science',
+    url: 'https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/',
+    accessed: '2026-11-15',
+  },
+  'nasa-dsn': {
+    id: 'nasa-dsn',
+    title: 'Deep Space Network: three complexes (Goldstone, Madrid, Canberra) for full coverage',
+    publisher: 'NASA',
+    url: 'https://www.nasa.gov/communicating-with-missions/dsn/',
+    accessed: '2026-11-15',
+  },
+  'nasa-rps': {
+    id: 'nasa-rps',
+    title: 'Radioisotope Power Systems: power largely independent of sunlight, dust or temperature',
+    publisher: 'NASA Science',
+    url: 'https://science.nasa.gov/planetary-science/programs/radioisotope-power-systems/',
+    accessed: '2026-11-15',
   },
   'spaceapps': {
     id: 'spaceapps',

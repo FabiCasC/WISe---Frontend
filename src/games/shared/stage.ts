@@ -83,7 +83,7 @@ export function createStage(container: HTMLElement, opts: StageOptions): Stage {
   canvas.setAttribute('role', 'presentation')
 
   const ctx = canvas.getContext('2d', { alpha: false })
-  if (!ctx) throw new Error('Este navegador no permite dibujar en canvas 2D.')
+  if (!ctx) throw new Error('This browser cannot draw on a 2D canvas.')
 
   frame.append(canvas)
 
@@ -242,7 +242,7 @@ export function createStage(container: HTMLElement, opts: StageOptions): Stage {
       const f = document.createElement('p')
       f.className = 'mg__card-fact'
       const tag = document.createElement('b')
-      tag.textContent = 'Dato real: '
+      tag.textContent = 'Real fact: '
       f.append(tag, document.createTextNode(content.fact))
       card.append(f)
     }

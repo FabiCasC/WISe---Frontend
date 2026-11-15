@@ -78,7 +78,8 @@ describe('ajustes por nivel', () => {
     expect(l1.ghosts).toBeLessThan(l2.ghosts)
     expect(l2.ghosts).toBeLessThan(l3.ghosts)
     expect(l1.ghostSpeed).toBeLessThan(l3.ghostSpeed)
-    expect(l1.cleanSecs).toBeGreaterThan(l3.cleanSecs)
+    // Dust covers the panels faster on harder levels.
+    expect(l1.dustSecs).toBeGreaterThan(l3.dustSecs)
   })
 
   it('mantiene al rover mas rapido que los remolinos', () => {

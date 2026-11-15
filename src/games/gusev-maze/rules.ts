@@ -198,6 +198,16 @@ export function chooseGhostDir(
   return best
 }
 
+/**
+ * Panel power with dust on it, 0..1. Real fact: dust settling on Spirit's
+ * panels cut its power, and passing dust devils blew it off ("cleaning
+ * events"). Fully covered panels still give a trickle in this game.
+ */
+export function panelPower(dust: number): number {
+  const d = Math.min(1, Math.max(0, dust))
+  return 1 - 0.6 * d
+}
+
 export interface MazeScore {
   pellets: number
   powers: number

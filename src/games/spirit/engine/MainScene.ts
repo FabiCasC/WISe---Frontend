@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { MAX_DT } from './config';
 import { EventBus, type HudSnapshot } from './EventBus';
 import { Renderer } from './Renderer';
-import { GameModel } from './state';
+import { GameModel, type Decision } from './state';
 
 const K = Phaser.Input.Keyboard.KeyCodes;
 
@@ -12,7 +12,7 @@ interface SceneOptions {
   levelId: number;
   practice: boolean;
   reducedMotion: boolean;
-  onFinish: (completed: boolean, score: number, firstAnswerCorrect: boolean) => void;
+  onFinish: (completed: boolean, score: number, decisions: Decision[]) => void;
 }
 
 export class MainScene extends Phaser.Scene {
@@ -48,9 +48,6 @@ export class MainScene extends Phaser.Scene {
       case 'Enter': this.model.handleEnter(); break;
       case 'p':
       case 'P': this.model.togglePause(); break;
-      case '1':
-      case '2':
-      case '3': this.model.answer(Number(e.key)); break;
       default: break;
     }
   }
@@ -70,12 +67,12 @@ export class MainScene extends Phaser.Scene {
     this.sceneRenderer.render(this.model, this.options.reducedMotion);
     this.publishHud();
 
-    if (!this.finishSent && ['complete', 'lost', 'won'].includes(this.model.phase)) {
+    if (!this.finishSent && ['complete', 'lost'].includes(this.model.phase)) {
       this.finishSent = true;
       this.options.onFinish(
         this.model.phase !== 'lost',
         this.model.score,
-        this.model.answersCorrect,
+        this.model.decisions,
       );
     }
   }
@@ -90,7 +87,7 @@ export class MainScene extends Phaser.Scene {
       score: m.score,
       energy: Math.max(0, Math.trunc(m.energy)),
       time: Math.max(0, Math.trunc(m.timeLeft)),
-      samples: m.samplesDone,
+      samples: m.found.size,
     };
     const key = JSON.stringify(snap);
     if (key !== this.lastHud) {
