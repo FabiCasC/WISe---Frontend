@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { DESTINATIONS, type GameEntry } from '../../content/games'
 import { getMission } from '../../content/missions'
+import { getTutorial } from '../../content/tutorials'
 import { gameProgress, isLearned, isLevelUnlocked, nextPlayableLevel } from '../../shared/progress'
 import type { LevelId, Progress } from '../../shared/types'
 import { IconCheck, IconLock, IconPlay } from './Art'
@@ -109,6 +110,7 @@ export function GameSheet({
   const live = game.status === 'live'
   const next = nextPlayableLevel(progress, game.id, game.levels)
   const hasDossier = !!getMission(game.id)
+  const hasGuide = !!getTutorial(game.id)
 
   return (
     <Modal
@@ -137,8 +139,18 @@ export function GameSheet({
       </div>
 
       <div>
-        <p className="sheet__label">Levels</p>
+        <p className="sheet__label">{hasGuide ? 'Levels · 00 is how to play' : 'Levels'}</p>
         <div className="sheet__levels" role="group" aria-label={`${game.title} levels`}>
+          {live && hasGuide && (
+            <button
+              type="button"
+              className="slv is-available"
+              onClick={() => onPlay(game, 0)}
+              aria-label="Level 0: how to play"
+            >
+              00
+            </button>
+          )}
           {Array.from({ length: game.levels }, (_, i) => i + 1).map((l) => {
             const isDone = done.includes(l)
             const open = live && isLevelUnlocked(progress, game.id, l)

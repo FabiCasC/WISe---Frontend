@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { GameId, LevelId } from '../../shared/types'
 import { getGame } from '../../content/games'
+import { getTutorial } from '../../content/tutorials'
 
 /**
  * Enrutado por hash: recargar una URL profunda nunca da 404 en hosting
@@ -12,6 +13,7 @@ import { getGame } from '../../content/games'
  *   #/studio                 -> game studio (build your own game)
  *   #/profile                -> your profile: points and medals
  *   #/play/spirit/2          -> game (overlays the current page)
+ *   #/play/spirit/0          -> level 0: how to play, when the game has a tutorial
  *   #/teacher                -> create a class
  *   #/class  or  #/class/MOON-27 -> join a class (code already filled in)
  *   #/panel/<token>          -> private teacher dashboard
@@ -52,7 +54,8 @@ function parse(hash: string): Route | null {
   if (parts[0] === 'play' || parts[0] === 'jugar') {
     const game = getGame(parts[1] ?? '')
     const level = Number(parts[2] ?? 1)
-    if (game && game.status === 'live' && Number.isInteger(level) && level >= 1 && level <= game.levels) {
+    const first = getTutorial(game?.id ?? '') ? 0 : 1
+    if (game && game.status === 'live' && Number.isInteger(level) && level >= first && level <= game.levels) {
       return { name: 'play', gameId: game.id, levelId: level }
     }
     // Unknown or not-yet-playable game: back to the wall of games.
