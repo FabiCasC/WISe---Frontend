@@ -743,8 +743,13 @@
 
 .dg-editor__workspace {
   display: grid;
-  grid-template-columns: 216px 1fr 316px;
-  grid-template-rows: 1fr 220px;
+  /* The preview is the thing the student is building; at 316px it was
+     the narrowest panel on screen, 16% of the width, while the middle
+     column sat 1356px wide and mostly empty. The game gets the room. */
+  grid-template-columns: 216px minmax(0, 1fr) clamp(360px, 32vw, 680px);
+  /* The preview row hugs its own content; the sprite list below takes
+     whatever is left, instead of a gap sitting between the two. */
+  grid-template-rows: auto minmax(220px, 1fr);
   grid-template-areas:
     "left center right-top"
     "left center right-bottom";
@@ -2431,3 +2436,16 @@
 }
 
 .dg-howto strong { font-size: 15px; }
+
+
+/* --- The middle panel before a sprite is picked --------------------------- */
+
+.dg-empty-state {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0;
+  padding: 24px;
+}
+
+.dg-empty-state > * { max-width: 460px; }
