@@ -12,6 +12,7 @@ import {
   SAFE_VY,
   WORLD_W,
   boulderHeight,
+  conceptFor,
   conceptOk,
   createLander,
   judgeTouchdown,
@@ -33,12 +34,6 @@ const G = 520
 const sx = (x: number) => x * S
 const sy = (y: number) => G - y * S
 
-const CONCEPTS = {
-  1: 'gravedad-lunar-sexta-parte',
-  2: 'velocidad-horizontal-cero',
-  3: 'elegir-terreno-plano',
-} as const
-
 /**
  * LAND THE EAGLE
  * -------------------------------------------------------------------------
@@ -52,7 +47,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   const card = getArcade('apollo11-descent')
   const levelKey = (ctx.levelId >= 1 && ctx.levelId <= 3 ? ctx.levelId : 1) as 1 | 2 | 3
   const spec = LEVELS[levelKey]
-  const concept = CONCEPTS[levelKey]
+  const concept = conceptFor(levelKey)
   const practice = ctx.settings.practice
   const reduced = ctx.settings.reducedMotion
   const sfx = createSfx(ctx.settings.volume)

@@ -10,6 +10,7 @@ import {
   ENTRY,
   LEVELS,
   bounces,
+  conceptFor,
   conceptOk,
   createCraft,
   judgeLanding,
@@ -31,7 +32,6 @@ const W = 640
 const H = 560
 const CRAFT = { x: 300, y: 210 }
 const GAUGE = { x: 24, y: 70, w: 20, h: 330 }
-const CONCEPTS = { 1: 'escudo-termico-frena', 2: 'aire-fino-cohetes', 3: 'airbags-amortiguan' } as const
 const LABELS: Record<EventId, string> = { chute: 'Parachute', airbags: 'Airbags', rockets: 'Rockets', cut: 'Cut cord' }
 const KEYS: Record<string, EventId> = { Digit1: 'chute', Digit2: 'airbags', Digit3: 'rockets', Digit4: 'cut' }
 
@@ -48,7 +48,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   const card = getArcade('pathfinder-bounce')
   const levelKey = (ctx.levelId >= 1 && ctx.levelId <= 3 ? ctx.levelId : 1) as 1 | 2 | 3
   const spec = LEVELS[levelKey]
-  const concept = CONCEPTS[levelKey]
+  const concept = conceptFor(levelKey)
   const practice = ctx.settings.practice
   const reduced = ctx.settings.reducedMotion
   const sfx = createSfx(ctx.settings.volume)

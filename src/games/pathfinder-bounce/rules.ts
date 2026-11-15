@@ -272,3 +272,7 @@ export function simulate(
   }
   return { craft: c, landing: judgeLanding(c), log }
 }
+
+export function conceptFor(level: 1 | 2 | 3): string {
+  return level === 1 ? 'escudo-termico-frena' : level === 2 ? 'aire-fino-cohetes' : 'airbags-amortiguan'
+}

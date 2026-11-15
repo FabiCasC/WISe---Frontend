@@ -218,3 +218,7 @@ export function scoreLanding(t: Touchdown, fuelLeft: number, vy: number): number
   if (!t.landed) return 0
   return Math.round(500 + fuelLeft * 30 + Math.max(0, SAFE_VY + vy) * 100)
 }
+
+export function conceptFor(level: 1 | 2 | 3): string {
+  return level === 1 ? 'gravedad-lunar-sexta-parte' : level === 2 ? 'velocidad-horizontal-cero' : 'elegir-terreno-plano'
+}
