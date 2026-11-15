@@ -5,6 +5,7 @@ import './styles/tokens.css'
 import './styles/app.css'
 import './styles/home.css'
 import './styles/interstellar.css'
+import './styles/studio.css'
 
 const host = document.getElementById('root')
 
