@@ -80,6 +80,22 @@ const JOBS = [
     format: 'jpeg',
     quality: 82,
   },
+  // Game tiles: real NASA photos and artist concepts (public domain; see
+  // art/originales/games/CREDITS.txt). Square, small: they are thumbnails.
+  ...[
+    'dust-run', 'gusev-maze', 'orbital-grid', 'sun-shade', 'eagle-liftoff', 'lunar-rover',
+    'pathfinder-bounce', 'sojourner-commands', 'phoenix-ice', 'ingenuity-flight', 'lro-search',
+    'dart-impact', 'artemis-landing', 'snake-express',
+  ].map((id) => ({
+    src: 'games/' + id + '.jpg',
+    out: 'games/' + id + '.webp',
+    width: 640,
+    height: 640,
+    format: 'webp',
+    quality: 70,
+    // The dust-storm strip goes from clear to dark sky: keep the clear end.
+    position: id === 'dust-run' ? 'west' : 'centre',
+  })),
 ]
 
 /** Aviso si una imagen se pasa del presupuesto de peso. El fondo de portada puede permitirse algo mas. */
@@ -104,7 +120,7 @@ async function main() {
     const from = join(SRC, job.src)
     const to = join(OUT, job.out)
 
-    if (!available.includes(job.src)) {
+    if (!available.includes(job.src.split('/')[0])) {
       console.error(`  ✕ falta  ${job.src}`)
       failures++
       continue
@@ -114,7 +130,7 @@ async function main() {
 
     const pipeline = sharp(from).resize(job.width, job.height, {
       fit: 'cover',
-      position: 'centre',
+      position: job.position ?? 'centre',
     })
 
     if (job.format === 'webp') pipeline.webp({ quality: job.quality, effort: 6 })

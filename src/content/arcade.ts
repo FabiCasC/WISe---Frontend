@@ -79,7 +79,7 @@ export const ARCADE: ArcadeCard[] = [
         meaning: 'Apollo crews set up experiments that stayed on the Moon and kept sending data to Earth for years after they left.',
       },
     ],
-    sources: ['nasa-moon-composition', 'nssdc-apollo11-lm', 'nssdc-apollo15-alsep'],
+    sources: ['nasa-moon-composition', 'nssdc-apollo11-lm', 'nssdc-apollo15-alsep', 'nssdc-alsep-apollo12'],
   },
   {
     gameId: 'dust-run',
