@@ -21,6 +21,10 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
   let activeMs = 0
   let wrong = 0
   let metrics = newMetrics()
+  /** Every judged attempt is one decision about this level's concept. */
+  const concept =
+    ctx.levelId === 1 ? 'laser-mide-distancia' : ctx.levelId === 2 ? 'tres-estaciones-ubican-sismo' : 'datos-insuficientes'
+  const decisions: { concept: string; correct: boolean }[] = []
   let raf = 0
   const sfx = createSfx(ctx.settings.volume)
 
@@ -59,6 +63,7 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
       completed: true,
       evidenceIds: mission?.evidence.map((e) => e.id) ?? [],
       firstAnswerCorrect: metrics.firstAttemptCorrect,
+      decisions: ctx.settings.practice ? [] : decisions,
     })
   }
 
@@ -68,6 +73,7 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
     sfx,
     judge(correct) {
       metrics = recordAttempt(metrics, correct)
+      decisions.push({ concept, correct })
       if (!correct) wrong += 1
     },
     finish(conclusion) {

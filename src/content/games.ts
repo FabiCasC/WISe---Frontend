@@ -109,9 +109,9 @@ export const GAMES: GameEntry[] = [
     icon: 'wave',
     levels: 3,
     concepts: [
-      { id: 'tres-estaciones-ubican-sismo', label: 'Three stations are needed to locate a moonquake' },
-      { id: 'retrorreflector-devuelve-luz', label: 'A retroreflector sends light back where it came from' },
-      { id: 'laser-mide-distancia', label: 'Laser round-trip time measures distance' },
+      { id: 'laser-mide-distancia', label: 'A laser’s round-trip time to the Apollo retroreflector measures the distance to the Moon' },
+      { id: 'tres-estaciones-ubican-sismo', label: 'Three seismometer stations are needed to locate a moonquake' },
+      { id: 'datos-insuficientes', label: 'With too few stations, a scientist says the data is not enough' },
     ],
     status: 'live',
     art: 'assets/missions/lunar-signals.webp',
