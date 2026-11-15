@@ -135,6 +135,20 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1972-096C',
     accessed: '2026-11-15',
   },
+  'nssdc-lrv': {
+    id: 'nssdc-lrv',
+    title: 'The Apollo Lunar Roving Vehicle (non-rechargeable batteries, navigation computer, distances from the LM)',
+    publisher: 'NASA NSSDCA',
+    url: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/apollo_lrv.html',
+    accessed: '2026-11-15',
+  },
+  'nasa-apollo15-hadley': {
+    id: 'nasa-apollo15-hadley',
+    title: '50 Years Ago: Apollo 15 on the Moon at Hadley-Apennine (stations at Elbow, St. George and Spur craters)',
+    publisher: 'NASA History',
+    url: 'https://www.nasa.gov/history/50-years-ago-apollo-15-on-the-moon-at-hadley-apennine/',
+    accessed: '2026-11-15',
+  },
   'spaceapps': {
     id: 'spaceapps',
     title: 'NASA Space Apps Challenge 2026',

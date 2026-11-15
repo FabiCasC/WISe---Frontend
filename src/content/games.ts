@@ -197,6 +197,20 @@ export const GAMES: GameEntry[] = [
     isNew: true,
     size: 'wide',
   },
+  {
+    id: 'lunar-rover',
+    title: 'Moon Buggy Run',
+    destination: 'moon',
+    icon: 'rover',
+    levels: 3,
+    concepts: [
+      { id: 'bateria-no-recargable', label: 'The Apollo rover’s batteries could not be recharged: plan a short route' },
+      { id: 'distancia-caminando-al-lm', label: 'Stay close enough to walk back to the lunar module if the rover breaks' },
+      { id: 'navegar-de-vuelta-al-lm', label: 'The rover’s navigation computer always knew the way back to the lunar module' },
+    ],
+    status: 'live',
+    isNew: true,
+  },
 
   // ------------------------------------------------------- COMING SOON
   soon('hubble-focus', 'Hubble Focus', 'orbit', 'scope', 7, ['Mirrors focus light', 'A blurry image has a cause', 'Telescopes can be repaired in orbit'], { size: 'big', isNew: true }),

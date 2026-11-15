@@ -7,6 +7,7 @@ export type ArcadeId =
   | 'orbital-grid'
   | 'sun-shade'
   | 'apollo11-descent'
+  | 'lunar-rover'
 
 /**
  * SALA ARCADE — minijuegos cortos.
@@ -174,6 +175,32 @@ export const ARCADE: ArcadeCard[] = [
       },
     ],
     sources: ['nssdc-moon-facts', 'nssdc-apollo11-lm', 'nasa-apollo11-landing', 'nssdc-apollo17-lm'],
+  },
+  {
+    gameId: 'lunar-rover',
+    title: 'Moon Buggy Run',
+    kicker: 'Drive and return · Lunar Roving Vehicle',
+    genre: 'Top-down driving',
+    fact:
+      'Three Lunar Roving Vehicles were driven on the Moon, on Apollo 15, 16 and 17, and all three were left there. Each ran on two 36-volt batteries that could not be recharged. A navigation computer kept track of the direction and distance back to the lunar module. The farthest the rovers got from their lunar module was 5.0 km, 4.5 km and 7.6 km.',
+    dramatization:
+      'Time is sped up and the map is small. The battery is counted in metres of driving, and the size of the walk-back circle is a game number: Apollo planners did keep drives close enough for the crew to walk back if the rover failed, but their real limits changed during each moonwalk. Station names on level 1 come from Apollo 15; their places on the map are invented.',
+    learning: 'An explorer with a battery that never recharges must plan the route and always know the way home.',
+    accent: '#9FD0FF',
+    durationMin: [2, 4],
+    levels: [
+      { id: 1, name: 'No charger on the Moon', goal: '3 samples and back with a battery that never recharges' },
+      { id: 2, name: 'Walking distance', goal: 'Never leave the walk-back circle' },
+      { id: 3, name: 'Find the way home', goal: 'Hills hide the LM: follow the navigation arrow' },
+    ],
+    evidence: [
+      {
+        id: 'ev-lrv',
+        label: 'Lunar Roving Vehicle',
+        meaning: 'Three electric rovers carried astronauts across the Moon in 1971 and 1972. They are still parked at the Apollo 15, 16 and 17 sites.',
+      },
+    ],
+    sources: ['nssdc-lrv', 'nssdc-apollo15-alsep', 'nasa-apollo15-hadley'],
   },
 ]
 
