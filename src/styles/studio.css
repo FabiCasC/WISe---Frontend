@@ -294,3 +294,209 @@
   .bay__state { grid-column: 2; justify-self: start; margin-top: 6px; }
   .bay__option { flex-direction: column; align-items: flex-start; gap: 6px; }
 }
+
+/* =========================================================================
+   TEST BENCHES
+   -------------------------------------------------------------------------
+   The part the student actually does. Colour is used to separate things
+   that behave differently (ground, dust, the two spacecraft), never as the
+   only way to tell a state: every state is also a word on screen.
+   ========================================================================= */
+
+.bench {
+  --bench-go: #f0a500;
+  --bench-ok: #2f9e6b;
+  --bench-warn: #d2601c;
+  --bench-cool: #3f8fd2;
+  --bench-ink: var(--text);
+
+  margin: 18px 0 22px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--hairline);
+  background: var(--panel);
+}
+
+.bench__ask {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.bench__stage {
+  border-radius: 12px;
+  background: var(--panel-2, rgb(var(--fg-rgb) / 0.04));
+  padding: 8px;
+}
+
+.bench__svg { display: block; width: 100%; height: auto; }
+
+.bench__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bench__btn {
+  padding: 11px 16px;
+  border-radius: 999px;
+  border: 2px solid var(--hairline);
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bench__btn:hover { border-color: var(--bench-go); }
+
+.bench__btn:focus-visible {
+  outline: 3px solid var(--bench-go);
+  outline-offset: 2px;
+}
+
+.bench__btn.is-on {
+  border-color: var(--bench-cool);
+  background: rgb(63 143 210 / 0.14);
+}
+
+.bench__btn--go {
+  border-color: transparent;
+  background: var(--bench-go);
+  color: #1b1200;
+}
+
+.bench__btn--go:hover { filter: brightness(1.06); }
+
+.bench__readout {
+  margin-left: auto;
+  font-size: 15px;
+  color: var(--text-dim);
+}
+
+.bench__readout strong { color: var(--text); font-size: 17px; }
+
+.bench__hint { margin: 10px 0 0; font-size: 14px; color: var(--text-faint); }
+
+.bench__result {
+  margin: 10px 0 0;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: rgb(47 158 107 / 0.14);
+  border-left: 4px solid var(--bench-ok);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* --- Shapes inside the stages ------------------------------------------ */
+
+.bench__label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  fill: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.bench__ground { stroke: var(--text-faint); stroke-width: 2; }
+.bench__rock { fill: var(--text-faint); }
+
+.bench__rover {
+  fill: var(--bench-cool);
+  transition: fill 160ms linear;
+}
+
+.bench__rover.is-stuck { fill: var(--bench-warn); }
+.bench__wheel { fill: var(--text-dim); }
+
+.bench__map { fill: rgb(var(--fg-rgb) / 0.05); }
+.bench__ring { fill: none; stroke: var(--bench-cool); stroke-width: 2; opacity: 0.75; }
+.bench__station { fill: var(--text-faint); }
+.bench__station.is-on { fill: var(--bench-go); }
+
+.bench__candidate {
+  fill: none;
+  stroke: var(--bench-warn);
+  stroke-width: 3;
+}
+
+.bench__panel { fill: var(--bench-cool); }
+.bench__dust { fill: #b9a98f; }
+.bench__grid line { stroke: rgb(255 255 255 / 0.3); stroke-width: 1; }
+.bench__bar { fill: rgb(var(--fg-rgb) / 0.14); }
+.bench__barfill { fill: var(--bench-ok); transition: fill 200ms linear; }
+.bench__barfill.is-low { fill: var(--bench-warn); }
+
+.bench__moon { fill: var(--text-faint); }
+.bench__orbit { fill: none; stroke: var(--hairline); stroke-width: 2; stroke-dasharray: 4 6; }
+.bench__orbit.is-on { stroke: var(--bench-go); stroke-dasharray: none; }
+.bench__columbia { fill: var(--bench-cool); }
+.bench__eagle { fill: var(--bench-go); }
+
+/* --- What you saw ------------------------------------------------------- */
+
+.bay__seen {
+  display: grid;
+  gap: 6px;
+  margin: 18px 0 4px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  background: var(--panel);
+}
+
+.bay__saw { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.35; }
+.bay__says { margin: 0; font-size: 15px; color: var(--text-dim); line-height: 1.4; }
+
+.bay__prompt { margin: 16px 0 8px; font-size: 16px; font-weight: 600; }
+
+.bay__chip {
+  padding: 11px 18px;
+  border-radius: 999px;
+  border: 2px solid var(--hairline);
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bay__chip:hover:not(:disabled) { border-color: var(--bench-go); }
+
+.bay__chip:focus-visible {
+  outline: 3px solid var(--bench-go);
+  outline-offset: 2px;
+}
+
+.bay__chip.is-wrong {
+  opacity: 0.45;
+  cursor: default;
+  text-decoration: line-through;
+}
+
+.bay__note {
+  margin: 12px 0 0;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border-left: 4px solid var(--text-faint);
+  background: var(--panel);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.bay__note.is-right { border-left-color: var(--bench-ok); }
+
+.bay__card.is-fixed { border-color: var(--bench-ok); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bench__rover,
+  .bench__barfill { transition: none; }
+}

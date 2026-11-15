@@ -5,6 +5,7 @@ import { getRank, learnedConcepts, nextRank } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
 import { IconPlay, IconStar, IconTeacher } from '../components/Art'
 import GamesSection from '../components/GamesSection'
+import HeroConstellation from '../components/HeroConstellation'
 import Horizons from '../components/Horizons'
 import JoinBox from '../components/JoinBox'
 import SiteFooter from '../components/SiteFooter'
@@ -29,6 +30,7 @@ export default function Home({ role, progress, membership, onOpenGame }: Props) 
     <>
       {/* ============================================================ BAND */}
       <section className="band" aria-labelledby="band-title">
+        <HeroConstellation reducedMotion={progress.settings.reducedMotion} />
         <Horizons />
         <div className="band__inner">
           <h1 className="band__title" id="band-title">

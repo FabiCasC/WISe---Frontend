@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { REPAIRS, correctOption, getRepair } from './repairs'
+import { REPAIRS, correctOption, getRepair, wordCount } from './repairs'
 import { getGame } from './games'
 import { SOURCES } from './sources'
 
@@ -7,6 +7,10 @@ import { SOURCES } from './sources'
  * The Repair Bay only works if everything in it is real: a real game, a real
  * concept the teacher dashboard knows, and a real NASA source the student can
  * open. These tests are what stop a plausible-sounding mission being invented.
+ *
+ * They also hold the reading budget. The bay is for children of about nine to
+ * fourteen, working on their own, so every line they must read to act is kept
+ * short. A paragraph creeping back in is a bug, and it fails here.
  */
 describe('every repair mission is anchored to something real', () => {
   for (const m of REPAIRS) {
@@ -18,8 +22,7 @@ describe('every repair mission is anchored to something real', () => {
       })
 
       it('teaches a concept that game actually declares', () => {
-        const game = getGame(m.gameId)!
-        const declared = game.concepts.map((c) => c.id)
+        const declared = getGame(m.gameId)!.concepts.map((c) => c.id)
         expect(declared, m.id + ' -> ' + m.concept).toContain(m.concept)
       })
 
@@ -30,46 +33,76 @@ describe('every repair mission is anchored to something real', () => {
         expect(s.accessed).toBeTruthy()
       })
 
+      it('hands the student a bench to run', () => {
+        expect(m.bench.length).toBeGreaterThan(0)
+      })
+
       it('has exactly one right answer', () => {
         const right = m.options.filter((o) => o.correct)
         expect(right.length, m.id).toBe(1)
         expect(correctOption(m).id).toBe(right[0]!.id)
       })
 
-      it('offers a real choice, and every option explains itself', () => {
+      it('offers a real choice, and every option answers back in one line', () => {
         expect(m.options.length).toBeGreaterThanOrEqual(3)
         for (const o of m.options) {
-          // A wrong option that is obviously silly teaches nothing: each one
-          // has to be argued down with physics, not dismissed.
-          expect(o.feedback.length, m.id + '/' + o.id).toBeGreaterThan(80)
-          expect(o.label.length).toBeGreaterThan(0)
+          expect(o.label.length, m.id + '/' + o.id).toBeGreaterThan(0)
+          expect(wordCount(o.label), 'chip "' + o.label + '" is a sentence').toBeLessThanOrEqual(4)
+          expect(wordCount(o.note), m.id + '/' + o.id + ' note').toBeLessThanOrEqual(16)
         }
       })
 
-      it('says what the real repair changed', () => {
-        expect(m.fixedIn.length).toBeGreaterThan(40)
-        expect(m.symptom.length).toBeGreaterThan(40)
-      })
-
-      it('shows a rule with a slot to repair', () => {
-        expect(m.rule.before.length).toBeGreaterThan(0)
-        expect(m.rule.slot.length).toBeGreaterThan(0)
-        expect(m.rule.after.length).toBeGreaterThan(0)
-      })
-
       it('has a repaired rule that actually differs from the broken one', () => {
-        expect(m.ruleFixed.before.length).toBeGreaterThan(0)
-        expect(m.ruleFixed.slot.length).toBeGreaterThan(0)
-        expect(m.ruleFixed.after.length).toBeGreaterThan(0)
         const broken = [...m.rule.before, m.rule.slot, ...m.rule.after].join(' | ')
         const fixed = [...m.ruleFixed.before, m.ruleFixed.slot, ...m.ruleFixed.after].join(' | ')
         expect(fixed, m.id).not.toBe(broken)
+        expect(m.ruleFixed.slot).not.toBe(m.rule.slot)
       })
 
-      it('never leaves the repaired rule saying the broken thing', () => {
-        // The slot the game shipped with must not survive into the repair:
-        // this is what catches "IF the rover is taller THEN it sinks".
-        expect(m.ruleFixed.slot).not.toBe(m.rule.slot)
+      it('says what the real repair changed', () => {
+        expect(m.fixedIn.length).toBeGreaterThan(20)
+      })
+    })
+  }
+})
+
+describe('the reading budget: a child works through this alone', () => {
+  for (const m of REPAIRS) {
+    describe(m.id, () => {
+      it('asks its question in one short line', () => {
+        expect(wordCount(m.ask), m.ask).toBeLessThanOrEqual(9)
+      })
+
+      it('states the title at a glance', () => {
+        expect(wordCount(m.title), m.title).toBeLessThanOrEqual(6)
+      })
+
+      it('reports the observation in one short line', () => {
+        expect(wordCount(m.observation), m.observation).toBeLessThanOrEqual(12)
+      })
+
+      it('names the contradiction in one short line', () => {
+        expect(wordCount(m.gameSays), m.gameSays).toBeLessThanOrEqual(12)
+      })
+
+      it('keeps every block line short enough to read inside a block', () => {
+        const lines = [
+          ...m.rule.before,
+          m.rule.slot,
+          ...m.rule.after,
+          ...m.ruleFixed.before,
+          m.ruleFixed.slot,
+          ...m.ruleFixed.after,
+        ]
+        for (const l of lines) expect(wordCount(l), l).toBeLessThanOrEqual(9)
+      })
+
+      it('keeps the NASA card to a few sentences, since it only confirms', () => {
+        expect(wordCount(m.evidence.text), m.id).toBeLessThanOrEqual(45)
+      })
+
+      it('says what changed in one short line', () => {
+        expect(wordCount(m.fixedIn), m.fixedIn).toBeLessThanOrEqual(14)
       })
     })
   }
@@ -79,6 +112,11 @@ describe('the set as a whole', () => {
   it('has unique ids', () => {
     const ids = REPAIRS.map((r) => r.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('gives every mission its own bench, so no two feel the same', () => {
+    const benches = REPAIRS.map((r) => r.bench)
+    expect(new Set(benches).size).toBe(benches.length)
   })
 
   it('covers more than one game, so the skill is not about one puzzle', () => {
@@ -91,28 +129,31 @@ describe('the set as a whole', () => {
   })
 
   it('carries no emoji anywhere: this screen is read by children and by screen readers', () => {
-    // Pictographs, dingbats, symbols and variation selectors.
     const emoji = /[\u{1F000}-\u{1FAFF}\u{2190}-\u{21FF}\u{2600}-\u{27BF}\u{FE0F}]/u
     for (const m of REPAIRS) {
       const text = [
         m.title,
-        m.symptom,
-        m.question,
+        m.ask,
+        m.observation,
+        m.gameSays,
         m.evidence.text,
         m.fixedIn,
         m.rule.slot,
         ...m.rule.before,
         ...m.rule.after,
-        ...m.options.flatMap((o) => [o.label, o.feedback]),
+        ...m.ruleFixed.before,
+        ...m.ruleFixed.after,
+        ...m.options.flatMap((o) => [o.label, o.note]),
       ].join(' ')
       expect(emoji.test(text), m.id + ' contains an emoji or arrow glyph').toBe(false)
     }
   })
+})
 
-  it('states the correct answer in plain words a child can act on', () => {
-    for (const m of REPAIRS) {
-      const right = correctOption(m)
-      expect(right.feedback.toLowerCase(), m.id).toMatch(/correct/)
-    }
+describe('wordCount', () => {
+  it('counts words, not spaces', () => {
+    expect(wordCount('one two three')).toBe(3)
+    expect(wordCount('  padded   out  ')).toBe(2)
+    expect(wordCount('')).toBe(0)
   })
 })
