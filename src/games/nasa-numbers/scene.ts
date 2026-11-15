@@ -1,6 +1,6 @@
 import type { GameContext, GameController } from '../../shared/types'
 import { getMission } from '../../content/missions'
-import { LEVELS, sourcesOf } from './questions'
+import { LevelNumber, LEVELS, sourcesOf } from './questions'
 import {
   HINT_AFTER, PASS_MARK, attemptsFor, judgeGuess, levelPassed, pointsFor,
   rankFor, shuffledOrder, type Question,
@@ -27,7 +27,8 @@ function sourceLink(label: string, url: string, prefix = ''): HTMLAnchorElement 
 }
 
 export function mountNumberQuest(container: HTMLElement, ctx: GameContext): GameController {
-  const level = LEVELS[ctx.levelId]
+  // En la línea 30 de src/games/nasa-numbers/scene.ts
+const level = LEVELS[ctx.levelId as LevelNumber]
   const practice = ctx.settings.practice
   // Same seed, same question order: a failure can be reproduced exactly.
   const questions: Question[] = shuffledOrder(level.questions, ctx.seed)
@@ -212,7 +213,7 @@ export function mountNumberQuest(container: HTMLElement, ctx: GameContext): Game
     )
 
     const list = el('ul')
-    for (const s of sourcesOf(ctx.levelId)) {
+    for (const s of sourcesOf(ctx.levelId as LevelNumber)) {
       const li = el('li')
       li.append(sourceLink(s.label, s.url))
       list.append(li)

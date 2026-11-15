@@ -1,17 +1,28 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { ArchiveItem } from '../content/archive'
-import { getMission, type MissionCard } from '../content/missions'
+import { getGame, type GameEntry } from '../content/games'
+import { getMission } from '../content/missions'
 import {
-  getPlayerId,
   loadMembership,
   localClassService,
   saveMembership,
   type Membership,
 } from '../shared/classroom'
+import {
+  addClassIn,
+  currentAccount,
+  loadAccountDb,
+  logInIn,
+  logOutIn,
+  saveAccountDb,
+  signUpIn,
+  type Account,
+  type AccountDb,
+} from '../shared/accounts'
+import { computeMedals, medalStatsFromProgress } from '../shared/medals'
 import { applyResult, isLevelUnlocked, nextPlayableLevel } from '../shared/progress'
 import type { GameId, GameResult, LevelId } from '../shared/types'
-import ArchiveCard from './components/ArchiveCard'
 import Dossier from './components/Dossier'
+import { GameSheet } from './components/GameWall'
 import SettingsPanel from './components/SettingsPanel'
 import Sky from './components/Sky'
 import Topbar from './components/Topbar'
@@ -19,9 +30,12 @@ import GameHost from './GameHost'
 import { navigate, useHashRoute, useScrollReset, type PageRoute } from './hooks/useHashRoute'
 import { useProgress } from './hooks/useProgress'
 import Arcade from './pages/Arcade'
+import Auth from './pages/Auth'
 import Home from './pages/Home'
 import JoinClass from './pages/JoinClass'
 import Panel from './pages/Panel'
+import Profile from './pages/Profile'
+import Studio from './pages/Studio'
 import Teacher from './pages/Teacher'
 
 /** Servicio de clases. Cuando exista el backend se cambia aquí por el cliente de API. */
@@ -33,14 +47,67 @@ function pageKey(page: PageRoute): string {
   return page.name
 }
 
+/**
+ * Accounts are simulated for the MVP (see shared/accounts.ts). Nothing in the
+ * portal opens without one, and each account keeps its own progress.
+ */
 export default function App() {
-  const route = useHashRoute()
-  const { progress, storageOk, record, updateSettings, reset } = useProgress()
+  const [db, setDb] = useState<AccountDb>(loadAccountDb)
+  const account = currentAccount(db)
 
-  const [playerId] = useState(getPlayerId)
-  const [membership, setMembership] = useState<Membership | null>(loadMembership)
+  useEffect(() => {
+    saveAccountDb(db)
+  }, [db])
+
+  if (!account) {
+    return (
+      <>
+        <Sky reducedMotion={false} />
+        <Auth
+          db={db}
+          onSignUp={(input) => {
+            const r = signUpIn(db, input)
+            if (r.ok) setDb(r.db)
+            return r
+          }}
+          onLogIn={(username) => {
+            const r = logInIn(db, username)
+            if (r.ok) setDb(r.db)
+            return r
+          }}
+        />
+      </>
+    )
+  }
+
+  return (
+    <Portal
+      key={account.id}
+      account={account}
+      onLogout={() => {
+        navigate('#/')
+        setDb(logOutIn(db))
+      }}
+      onClassCreated={(code) => setDb(addClassIn(db, account.id, code))}
+    />
+  )
+}
+
+interface PortalProps {
+  account: Account
+  onLogout: () => void
+  onClassCreated: (code: string) => void
+}
+
+function Portal({ account, onLogout, onClassCreated }: PortalProps) {
+  const route = useHashRoute()
+  const { progress, storageOk, record, updateSettings, reset } = useProgress(account.id)
+
+  // The account id doubles as the anonymous id the class dashboard sees.
+  const playerId = account.id
+  const [membership, setMembership] = useState<Membership | null>(() => loadMembership(account.id))
   const [dossierId, setDossierId] = useState<GameId | null>(null)
-  const [archiveItem, setArchiveItem] = useState<ArchiveItem | null>(null)
+  const [sheetGame, setSheetGame] = useState<GameEntry | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -59,13 +126,20 @@ export default function App() {
     }
   }, [route])
 
+  // A #/play link to an unknown or not-yet-playable game shows the arcade:
+  // keep the address bar in step with what is on screen.
+  useEffect(() => {
+    if (route.name === 'arcade' && /^#\/(play|jugar)\b/.test(window.location.hash)) navigate('#/arcade')
+  }, [route])
+
   // Cambiar de página vuelve arriba; moverse por anclas no.
   useScrollReset(pageKey(page))
 
   // Una URL directa a un nivel bloqueado lleva al nivel que sí está abierto.
   useEffect(() => {
     if (route.name === 'play' && !isLevelUnlocked(progress, route.gameId, route.levelId)) {
-      navigate(`#/jugar/${route.gameId}/${nextPlayableLevel(progress, route.gameId)}`)
+      const levels = getGame(route.gameId)?.levels ?? 1
+      navigate(`#/play/${route.gameId}/${nextPlayableLevel(progress, route.gameId, levels)}`)
     }
   }, [route, progress])
 
@@ -73,7 +147,7 @@ export default function App() {
   useEffect(() => {
     if (!storageOk) {
       setToast(
-        'Este navegador bloquea el guardado local: podrás jugar, pero el progreso no se conservará.',
+        'This browser blocks local saving: you can play, but your progress will not be kept.',
       )
     }
   }, [storageOk])
@@ -84,15 +158,21 @@ export default function App() {
     return () => window.clearTimeout(t)
   }, [toast])
 
+  /** Opens a game. Every game is open; inside a game, levels go in order. */
   const play = useCallback(
-    (mission: MissionCard, levelId?: LevelId) => {
+    (gameId: GameId, levelId?: LevelId) => {
+      const game = getGame(gameId)
       setDossierId(null)
-      setArchiveItem(null)
+      setSheetGame(null)
+      if (!game || game.status !== 'live') {
+        if (game) setSheetGame(game)
+        return
+      }
       const lvl =
-        levelId && isLevelUnlocked(progress, mission.gameId, levelId)
+        levelId && levelId <= game.levels && isLevelUnlocked(progress, gameId, levelId)
           ? levelId
-          : nextPlayableLevel(progress, mission.gameId)
-      navigate(`#/jugar/${mission.gameId}/${lvl}`)
+          : nextPlayableLevel(progress, gameId, game.levels)
+      navigate(`#/play/${gameId}/${lvl}`)
     },
     [progress],
   )
@@ -108,11 +188,20 @@ export default function App() {
           /* el respaldo local nunca debe interrumpir la partida */
         })
       }
-      const mission = getMission(result.gameId)
+      const game = getGame(result.gameId)
+      const title = game?.title ?? getMission(result.gameId)?.title ?? result.gameId
+      // A finished level goes straight on to the next one of the same game:
+      // the player stays in the game and sees every level in order. Only the
+      // last level (or leaving on purpose) returns to the arcade.
+      if (result.completed && game && result.levelId < game.levels) {
+        setToast(`Level ${result.levelId} complete! Level ${result.levelId + 1} of ${game.levels}`)
+        navigate(`#/play/${result.gameId}/${result.levelId + 1}`)
+        return
+      }
       setToast(
         result.completed
-          ? `¡Nivel completado en ${mission?.title ?? result.gameId}!`
-          : 'Partida cerrada sin completar. Puedes reintentar cuando quieras.',
+          ? `You finished every level of ${title}!`
+          : 'Game closed before finishing. You can try again any time.',
       )
       exitGame()
     },
@@ -120,30 +209,36 @@ export default function App() {
   )
 
   const joined = useCallback((m: Membership) => {
-    saveMembership(m)
+    saveMembership(m, account.id)
     setMembership(m)
-  }, [])
+  }, [account.id])
 
   const leaveClass = useCallback(() => {
-    saveMembership(null)
+    saveMembership(null, account.id)
     setMembership(null)
-    setToast('Saliste de la clase. Tu progreso sigue aquí, en modo personal.')
+    setToast('You left the class. Your progress is still here, in solo mode.')
     navigate('#/')
-  }, [])
+  }, [account.id])
 
   const dossierMission = dossierId ? getMission(dossierId) : undefined
+
+  const medalStats = medalStatsFromProgress(progress, {
+    gamesCreated: account.gamesCreated,
+    classesCreated: account.classCodes.length,
+  })
+  const medals = computeMedals(medalStats, account.role)
 
   return (
     <>
       <Sky reducedMotion={progress.settings.reducedMotion} />
 
-      <a className="skip-link" href={page.name === 'landing' ? '#juegos' : '#main'}>
-        {page.name === 'landing' ? 'Saltar a los juegos' : 'Saltar al contenido'}
+      <a className="skip-link" href="#main">
+        Skip to content
       </a>
 
       <div className="shell">
         <Topbar
-          isHome={page.name === 'landing'}
+          account={account}
           progress={progress}
           membership={membership}
           onSettings={() => setSettingsOpen(true)}
@@ -151,9 +246,30 @@ export default function App() {
 
         <main id="main">
           {page.name === 'arcade' && (
-            <Arcade progress={progress} onPlay={(m) => play(m)} onItem={setArchiveItem} />
+            <Arcade progress={progress} membership={membership} onOpenGame={setSheetGame} />
           )}
-          {page.name === 'teacher' && <Teacher service={classService} />}
+          {page.name === 'studio' && <Studio />}
+          {page.name === 'profile' && (
+            <Profile
+              account={account}
+              progress={progress}
+              stats={medalStats}
+              medals={medals}
+              onLogout={onLogout}
+            />
+          )}
+          {page.name === 'teacher' &&
+            (account.role === 'teacher' ? (
+              <Teacher service={classService} onCreated={onClassCreated} />
+            ) : (
+              <section className="section wrap page">
+                <h1 className="page__title">Teachers only</h1>
+                <p className="page__lede">
+                  Classes are created by teachers. Ask your teacher for a class code and type it on
+                  the home page.
+                </p>
+              </section>
+            ))}
           {page.name === 'join' && (
             <JoinClass
               key={page.code ?? ''}
@@ -169,12 +285,7 @@ export default function App() {
             <Panel key={page.token} token={page.token} service={classService} />
           )}
           {page.name === 'landing' && (
-            <Home
-              progress={progress}
-              membership={membership}
-              onPlay={play}
-              onDossier={setDossierId}
-            />
+            <Home progress={progress} membership={membership} onOpenGame={setSheetGame} />
           )}
         </main>
       </div>
@@ -194,15 +305,20 @@ export default function App() {
         <Dossier
           mission={dossierMission}
           onClose={() => setDossierId(null)}
-          onPlay={() => play(dossierMission)}
+          onPlay={() => play(dossierMission.gameId)}
         />
       )}
 
-      {archiveItem && (
-        <ArchiveCard
-          item={archiveItem}
-          onClose={() => setArchiveItem(null)}
-          onPlay={(m) => play(m)}
+      {sheetGame && (
+        <GameSheet
+          game={sheetGame}
+          progress={progress}
+          onClose={() => setSheetGame(null)}
+          onPlay={(g, lvl) => play(g.id, lvl)}
+          onDossier={(id) => {
+            setSheetGame(null)
+            setDossierId(id)
+          }}
         />
       )}
 
@@ -213,7 +329,7 @@ export default function App() {
           onChange={updateSettings}
           onReset={() => {
             reset()
-            setToast('Progreso reiniciado.')
+            setToast('Progress reset.')
           }}
           onClose={() => setSettingsOpen(false)}
         />
@@ -226,9 +342,9 @@ export default function App() {
             type="button"
             className="btn btn--sm btn--quiet"
             onClick={() => setToast(null)}
-            aria-label="Cerrar aviso"
+            aria-label="Close message"
           >
-            Cerrar
+            Close
           </button>
         </div>
       )}

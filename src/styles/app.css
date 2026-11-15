@@ -1162,19 +1162,6 @@ a {
   background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
-.lvl {
-  width: 26px;
-  height: 7px;
-  border-radius: 999px;
-  background: rgb(var(--fg-rgb) / 0.14);
-  transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
-}
-
-.lvl.is-done {
-  background: var(--accent);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent);
-}
-
 /* =========================================================================
    6 · PASAPORTE
    ========================================================================= */
@@ -1528,6 +1515,12 @@ a {
   overflow: hidden;
   display: grid;
   place-items: center;
+}
+
+.arena__mount--spirit {
+  height: auto;
+  aspect-ratio: 1000 / 650;
+  max-height: 100%;
 }
 
 .arena__mount canvas {
@@ -1950,4 +1943,331 @@ a {
     mix-blend-mode: multiply;
     opacity: 0.35;
   }
+}
+
+/* =========================================================================
+   MINIJUEGOS DE LA SALA ARCADE
+   -------------------------------------------------------------------------
+   Estructura comun que monta src/games/shared/stage.ts:
+
+     .mg              contenedor que llena .arena__mount
+       .mg__hud       marcadores (distancia, energia, vidas, puntos)
+       .mg__frame     hueco del lienzo + capas superpuestas
+         .mg__canvas  el juego
+         .mg__overlay mensajes (inicio, victoria, derrota)
+         .mg__flashes avisos flotantes (+18 energia)
+       .mg__foot      ayuda de controles + botonera tactil
+
+   El lienzo mantiene su proporcion: el juego dibuja siempre en coordenadas
+   logicas y aqui solo se escala.
+   ========================================================================= */
+
+/* La sala de juego SIEMPRE es oscura (ver .arena), pero en modo claro los
+   tokens globales vuelven el texto azul marino: quedaria texto oscuro sobre
+   fondo oscuro. Dentro del juego se fijan los tokens de la paleta oscura. */
+.mg,
+.arena {
+  /* Interstellar dark palette, fixed: the game room is always night. */
+  color-scheme: dark;
+  --text: var(--c-starlight);
+  --text-dim: #c4bdad;
+  --text-faint: #a39d8e;
+  --bg-rgb: 5 6 10;
+  --surface-rgb: 13 16 23;
+  --panel: #0d1017;
+  --panel-2: #141925;
+  --panel-soft: #0d1017;
+  --hairline: #2a3142;
+  --hairline-soft: #1a2030;
+  --accent-rgb: 243 181 74;
+  --action: var(--c-gold);
+  --action-hi: var(--c-gold);
+  --action-deep: var(--c-gold-deep);
+  --on-accent: var(--c-ink);
+  --secondary: #141925;
+  --on-secondary: var(--c-starlight);
+  --link: #ffc96b;
+  color: var(--text);
+}
+
+.mg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  min-height: 0;
+}
+
+/* --- Marcadores ---------------------------------------------------------- */
+.mg__hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.mg__stat {
+  flex: 1 1 110px;
+  min-width: 92px;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline-soft);
+  background: rgb(var(--ink-rgb) / 0.5);
+}
+
+.mg__stat-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.mg__stat-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text);
+  /* Los numeros no deben bailar al cambiar. */
+  font-variant-numeric: tabular-nums;
+}
+
+.mg__stat.is-ok .mg__stat-value { color: var(--ok); }
+.mg__stat.is-warn .mg__stat-value { color: var(--warn); }
+.mg__stat.is-bad .mg__stat-value { color: #ff9aa8; }
+
+.mg__stat-bar {
+  margin-top: 5px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgb(var(--fg-rgb) / 0.14);
+  overflow: hidden;
+}
+
+.mg__stat-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--mg-accent, var(--action));
+  transition: width calc(var(--dur-fast) * var(--motion)) linear;
+}
+
+.mg__stat.is-ok .mg__stat-bar i { background: var(--ok); }
+.mg__stat.is-warn .mg__stat-bar i { background: var(--warn); }
+.mg__stat.is-bad .mg__stat-bar i { background: #ff9aa8; }
+
+/* --- Lienzo -------------------------------------------------------------- */
+.mg__frame {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.mg__canvas {
+  display: block;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline-soft);
+  box-shadow: 0 18px 50px -24px rgb(0 0 0 / 0.9);
+  /* Sin esto, arrastrar el dedo para jugar desplaza la pagina. */
+  touch-action: none;
+}
+
+/* --- Mensajes ------------------------------------------------------------ */
+.mg__overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border-radius: var(--r-md);
+  background: rgb(var(--ink-rgb) / 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fade calc(var(--dur) * var(--motion)) var(--ease);
+}
+
+.mg__overlay[hidden] { display: none; }
+
+.mg__card {
+  max-width: 480px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.mg__card-title {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 3.4vw, 28px);
+  font-weight: 800;
+  margin: 0;
+  color: var(--text);
+}
+
+.mg__overlay[data-tone='win'] .mg__card-title { color: var(--ok); }
+.mg__overlay[data-tone='lose'] .mg__card-title { color: #ff9aa8; }
+
+.mg__card-score {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--mg-accent, var(--action));
+  font-variant-numeric: tabular-nums;
+}
+
+.mg__card-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+
+/* La caja del dato real: es lo que separa este arcade de uno cualquiera. */
+.mg__card-fact {
+  margin: 2px 0 0;
+  padding: 10px 13px;
+  border-radius: var(--r-sm);
+  border: 1px solid rgb(var(--thistle-rgb) / 0.35);
+  background: rgb(var(--thistle-rgb) / 0.08);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-dim);
+  text-align: left;
+}
+
+.mg__card-fact b {
+  color: var(--badge);
+  font-weight: 700;
+}
+
+.mg__card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+/* --- Avisos flotantes ---------------------------------------------------- */
+.mg__flashes {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.mg__flash {
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-navy);
+  background: var(--ok);
+  box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.8);
+  animation: mg-rise 900ms var(--ease-out) forwards;
+}
+
+.mg__flash.is-bad { background: #ff9aa8; }
+
+@keyframes mg-rise {
+  0% { opacity: 0; transform: translateY(8px) scale(0.9); }
+  18% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-26px); }
+}
+
+:root[data-motion='reduced'] .mg__flash { animation: none; }
+
+/* --- Pie: ayuda y botonera tactil ---------------------------------------- */
+.mg__foot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.mg__hint {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+.mg__pad {
+  display: flex;
+  gap: 6px;
+}
+
+.mg__padbtn {
+  min-width: var(--tap);
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  background: rgb(var(--surface-rgb) / 0.8);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mg__padbtn:active {
+  background: var(--mg-accent, var(--action));
+  color: var(--on-accent);
+}
+
+/* En pantallas con raton la botonera estorba: el teclado ya basta. */
+@media (hover: hover) and (pointer: fine) {
+  .mg__pad { display: none; }
+}
+
+@media (max-width: 560px) {
+  .mg { padding: 6px; gap: 6px; }
+  .mg__stat { padding: 5px 8px; min-width: 76px; }
+  .mg__stat-value { font-size: 14px; }
+  .mg__hint { display: none; }
+  .mg__pad { width: 100%; justify-content: center; }
+}
+
+/* =========================================================================
+   TARJETA DE MINIJUEGO (sala arcade)
+   Reutiliza .gcard y solo cambia lo propio del arcade.
+   ========================================================================= */
+
+.mcard__scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mcard__tag {
+  background: rgb(var(--thistle-rgb) / 0.9);
+  color: var(--c-navy);
+}
+
+.mcard__time {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  white-space: nowrap;
 }

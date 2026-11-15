@@ -6,7 +6,7 @@ import type { GameId } from '../../shared/types'
 
 export function BrandGlyph({ className = 'brandmark__glyph' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 64 64" role="img" aria-label="Órbita Arcade">
+    <svg className={className} viewBox="0 0 64 64" role="img" aria-label="Orbita Arcade">
       <defs>
         <radialGradient id="bg-core" cx="38%" cy="32%">
           <stop offset="0" stopColor="#ffffff" />
@@ -115,6 +115,22 @@ export function IconLink({ size = 15 }: IconProps) {
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M14 5h5v5M19 5l-8 8" {...stroke} />
       <path d="M18 14v4a1.8 1.8 0 0 1-1.8 1.8H6A1.8 1.8 0 0 1 4.2 18V7.8A1.8 1.8 0 0 1 6 6h4" {...stroke} />
+    </svg>
+  )
+}
+
+export function IconCheck({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m5 12.5 4.5 4.5L19 7.5" {...stroke} strokeWidth={2.6} />
+    </svg>
+  )
+}
+
+export function IconCross({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" {...stroke} strokeWidth={2.6} />
     </svg>
   )
 }

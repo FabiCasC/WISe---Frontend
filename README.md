@@ -131,6 +131,11 @@ export async function mountGame(
 }
 ```
 
+El modulo de Spirit ya integra el juego Phaser local en
+[`src/games/spirit/engine/`](src/games/spirit/engine/). El portal le entrega el nivel
+seleccionado y los ajustes de practica/movimiento reducido; el canvas usa `Scale.FIT`
+dentro del escenario y reporta el resultado al mismo contrato.
+
 Reglas de Phaser que pide el plan: escalado `FIT`, conversión de coordenadas de entrada,
 y detener audio, temporizadores y listeners en `destroy`.
 

@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react'
 import type { GameId, LevelId } from '../../shared/types'
-import { GAME_IDS } from '../../shared/progress'
+import { getGame } from '../../content/games'
 
 /**
  * Enrutado por hash: recargar una URL profunda nunca da 404 en hosting
  * estático. Lo pide el plan (capa "Publicación").
  *
- *   #/                       -> portada
- *   #/arcade                 -> arcade: juegos destacados + archivo
- *   #/jugar/spirit/2         -> partida (se superpone a la página actual)
- *   #/profesor               -> crear una clase
- *   #/clase  o  #/clase/LUNA-27 -> entrar a una clase (con el código ya puesto)
- *   #/panel/<token>          -> panel privado del profesor
+ *   #/                       -> lobby: join a class, play solo or teacher
+ *   #/arcade                 -> the game wall (every game, Friv style)
+ *   #/studio                 -> game studio (build your own game)
+ *   #/profile                -> your profile: points and medals
+ *   #/play/spirit/2          -> game (overlays the current page)
+ *   #/teacher                -> create a class
+ *   #/class  or  #/class/MOON-27 -> join a class (code already filled in)
+ *   #/panel/<token>          -> private teacher dashboard
+ *   Spanish aliases (#/jugar, #/profesor, #/clase) still work.
  *
  * Convención: **una ruta siempre empieza por `#/`**. Cualquier otro hash
  * (`#equipo`, `#archivo`) es un ancla dentro de la página actual y NO debe
@@ -20,6 +23,8 @@ import { GAME_IDS } from '../../shared/progress'
 export type Route =
   | { name: 'landing' }
   | { name: 'arcade' }
+  | { name: 'studio' }
+  | { name: 'profile' }
   | { name: 'play'; gameId: GameId; levelId: LevelId }
   | { name: 'teacher' }
   | { name: 'join'; code: string | null }
@@ -37,16 +42,22 @@ function parse(hash: string): Route | null {
   const parts = hash.slice(2).split('/').filter(Boolean)
 
   if (parts[0] === 'arcade') return { name: 'arcade' }
-  if (parts[0] === 'profesor') return { name: 'teacher' }
-  if (parts[0] === 'clase') return { name: 'join', code: parts[1] ? decodeURIComponent(parts[1]) : null }
+  if (parts[0] === 'studio') return { name: 'studio' }
+  if (parts[0] === 'profile') return { name: 'profile' }
+  // English routes; the Spanish ones stay as aliases so shared links keep working.
+  if (parts[0] === 'teacher' || parts[0] === 'profesor') return { name: 'teacher' }
+  if (parts[0] === 'class' || parts[0] === 'clase')
+    return { name: 'join', code: parts[1] ? decodeURIComponent(parts[1]) : null }
   if (parts[0] === 'panel' && parts[1]) return { name: 'panel', token: parts[1] }
 
-  if (parts[0] === 'jugar') {
-    const gameId = parts[1] as GameId
+  if (parts[0] === 'play' || parts[0] === 'jugar') {
+    const game = getGame(parts[1] ?? '')
     const level = Number(parts[2] ?? 1)
-    if (GAME_IDS.includes(gameId) && [1, 2, 3].includes(level)) {
-      return { name: 'play', gameId, levelId: level as LevelId }
+    if (game && game.status === 'live' && Number.isInteger(level) && level >= 1 && level <= game.levels) {
+      return { name: 'play', gameId: game.id, levelId: level }
     }
+    // Unknown or not-yet-playable game: back to the wall.
+    return { name: 'arcade' }
   }
 
   return { name: 'landing' }
