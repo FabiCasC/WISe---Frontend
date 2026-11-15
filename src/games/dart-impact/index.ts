@@ -57,7 +57,13 @@ interface Particle {
  * DART IMPACT
  * -------------------------------------------------------------------------
  * Dimorphos circles Didymos once every 11.9 hours. You fly one 570 kg
- * spacecraft into it at 6.1 km/s and try to shorten that orbit.
+ * spacecraft into it at 6.14 km/s and try to shorten that orbit.
+ *
+ * On the numbers: NASA's public pages give the closing speed only as a
+ * rounded "about 22,500 km/h" and give no figure at all for the ejecta
+ * factor. The 6.14 km/s and beta ~ 3.6 used here come from the mission
+ * team's published analysis, which is paywalled and could not be opened to
+ * confirm it; see `dart-momentum-nature` in content/sources.ts.
  *
  * The whole game is one decision made twice: WHEN to release, and WHERE to
  * steer. Hit the moonlet while it is coming towards you and the impact

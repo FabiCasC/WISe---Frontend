@@ -89,6 +89,11 @@ export const LEVELS: Record<1 | 2 | 3, LevelSpec> = {
     csmStart: 260,
     burns: 3,
     timeLimit: 80,
+    // Checked by the sweep in rules.test.ts, which refuses any window this
+    // level cannot actually fly. Coasting on the insertion ring and climbing
+    // once only catches a lead of ~97°, but the 3 burns granted here buy the
+    // real manoeuvre (drop one orbit, close at 2.05°/s, climb back twice),
+    // which catches ~160° inside the 80 s. So 100° is winnable with margin.
     window: [5, 100],
     autoCatchUp: false,
     intro:
@@ -154,30 +159,87 @@ export function judgeInsertion(s: State, spec: LevelSpec): Verdict {
   }
 }
 
+export const ORBIT_CONCEPT = 'orbita-baja-mas-rapida'
+
+/**
+ * Why docking can no longer happen, or null while the run is still alive.
+ * Two dead ends exist, and both used to be silent until the clock ran out:
+ *  - Eagle sits on Columbia's ring outside docking range with no burn left:
+ *    the same ring means the same angular speed, so the gap is frozen for
+ *    good and no amount of waiting closes it;
+ *  - Eagle is more rings away from Columbia than it has burns left, and a
+ *    burn only ever moves one ring.
+ * Levels that fly the catch-up themselves (autoCatchUp) are exempt: there
+ * the game closes the last ring for the player, so zero burns is normal.
+ */
+export function strandedReason(s: State, spec?: LevelSpec): string | null {
+  if (spec?.autoCatchUp) return null
+  if (s.phase !== 'orbit' || s.ring < 0) return null
+  const rings = Math.abs(CSM_RING - s.ring)
+  if (rings === 0) {
+    if (Math.abs(gap(s)) <= DOCK_GAP || s.burnsLeft > 0) return null
+    return `Stranded: you are in Columbia's orbit but ${Math.round(Math.abs(gap(s)))}° away, with no burns left. The same orbit means the same speed, so this gap can never close. Catching up needs a LOWER, faster orbit first.`
+  }
+  if (s.burnsLeft >= rings) return null
+  const orbits = rings === 1 ? '1 orbit' : `${rings} orbits`
+  const left = s.burnsLeft === 1 ? '1 burn' : `${s.burnsLeft} burns`
+  return `Stranded: Columbia is ${orbits} away and you have ${left} left. Each burn moves one orbit, so you can no longer get back to it. Always keep enough fuel for the climb home.`
+}
+
 /**
  * A burn: 'down' (brake, drop to a lower and faster orbit) or 'up' (speed
  * up, climb to a higher and slower orbit). Returns a decision when the move
- * says something about the concept.
+ * says something about the concept. `spec` is optional only so older callers
+ * keep compiling; pass it so the stranding check knows the level's rules.
  */
-export function burn(s: State, dir: 'up' | 'down'): Verdict {
+export function burn(s: State, dir: 'up' | 'down', spec?: LevelSpec): Verdict {
   if (s.phase !== 'orbit' || s.burnsLeft <= 0) return null
   const next = s.ring + (dir === 'up' ? 1 : -1)
   if (next < 0 || next >= RINGS.length) return null
   const g = gap(s)
   s.ring = next
   s.burnsLeft -= 1
-  const concept = 'orbita-baja-mas-rapida'
+  const concept = ORBIT_CONCEPT
+  // A burn can end the run on the spot. Say so here, with the reason, rather
+  // than leaving the player to watch a frozen gap until the clock runs out.
+  const stuck = strandedReason(s, spec)
+  if (stuck) {
+    s.phase = 'failed'
+    s.reason = stuck
+    return { concept, correct: false, message: stuck }
+  }
   if (dir === 'up' && next > CSM_RING && g > DOCK_GAP * 2) {
     return { concept, correct: false, message: 'You climbed ABOVE Columbia: a higher orbit is slower, so it pulls away.' }
   }
-  if (dir === 'up' && next === CSM_RING && Math.abs(g) > 12) {
-    return { concept, correct: false, message: 'Back in Columbia\'s orbit, but too far away: now you move at the same speed and never close the gap.' }
+  // Docking needs DOCK_GAP, so that is the only band worth praising. The old
+  // hard-coded 12° band congratulated the player for a move that froze the
+  // gap at 5-12°: unwinnable, and logged to the teacher's stats as correct.
+  if (dir === 'up' && next === CSM_RING && Math.abs(g) > DOCK_GAP) {
+    return {
+      concept,
+      correct: false,
+      message: `Back in Columbia's orbit ${Math.round(Math.abs(g))}° away, outside the ${DOCK_GAP}° docking range: you now match its speed, so the gap stops closing. Drop lower again to keep gaining.`,
+    }
   }
-  if (dir === 'down' && g > DOCK_GAP) {
+  // Dropping from ABOVE Columbia only brings you back to its speed, never
+  // below it, so the gap stays stuck: praising it would teach the opposite of
+  // the lesson. Only a ring under Columbia is genuinely faster.
+  if (dir === 'down' && next === CSM_RING && Math.abs(g) > DOCK_GAP) {
+    return {
+      concept,
+      correct: false,
+      message: `Back in Columbia's orbit ${Math.round(Math.abs(g))}° away: the same orbit means the same speed, so the gap holds. Drop one more orbit to actually gain on it.`,
+    }
+  }
+  if (dir === 'down' && next < CSM_RING && g > DOCK_GAP) {
     return { concept, correct: true, message: 'Lower orbit: you are now faster than Columbia and closing in.' }
   }
-  if (dir === 'up' && next === CSM_RING && Math.abs(g) <= 12) {
-    return { concept, correct: true, message: 'Climbing back to Columbia\'s orbit right behind it.' }
+  if (dir === 'up' && next === CSM_RING && Math.abs(g) <= DOCK_GAP) {
+    return {
+      concept,
+      correct: true,
+      message: `Columbia's orbit with ${Math.round(Math.abs(g))}° to go, inside the ${DOCK_GAP}° docking range: your speeds match and the hatches meet.`,
+    }
   }
   return null
 }
@@ -214,6 +276,14 @@ export function step(s: State, spec: LevelSpec, dt: number): Verdict {
   if (s.ring === CSM_RING && Math.abs(g) <= DOCK_GAP) {
     s.phase = 'docked'
     return null
+  }
+  // Catch a dead end that no burn produced (a level that starts the player
+  // already out of reach, say), so the loss is still explained, not timed out.
+  const stuck = strandedReason(s, spec)
+  if (stuck) {
+    s.phase = 'failed'
+    s.reason = stuck
+    return { concept: ORBIT_CONCEPT, correct: false, message: stuck }
   }
   if (s.t >= spec.timeLimit) {
     s.phase = 'failed'

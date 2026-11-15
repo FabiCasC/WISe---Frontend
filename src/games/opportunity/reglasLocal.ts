@@ -215,6 +215,11 @@ export function crearReglasLocal(
 
         const esMeta = g.ficha in nivel.metas
 
+        // Only the match the player actually aimed at (k === 0) advances the objective.
+        // Cascade matches (k > 0) fall in by chance, so they keep scoring points but
+        // must not satisfy the goal: otherwise random tapping clears every level.
+        const cuentaParaMeta = k === 0
+
         // REGLA EDUCATIVA NIVEL 2:
         // El jugador DEBE completar primero las 6 unidades de RAT antes de contabilizar espectrómetros.
         // Solo cuenta como mala decision el intercambio del jugador (k === 0):
@@ -232,7 +237,7 @@ export function crearReglasLocal(
             mensaje: desc,
           })
           // Las fichas eliminadas puntúan normalmente, pero NO suman al objetivo.
-        } else if (esMeta) {
+        } else if (esMeta && cuentaParaMeta) {
           conteo[g.ficha] = (conteo[g.ficha] ?? 0) + g.celdas.length
         }
       }

@@ -14,16 +14,17 @@ export const STYLES = `
 
 /* Level 1 */
 .ls-l1{display:flex;flex-direction:column;gap:14px;max-width:760px}
-.ls-track{padding:30px 40px;border-radius:14px;background:rgba(10,26,48,.7);border:1px solid rgba(109,226,242,.25)}
+.ls-track{display:flex;flex-direction:column;gap:16px;padding:30px 40px;border-radius:14px;background:rgba(10,26,48,.7);border:1px solid rgba(109,226,242,.25)}
 .ls-rail{position:relative;height:8px}
 .ls-line{position:absolute;inset:3px 0;height:2px;background:rgba(109,226,242,.35)}
-.ls-earth,.ls-moon,.ls-pulse,.ls-marker{position:absolute;top:50%;transform:translate(-50%,-50%)}
+.ls-earth,.ls-moon,.ls-pulse{position:absolute;top:50%;transform:translate(-50%,-50%)}
 .ls-earth{left:0;width:34px;height:34px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#9bd7ff,#1f5fa8 60%,#0d2a52)}
-.ls-moon{width:26px;height:26px;border-radius:50%;
+/* Fixed at the far end of the rail: the track shows the round trip, it is not
+   a ruler, so the Moon's position on screen says nothing about its distance. */
+.ls-moon{left:100%;width:26px;height:26px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#f2f2f2,#9aa0aa 65%,#5b6068)}
 .ls-pulse{width:12px;height:12px;border-radius:50%;background:#9bf6ff;box-shadow:0 0 14px 4px rgba(109,226,242,.8)}
-.ls-marker{width:4px;height:42px;border-radius:2px;background:#E68A68;box-shadow:0 0 0 2px rgba(230,138,104,.25)}
 .ls-watch{display:flex;align-items:baseline;gap:10px}
 .ls-watch__label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint,#7f8fa8)}
 .ls-watch__value{font-family:Orbitron,system-ui,sans-serif;font-size:28px;font-variant-numeric:tabular-nums}
@@ -63,6 +64,7 @@ export const STYLES = `
 /* Ending and pause */
 .ls-end{display:flex;flex-direction:column;gap:12px;max-width:760px;padding:16px;border-radius:14px;
   background:rgba(10,26,48,.85);border:1px solid rgba(123,227,164,.4)}
+.ls-end.is-failed{border-color:rgba(255,179,138,.5);background:rgba(48,20,10,.85)}
 .ls-end p{margin:0;line-height:1.5}
 .ls-ficha{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;
   background:rgba(255,255,255,.04)}
@@ -79,8 +81,6 @@ export const STYLES = `
 .ls-pulse.is-back{background:#ffd6a5;box-shadow:0 0 14px 4px rgba(255,170,90,.8)}
 .ls-moon.is-hit{animation:ls-hit .5s ease-out}
 @keyframes ls-hit{from{box-shadow:0 0 0 0 rgba(155,246,255,.9)}to{box-shadow:0 0 0 22px rgba(155,246,255,0)}}
-.ls-marker.is-locked{background:#7be3a4;animation:ls-lock 1.2s ease-in-out infinite}
-@keyframes ls-lock{50%{box-shadow:0 0 0 6px rgba(123,227,164,.35)}}
 .ls-graph__trace{stroke-dasharray:1;stroke-dashoffset:0;animation:ls-draw .9s ease-out backwards}
 @keyframes ls-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
 .ls-dot{transform-box:fill-box;transform-origin:center;animation:ls-pop .35s ease-out backwards}

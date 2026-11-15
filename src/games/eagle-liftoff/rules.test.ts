@@ -1,5 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { CSM_RING, LEVELS, burn, gap, initialState, launch, omega, step, type State } from './rules'
+import {
+  CSM_RING,
+  DOCK_GAP,
+  INSERTION_RING,
+  LEVELS,
+  RINGS,
+  burn,
+  gap,
+  initialState,
+  judgeInsertion,
+  launch,
+  omega,
+  step,
+  strandedReason,
+  type LevelSpec,
+  type State,
+} from './rules'
 
 const DT = 1 / 30
 
@@ -97,6 +113,159 @@ describe('level 3: full rendezvous is winnable', () => {
         climbed = true
       }
     })
+    expect(s.phase).toBe('docked')
+  })
+})
+
+// --- Winnability oracle ---------------------------------------------------------
+// The defect class locked out below is "the game praises something it cannot
+// let you finish". Deciding that needs a solver rather than a hand-picked
+// example, so every state the game blesses is replayed here against every plan
+// the level can afford: coast on some ring until the gap is inside DOCK_GAP,
+// then burn back onto Columbia's ring. Rings are ordered by speed, so a plan is
+// fully described by the ring you wait on.
+
+function orbitState(spec: LevelSpec, ring: number, g: number, burnsLeft = spec.burns): State {
+  return { phase: 'orbit', lm: 0, ring, csm: g, burnsLeft, t: 0, ascentT: 0, reason: '' }
+}
+
+function playPlan(start: State, spec: LevelSpec, waitRing: number): State {
+  const s = { ...start }
+  let stage: 'move' | 'coast' | 'back' = 'move'
+  for (let i = 0; i < spec.timeLimit / DT + 10 && s.phase === 'orbit'; i++) {
+    if (stage === 'move') {
+      if (s.ring !== waitRing) burn(s, s.ring < waitRing ? 'up' : 'down', spec)
+      else stage = 'coast'
+    }
+    if (stage === 'coast' && Math.abs(gap(s)) <= DOCK_GAP) stage = 'back'
+    if (stage === 'back' && s.ring !== CSM_RING) burn(s, s.ring < CSM_RING ? 'up' : 'down', spec)
+    step(s, spec, DT)
+  }
+  return s
+}
+
+function isWinnable(start: State, spec: LevelSpec): boolean {
+  if (start.phase === 'docked') return true
+  if (start.phase !== 'orbit') return false
+  for (let w = 0; w < RINGS.length; w++) {
+    // A burn crosses exactly one ring, so a plan costs the trip out plus the
+    // trip home. Levels that fly the last ring for you need no burn at all.
+    const cost = Math.abs(w - start.ring) + Math.abs(CSM_RING - w)
+    const affordable = spec.autoCatchUp ? w === start.ring : cost <= start.burnsLeft
+    if (affordable && playPlan(start, spec, w).phase === 'docked') return true
+  }
+  return false
+}
+
+describe('the game never praises what it will not let you finish', () => {
+  for (const key of [1, 2, 3] as const) {
+    const spec = LEVELS[key]
+    it(`level ${key}: every lead called a good launch can actually be flown to a docking`, () => {
+      if (!spec.fromPad) {
+        // No launch decision on this level: the only promise it makes is that
+        // the gap it drops you into is flyable with the burns it hands you.
+        expect(isWinnable(initialState(spec), spec)).toBe(true)
+        return
+      }
+      let praised = 0
+      for (let g = -180; g <= 180; g++) {
+        const s = orbitState(spec, INSERTION_RING, g)
+        if (!judgeInsertion(s, spec)?.correct) continue
+        praised++
+        expect(isWinnable(s, spec), `lead ${g}° is called a good launch but cannot be flown to a docking`).toBe(true)
+      }
+      // Guards the sweep itself: if the window ever stopped matching what
+      // judgeInsertion praises, the loop above could be checking nothing.
+      expect(praised).toBe(spec.window[1] - spec.window[0] + 1)
+    })
+  }
+
+  for (const key of [2, 3] as const) {
+    const spec = LEVELS[key]
+    it(`level ${key}: a burn reported correct always leaves Eagle closing in, never in a dead end`, () => {
+      for (let ring = 0; ring < RINGS.length; ring++) {
+        for (let burnsLeft = 1; burnsLeft <= spec.burns; burnsLeft++) {
+          for (let g = -180; g <= 180; g += 5) {
+            for (const dir of ['up', 'down'] as const) {
+              const s = orbitState(spec, ring, g, burnsLeft)
+              const v = burn(s, dir, spec)
+              if (!v?.correct) continue
+              const where = `${dir} from ring ${ring} at ${g}° with ${burnsLeft} burns`
+              // 1. The move may not strand Eagle where docking is impossible.
+              expect(strandedReason(s, spec), `${where} is praised but strands Eagle`).toBe(null)
+              // 2. It must either dock now or leave the gap actually shrinking:
+              //    below Columbia when it leads, above it when it trails.
+              const after = gap(s)
+              const docking = s.ring === CSM_RING && Math.abs(after) <= DOCK_GAP
+              const closing =
+                (omega(s.ring) > omega(CSM_RING) && after > 0) || (omega(s.ring) < omega(CSM_RING) && after < 0)
+              expect(docking || closing, `${where} is praised but the gap is not closing`).toBe(true)
+            }
+          }
+        }
+      }
+    })
+  }
+
+  it('climbing into Columbia\'s orbit is praised only when the docking really follows', () => {
+    const spec = LEVELS[2]
+    for (let burnsLeft = 1; burnsLeft <= 2; burnsLeft++) {
+      for (let g = -180; g <= 180; g++) {
+        const s = orbitState(spec, CSM_RING - 1, g, burnsLeft)
+        const v = burn(s, 'up', spec)
+        expect(v, `climbing at ${g}° gave no verdict at all`).not.toBe(null)
+        if (v?.correct) {
+          // Praised: flying hands-off from here must end docked, not timed out.
+          run(s, spec, spec.timeLimit + 5)
+          expect(s.phase, `climbing at ${g}° was praised but did not dock`).toBe('docked')
+        } else {
+          expect(Math.abs(g) > DOCK_GAP, `climbing at ${g}° was inside docking range yet marked wrong`).toBe(true)
+        }
+      }
+    }
+  })
+})
+
+describe('being stranded is said out loud, not timed out', () => {
+  it('matching Columbia\'s orbit out of range with no burns left loses at once', () => {
+    const spec = LEVELS[2]
+    // One burn down and one back up: same ring as Columbia, 50° short, no fuel.
+    const s = initialState(spec)
+    s.burnsLeft = 2
+    burn(s, 'down', spec)
+    const v = burn(s, 'up', spec)
+    expect(s.ring).toBe(CSM_RING)
+    expect(s.burnsLeft).toBe(0)
+    expect(v?.correct).toBe(false)
+    expect(s.phase).toBe('failed')
+    // The message has to name the cause (same orbit, same speed), not the clock.
+    expect(v?.message).toMatch(/same orbit means the same speed/i)
+    expect(s.reason).toBe(v?.message)
+    expect(s.t).toBeLessThan(spec.timeLimit)
+  })
+
+  it('spending the burns too far from Columbia\'s orbit loses at once', () => {
+    const spec = LEVELS[2]
+    const s = initialState(spec)
+    expect(burn(s, 'down', spec)?.correct).toBe(true)
+    const v = burn(s, 'down', spec)
+    // Two rings below Columbia with one burn left: no way back, so say so now
+    // instead of letting the player wait out the whole clock.
+    expect(s.ring).toBe(CSM_RING - 2)
+    expect(s.burnsLeft).toBe(1)
+    expect(v).toMatchObject({ concept: 'orbita-baja-mas-rapida', correct: false })
+    expect(v?.message).toMatch(/Each burn moves one orbit/i)
+    expect(s.phase).toBe('failed')
+    expect(s.t).toBe(0)
+  })
+
+  it('a level that flies the catch-up for you is never called stranded', () => {
+    const spec = LEVELS[1]
+    const s = orbitState(spec, INSERTION_RING, 40)
+    // Level 1 hands out zero burns on purpose: step() closes the last ring.
+    expect(s.burnsLeft).toBe(0)
+    expect(strandedReason(s, spec)).toBe(null)
+    run(s, spec, spec.timeLimit)
     expect(s.phase).toBe('docked')
   })
 })

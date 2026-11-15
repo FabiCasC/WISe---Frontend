@@ -5,7 +5,7 @@ import { el, type Env } from './dom'
 import { buildLevel1 } from './level1'
 import { buildQuakeLevel } from './level2'
 import { LEVEL2_QUAKE, LEVEL3_QUAKE } from './levels'
-import { newMetrics, recordAttempt } from './rules'
+import { newMetrics, recordAttempt, recordJudgement } from './rules'
 import { createSfx } from './sound'
 import { STYLES } from './styles'
 
@@ -20,6 +20,7 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
   let sent = false
   let activeMs = 0
   let wrong = 0
+  let failed = false
   let metrics = newMetrics()
   /** Every judged attempt is one decision about this level's concept. */
   const concept =
@@ -58,13 +59,40 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
       gameId: ctx.gameId,
       levelId: ctx.levelId,
       // Practice mode does not score (see Settings).
-      score: ctx.settings.practice ? 0 : Math.max(MIN_SCORE, BASE_SCORE - WRONG_PENALTY * wrong),
+      score: ctx.settings.practice ? 0 : failed ? 0 : Math.max(MIN_SCORE, BASE_SCORE - WRONG_PENALTY * wrong),
       durationMs: Math.round(activeMs),
-      completed: true,
+      // A level that ran out of attempts is NOT completed: reporting every run
+      // as a success made every wrong answer free.
+      completed: !failed,
       evidenceIds: mission?.evidence.map((e) => e.id) ?? [],
       firstAnswerCorrect: metrics.firstAttemptCorrect,
       decisions: ctx.settings.practice ? [] : decisions,
     })
+  }
+
+  /** Shared tail of both endings: conclusion text plus the sealing button. */
+  const closeWith = (text: string, label: string, ok: boolean) => {
+    finished = true
+    stage.inert = true // the attempt is over: no more fiddling with the sliders
+    end.replaceChildren(el('p', '', text))
+    end.classList.toggle('is-failed', !ok)
+
+    if (ok && ctx.levelId === 3) {
+      const ficha = el('div', 'ls-ficha')
+      const link = el('a', '', COPY.ficha.link)
+      link.href = FICHA_SOURCE_URL
+      link.target = '_blank'
+      link.rel = 'noreferrer noopener'
+      ficha.append(el('h3', '', COPY.ficha.title), el('p', '', COPY.ficha.text), link)
+      end.append(ficha)
+    }
+
+    const seal = el('button', 'btn btn--primary', label)
+    seal.type = 'button'
+    seal.addEventListener('click', complete)
+    end.append(seal)
+    end.hidden = false
+    seal.focus()
   }
 
   const env: Env = {
@@ -74,35 +102,21 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
     judge(correct) {
       metrics = recordAttempt(metrics, correct)
       decisions.push({ concept, correct })
-      if (!correct) wrong += 1
+      const log = recordJudgement(wrong, correct)
+      wrong = log.wrong
+      // Running out of attempts ends the level as a loss. Without this the
+      // "too small / too big" hints make the sliders a free binary search.
+      if (log.failed && !finished) {
+        failed = true
+        sfx.bad()
+        closeWith(COPY.failed, COPY.sealFailed, false)
+      }
+      return log.left
     },
     finish(conclusion) {
       if (finished) return
-      finished = true
       sfx.done()
-      end.replaceChildren(el('p', '', conclusion))
-
-      if (ctx.levelId === 3) {
-        const ficha = el('div', 'ls-ficha')
-        const link = el('a', '', COPY.ficha.link)
-        link.href = FICHA_SOURCE_URL
-        link.target = '_blank'
-        link.rel = 'noreferrer noopener'
-        ficha.append(
-          el('h3', '', COPY.ficha.title),
-          el('p', '', COPY.ficha.text),
-          link,
-          el('p', 'ls-note', COPY.ficha.pending),
-        )
-        end.append(ficha)
-      }
-
-      const seal = el('button', 'btn btn--primary', COPY.seal)
-      seal.type = 'button'
-      seal.addEventListener('click', complete)
-      end.append(seal)
-      end.hidden = false
-      seal.focus()
+      closeWith(conclusion, COPY.seal, true)
     },
   }
 

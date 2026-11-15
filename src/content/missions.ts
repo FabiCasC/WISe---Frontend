@@ -121,11 +121,11 @@ export const MISSIONS: MissionCard[] = [
   {
     gameId: 'lunar-signals',
     title: 'Two Signals from the Moon',
-    kicker: 'Co-op puzzle · Hadley-Apennine',
+    kicker: 'Measure and locate · Hadley-Apennine',
     body: 'luna',
     bodyLabel: 'Moon',
     hardware: 'Apollo 15 seismometer and laser retroreflector',
-    genre: 'Turn-based puzzle',
+    genre: 'Measurement puzzle',
     voice: 'Two different signals came from here. One went quiet; the other still answers.',
     learning: 'Tell recorded vibrations apart from laser measurement.',
     crew: 'Scientific Computing 2 · Systems Engineering',
@@ -134,21 +134,21 @@ export const MISSIONS: MissionCard[] = [
     levels: [
       {
         id: 1,
-        name: 'Listen',
-        goal: 'A holds a plate · B reaches the seismic record',
-        idea: 'Vibrations are recorded as data; it is not sound traveling through a vacuum.',
+        name: 'The echo of light',
+        goal: 'Fire the laser, time the echo and set the marker at the distance it implies',
+        idea: 'A round-trip time becomes a distance: d = c · t / 2. The retroreflector is passive, it only sends the light back.',
       },
       {
         id: 2,
-        name: 'Return the light',
-        goal: 'B turns two mirrors · the beam returns to its source',
-        idea: 'A retroreflector sends light back where it came from. It is passive.',
+        name: 'Three circles',
+        goal: 'Read the P-S delay of each station and draw its circle',
+        idea: 'One station gives a whole circle, two give two possible points, three leave only one: that is why a network is needed.',
       },
       {
         id: 3,
-        name: 'Read the legacy',
-        goal: 'Combine plate and beam · archive each record',
-        idea: 'Seismic waves and light pulses measure different things.',
+        name: 'Not enough data',
+        goal: 'With one station down, mark every place the quake could still be',
+        idea: 'Saying what CANNOT be concluded from the data is part of doing science.',
       },
     ],
     evidence: [
@@ -175,11 +175,16 @@ export const MISSIONS: MissionCard[] = [
       finding:
         'Two very different ways to study the Moon: listening to its interior and measuring its distance.',
       dramatization:
-        'The signal avatars, gates and platforms are fiction. The goal is never to repair the equipment.',
+        'Everything you measure on screen is invented so the arithmetic works. The map is an abstract 100 x 100 grid, ' +
+        'not lunar terrain, and stations A, B and C sit at three made-up positions: they are not the real ALSEP network. ' +
+        'The P and S wave speeds (10 and 5.5 map units per second) are invented, not lunar values. ' +
+        'The 2.56 s laser echo of level 1 is an example value still pending verification against an official source. ' +
+        'The instruments and the dates are real; the numbers you play with are not.',
       notTrue: [
         'The retroreflector has no battery and does not transmit: it only returns the light it receives.',
         'The Apollo 15 seismometer stopped sending data in 1977.',
         'The findings of the whole seismic network are not the work of a single station.',
+        'Three stations on a flat square are not how a quake is really located on a sphere.',
       ],
     },
     sourceIds: ['apollo-15', 'alsep-pds', 'lunar-laser'],

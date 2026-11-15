@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { C, H, PLAYER_X, W, hex } from './config';
+import { C, H, PAUSE_BOX, PLAYER_X, SKY_Y, W, hex } from './config';
 import { INSTRUCTIONS } from './data/levels';
 import { SILICA_NEEDED, type GameModel } from './state';
 
@@ -180,11 +180,13 @@ export class Renderer {
     for (const z of m.slopes) {
       const x = sx(z.x);
       if (x > W + 40 || x + z.w < -40) continue;
+      // No label: the aspect of a slope is something to READ OFF the picture.
+      // The compass and the Sun are drawn below, so which way the face is
+      // tilted (and how lit it is) is all the player needs — and all they get.
       const north = z.facing === 'north';
       this.poly(north ? 0xa75f49 : 0x7d4639, north
         ? [[x, 490], [x + z.w, 430], [x + z.w, 490]]
         : [[x, 430], [x + z.w, 490], [x, 490]]);
-      this.t(north ? 'faces NORTH' : 'faces SOUTH', 'small', C.CREAM, x + z.w / 2, 516, true);
     }
 
     for (const o of m.rocks) {
@@ -224,10 +226,27 @@ export class Renderer {
     const clock = m.level === 3 ? 'WINTER IN' : 'TIME';
     this.t(m.practice ? `${clock}: ∞` : `${clock}: ${Math.max(0, Math.trunc(m.timeLeft))} s`, 'small', C.WHITE, 760, 14);
     if (m.level === 2) this.t(`BRIGHT SOIL: ${m.found.size}/${SILICA_NEEDED}`, 'small', C.YELLOW, 760, 51);
-    if (m.level === 3) {
-      const p = Math.round(m.solarPower * 100);
-      this.t(`SOLAR POWER: ${p}%`, 'small', p >= 100 ? C.GREEN : p < 50 ? C.RED : C.YELLOW, 760, 51);
-    }
+    // Level 3 shows no SOLAR POWER percentage: a live number that reads 100%
+    // on the right slope is the answer, not a clue. The POWER bar still rises
+    // or falls with where the rover stands, which is the honest signal.
+    // Pause chip, so a tablet has somewhere to tap for P.
+    this.bar(C.NAVY2, PAUSE_BOX.x + 10, 8, PAUSE_BOX.w - 24, 34, 8);
+    this.t('II', 'small', C.CREAM, PAUSE_BOX.x + PAUSE_BOX.w / 2 - 2, 25, true);
+  }
+
+  /**
+   * Hints for the touch zones of padZone(). They are only hints: the whole
+   * half-screen is live, so a finger does not have to find a small button.
+   */
+  private pad() {
+    this.g.fillStyle(C.CREAM, 0.1);
+    this.g.fillRoundedRect(28, H - 92, 128, 64, 14);
+    this.g.fillRoundedRect(W - 156, H - 92, 128, 64, 14);
+    this.t('< BACK', 'small', C.CREAM, 92, H - 60, true);
+    this.t('FWD >', 'small', C.CREAM, W - 92, H - 60, true);
+    this.g.lineStyle(2, C.CREAM, 0.14);
+    this.g.lineBetween(0, SKY_Y, W, SKY_Y);
+    this.t('TAP ABOVE THE LINE TO JUMP', 'small', C.CREAM, W / 2, SKY_Y + 16, true);
   }
 
   // ---------- screens ----------
@@ -238,12 +257,13 @@ export class Renderer {
       this.rover(175, Math.trunc(m.playerY));
     }
     this.hud(m);
+    this.pad();
     if (m.toastTime > 0 && m.toast) {
       this.bar(C.NAVY2, 60, 108, 880, 46, 12);
       this.t(m.toast, 'small', C.CREAM, W / 2, 131, true);
     } else if (m.level === 1) this.t('Jump over the soft sand and the rocks >>>', 'small', C.CREAM, 530, 115);
-    else if (m.level === 2) this.t('Stay on the ground to scrape the soil. Jump only over rocks.', 'small', C.CREAM, 400, 115);
-    else this.t('Stand still 3 s to park. Watch SOLAR POWER.', 'small', C.CREAM, 470, 115);
+    else if (m.level === 2) this.t('Stay on the ground to scrape the soil. Jumping a rock skips its sample.', 'small', C.CREAM, 330, 115);
+    else this.t('Stand still 3 s to park. Which slope is tilted toward the Sun?', 'small', C.CREAM, 380, 115);
   }
 
   private start() {
@@ -252,8 +272,8 @@ export class Renderer {
     this.t('A MARS EXPLORATION MISSION', 'font', C.YELLOW, W / 2, 183, true);
     this.rover(455, 315, C.YELLOW, 1.25);
     this.t('Three real moments from Spirit\'s six years on Mars.', 'font', C.WHITE, W / 2, 430, true);
-    this.t('Press ENTER to start', 'medium', C.GREEN, W / 2, 510, true);
-    this.t('Move: arrows or A/D | Jump: SPACE or UP | Pause: P', 'small', C.CREAM, W / 2, 565, true);
+    this.t('Press ENTER or tap to start', 'medium', C.GREEN, W / 2, 510, true);
+    this.t('Keys: arrows or A/D, SPACE to jump, P to pause | Touch: tap the screen', 'small', C.CREAM, W / 2, 565, true);
   }
 
   private instructions(m: GameModel) {
@@ -264,8 +284,8 @@ export class Renderer {
     INSTRUCTIONS[m.level].forEach((line, i) =>
       this.t(line, 'small', line.startsWith('You LOSE') ? C.RED : C.NAVY, 110, 240 + i * 46),
     );
-    this.t('CONTROLS: arrows to move | UP or SPACE to jump | P to pause', 'small', C.TEAL, W / 2, 500, true);
-    this.t('Press ENTER to start the mission', 'medium', C.GREEN, W / 2, 545, true);
+    this.t('CONTROLS: arrows or A/D | UP or SPACE to jump | P to pause | or tap the screen', 'small', C.TEAL, W / 2, 500, true);
+    this.t('Press ENTER or tap to start the mission', 'medium', C.GREEN, W / 2, 545, true);
   }
 
   private complete(m: GameModel) {
@@ -286,7 +306,7 @@ export class Renderer {
   private paused(m: GameModel) {
     this.background(m.scroll);
     this.t('PAUSED', 'big', C.CREAM, W / 2, 260, true);
-    this.t('Press P to continue', 'font', C.YELLOW, W / 2, 330, true);
+    this.t('Press P or tap to continue', 'font', C.YELLOW, W / 2, 330, true);
   }
 
   render(m: GameModel, reducedMotion = false): void {

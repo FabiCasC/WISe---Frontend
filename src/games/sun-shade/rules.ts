@@ -8,9 +8,17 @@
  * (asi acabaron Opportunity y Spirit); un rover con generador NUCLEAR (RTG)
  * no depende del Sol y trabaja en la sombra. La luz NO le hace dano (NASA:
  * los RPS funcionan "largely independent of changes in sunlight"). Su limite
- * en el juego es otro, tambien real: los rovers con RTG son grandes y pesados
- * (Curiosity 899 kg frente a 185 kg de Spirit), asi que la arena blanda que
- * aguanta al ligero hunde al pesado. Cada uno cruza lo que el otro no puede.
+ * en el juego es otro, tambien real: llevar un RTG hace al rover GRANDE
+ * (NASA da Curiosity como 10 ft de largo y 7 ft de alto sin el brazo, unos
+ * 3 m por 2.1 m; Spirit 1.6 m y 1.5 m), y un
+ * rover solo pasa por donde cabe. Cada uno cruza lo que el otro no puede.
+ *
+ * WHY size and not soft ground: this game used to stop the nuclear rover in
+ * soft sand "because it is heavier", which is the opposite of the record.
+ * Spirit - the LIGHT, solar, 185 kg rover - is the one that stayed trapped in
+ * soft soil at Troy in 2009 and ended its mission there, and Opportunity got
+ * stuck in Purgatory Dune in 2005; Curiosity, 899 kg with its RTG, never got
+ * permanently trapped. What sinks a rover is ground pressure, not mass.
  */
 
 import { CELL } from './levels'
@@ -151,12 +159,22 @@ export function isSolid(level: LevelState, cx: number, cy: number, open: Set<num
   return false
 }
 
+/**
+ * What the player reads when a rover stops. It lives next to the rule it
+ * explains so the tests can check the science of the message, not only the
+ * physics: the nuclear rover is stopped by its SIZE, never by its mass.
+ */
+export const STOP_REASON: Record<Who, string> = {
+  solar: 'Shade: no sunlight, so the solar panels make no power',
+  nuclear: 'Low gap: the RTG rover is too big to fit (about 2.1 m tall against 1.5 m)',
+}
+
 /** Un tile que apaga o atasca al rover indicado. */
 export function isLethal(tile: string, who: Who): boolean {
   if (tile === 'X') return true
   // La sombra deja sin luz al rover solar.
   if (who === 'solar') return tile === 'S'
-  // La arena blanda hunde al rover nuclear, que pesa casi cinco veces mas.
+  // The low gap: an RTG rover is too tall and too wide to get under it.
   return tile === 'L'
 }
 

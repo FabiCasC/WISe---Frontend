@@ -10,6 +10,7 @@ import {
   PHYS,
   scoreSun,
   stepBody,
+  STOP_REASON,
   tileAt,
   touchesLethal,
   type LevelState,
@@ -62,9 +63,11 @@ function landing(
   return free(level, x, cy, who, open) ? cy : null
 }
 
+const ALL_OPEN = new Set([1, 2])
+const NONE_OPEN = new Set<number>()
+
 /** Celdas de apoyo que un rover puede alcanzar. */
-function reachable(level: LevelState, from: Cell, who: Who, gatesOpen: boolean): Set<string> {
-  const open = gatesOpen ? new Set([1, 2]) : new Set<number>()
+function reachable(level: LevelState, from: Cell, who: Who, open: Set<number>): Set<string> {
   const startY = landing(level, from.x, from.y, who, open)
   if (startY === null) return new Set()
 
@@ -145,15 +148,15 @@ describe.each(SUN_MAPS.map((m, i) => [i + 1, m] as const))('mapa %i', (_n, map) 
   })
 
   it('deja que CADA rover llegue a su escotilla', () => {
-    const rs = reachable(level, level.start.solar, 'solar', true)
-    const rn = reachable(level, level.start.nuclear, 'nuclear', true)
+    const rs = reachable(level, level.start.solar, 'solar', ALL_OPEN)
+    const rn = reachable(level, level.start.nuclear, 'nuclear', ALL_OPEN)
     expect(rs.has(key(level.exit.solar))).toBe(true)
     expect(rn.has(key(level.exit.nuclear))).toBe(true)
   })
 
   it('no esconde ninguna muestra fuera de alcance', () => {
-    const rs = reachable(level, level.start.solar, 'solar', true)
-    const rn = reachable(level, level.start.nuclear, 'nuclear', true)
+    const rs = reachable(level, level.start.solar, 'solar', ALL_OPEN)
+    const rn = reachable(level, level.start.nuclear, 'nuclear', ALL_OPEN)
     const lost = level.gems.filter((g) => !rs.has(key(g)) && !rn.has(key(g)))
     expect(lost).toEqual([])
   })
@@ -166,18 +169,58 @@ describe.each(SUN_MAPS.map((m, i) => [i + 1, m] as const))('mapa %i', (_n, map) 
 
   it('deja alguna placa al alcance con las compuertas cerradas', () => {
     if (!level.gates.length) return
-    const rs = reachable(level, level.start.solar, 'solar', false)
-    const rn = reachable(level, level.start.nuclear, 'nuclear', false)
+    const rs = reachable(level, level.start.solar, 'solar', NONE_OPEN)
+    const rn = reachable(level, level.start.nuclear, 'nuclear', NONE_OPEN)
     const ok = level.plates.some((p) => rs.has(key(p)) || rn.has(key(p)))
     expect(ok).toBe(true)
+  })
+
+  /**
+   * Canales que un rover puede abrir EL SOLO. Se repite hasta que no cambia
+   * porque una placa puede abrir la compuerta que lleva a la siguiente placa:
+   * asi la prueba concede al rover solitario todo lo que podria conseguir.
+   */
+  const soloChannels = (who: Who): Set<number> => {
+    const open = new Set<number>()
+    for (;;) {
+      const r = reachable(level, level.start[who], who, open)
+      const before = open.size
+      for (const p of level.plates) if (r.has(key(p))) open.add(p.channel)
+      if (open.size === before) return open
+    }
+  }
+
+  it('leaves no rover able to finish the level on its own', () => {
+    if (!level.gates.length) return
+    // The win text promises "neither rover could have done it alone". Giving
+    // each rover every plate IT can reach (and the gates those open) must
+    // still leave its own hatch sealed: the partner is the only way in.
+    for (const who of ['solar', 'nuclear'] as Who[]) {
+      const alone = reachable(level, level.start[who], who, soloChannels(who))
+      expect([who, alone.has(key(level.exit[who]))]).toEqual([who, false])
+    }
+  })
+
+  it('gives each rover a plate the other one can never reach', () => {
+    if (!level.gates.length) return
+    // The other half of the promise: both rovers do plate work. Without this
+    // one rover could open every door and the co-op would be decoration.
+    for (const who of ['solar', 'nuclear'] as Who[]) {
+      const other: Who = who === 'solar' ? 'nuclear' : 'solar'
+      const mine = reachable(level, level.start[who], who, soloChannels(who))
+      // El socio con TODO abierto: lo que aun no alcanza, no lo alcanza nunca.
+      const theirs = reachable(level, level.start[other], other, ALL_OPEN)
+      const onlyMine = level.plates.filter((p) => mine.has(key(p)) && !theirs.has(key(p)))
+      expect([who, onlyMine.length > 0]).toEqual([who, true])
+    }
   })
 
   it('hace que las compuertas sean necesarias de verdad', () => {
     if (!level.gates.length) return
     // Si los dos llegasen a su salida sin abrir nada, la cooperacion que
     // anuncia el nivel seria decorativa.
-    const rs = reachable(level, level.start.solar, 'solar', false)
-    const rn = reachable(level, level.start.nuclear, 'nuclear', false)
+    const rs = reachable(level, level.start.solar, 'solar', NONE_OPEN)
+    const rn = reachable(level, level.start.nuclear, 'nuclear', NONE_OPEN)
     const both = rs.has(key(level.exit.solar)) && rn.has(key(level.exit.nuclear))
     expect(both).toBe(false)
   })
@@ -263,11 +306,13 @@ describe('fisica', () => {
   })
 
   it('abre la compuerta al pisar la placa de su canal, y solo esa', () => {
-    // Mapa 2: una placa de canal 1 y la compuerta D que guarda la camara.
+    // Mapa 2: cada camara tiene su placa, asi que la compuerta se busca por
+    // canal en vez de dar por hecho que la primera placa va con la primera.
     const level = parseLevel(SUN_MAPS[1])
     const plate = level.plates[0]
-    const gate = level.gates[0]
-    expect(gate.channel).toBe(plate.channel)
+    const gate = level.gates.find((g) => g.channel === plate.channel)
+    expect(gate).toBeDefined()
+    if (!gate) return
 
     const open = () => openChannels(level)
     const solidNow = () =>
@@ -290,6 +335,15 @@ describe('fisica', () => {
     const other = { ...plate, channel: (plate.channel === 1 ? 2 : 1) as 1 | 2, on: true }
     level.plates.push(other)
     expect(solidNow()).toBe(true)
+  })
+
+  it('blames the nuclear rover size, never its mass, for being stopped', () => {
+    // Spirit, the LIGHT 185 kg solar rover, is the one that stayed trapped in
+    // soft soil at Troy in 2009; Curiosity (899 kg, RTG) never was. The game
+    // used to teach the opposite, so the message may only speak about size.
+    expect(STOP_REASON.nuclear).toMatch(/too big|too tall|does not fit/i)
+    expect(STOP_REASON.nuclear).not.toMatch(/sand|soil|sank|sink|heav|weigh|kg/i)
+    expect(STOP_REASON.solar).toMatch(/sunlight|no light/i)
   })
 
   it('mata a los dos en el polvo', () => {

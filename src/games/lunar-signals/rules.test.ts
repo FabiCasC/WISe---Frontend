@@ -3,9 +3,10 @@ import { approach } from './dom'
 import { createSfx } from './sound'
 import { LEVEL1_MEASURED_ECHO_S, LEVEL2_QUAKE, LEVEL3_QUAKE } from './levels'
 import {
-  MOON_DISTANCE_KM, candidates, circleIntersections, circlesCross, correctRadius,
-  dist, distanceFromEcho, echoSeconds, isLocatable, judgeAnswer, judgeCircle,
-  judgeEcho, newMetrics, radiusFromDelay, readings, recordAttempt, spDelay,
+  MAX_WRONG, MOON_DISTANCE_KM, attemptsLeft, candidates, circleIntersections, circlesCross,
+  correctRadius, dist, distanceFromEcho, echoSeconds, hasFailed, isLocatable, judgeAnswer,
+  judgeCircle, judgeEcho, judgeMarks, newMetrics, radiusFromDelay, readings, recordAttempt,
+  recordJudgement, spDelay,
 } from './rules'
 
 describe('level 1: echo of light', () => {
@@ -130,5 +131,86 @@ describe('sound', () => {
         expect(() => sfx[name]()).not.toThrow()
       }
     }
+  })
+})
+
+describe('level 1 cannot be solved by eye', () => {
+  /** The distance dial of level 1 runs from 0 to 500,000 km. */
+  const DIAL_MAX_KM = 500_000
+
+  it('rejects a marker dropped roughly where the Moon used to be drawn', () => {
+    const km = distanceFromEcho(LEVEL1_MEASURED_ECHO_S)
+    // 3% of the dial was inside the old tolerance, so a marker nudged onto the
+    // Moon sprite passed without any arithmetic. It must not any more.
+    for (const off of [0.03, -0.03, 0.02, -0.02]) {
+      expect(judgeEcho(km + off * DIAL_MAX_KM, LEVEL1_MEASURED_ECHO_S).verdict).not.toBe('match')
+    }
+  })
+
+  it('accepts the distance that d = c · t / 2 actually gives', () => {
+    const km = distanceFromEcho(LEVEL1_MEASURED_ECHO_S)
+    expect(judgeEcho(km, LEVEL1_MEASURED_ECHO_S).verdict).toBe('match')
+    // Rounded to the slider's 500 km step, the computed answer still passes.
+    expect(judgeEcho(Math.round(km / 500) * 500, LEVEL1_MEASURED_ECHO_S).verdict).toBe('match')
+  })
+})
+
+describe('level 3: marking every possible place', () => {
+  const both = candidates(LEVEL3_QUAKE, ['A', 'B']).points
+
+  it('marking only one of the two crossings is an incomplete answer', () => {
+    expect(judgeMarks(LEVEL3_QUAKE, ['A', 'B'], [both[0]])).toBe('incomplete')
+    expect(judgeMarks(LEVEL3_QUAKE, ['A', 'B'], [both[1]])).toBe('incomplete')
+  })
+
+  it('two marks on the same crossing are still only one place', () => {
+    expect(judgeMarks(LEVEL3_QUAKE, ['A', 'B'], [both[0], both[0]])).toBe('incomplete')
+  })
+
+  it('marking both crossings is the answer', () => {
+    expect(judgeMarks(LEVEL3_QUAKE, ['A', 'B'], both)).toBe('complete')
+    expect(judgeMarks(LEVEL3_QUAKE, ['A', 'B'], [both[1], both[0]])).toBe('complete')
+  })
+
+  it('a mark that is not on both circles is wrong, even next to a real one', () => {
+    expect(judgeMarks(LEVEL3_QUAKE, ['A', 'B'], [both[0], { x: 5, y: 95 }])).toBe('wrong-marks')
+    expect(judgeMarks(LEVEL3_QUAKE, ['A', 'B'], [...both, { x: 5, y: 95 }])).toBe('wrong-marks')
+  })
+
+  it('no marks is not an answer at all', () => {
+    expect(judgeMarks(LEVEL3_QUAKE, ['A', 'B'], [])).toBe('none')
+  })
+})
+
+describe('wrong answers can lose the level', () => {
+  it('three wrong answers fail the level and report it as not completed', () => {
+    let wrong = 0
+    let log = recordJudgement(wrong, false)
+    for (let i = 1; i < MAX_WRONG; i++) {
+      expect(log.failed).toBe(false)
+      expect(log.left).toBe(MAX_WRONG - i)
+      log = recordJudgement((wrong = log.wrong), false)
+    }
+    expect(log.failed).toBe(true)
+    expect(log.left).toBe(0)
+  })
+
+  it('correct answers never burn an attempt, so a clean run never fails', () => {
+    let log = recordJudgement(0, true)
+    for (let i = 0; i < 20; i++) log = recordJudgement(log.wrong, true)
+    expect(log).toEqual({ wrong: 0, failed: false, left: MAX_WRONG })
+  })
+
+  it('the binary search on the radius slider is no longer free', () => {
+    // judgeCircle still says "too small / too big", but only MAX_WRONG times.
+    const r = correctRadius(LEVEL3_QUAKE, 'A')
+    let wrong = 0
+    for (const guess of [10, 90, 70, 30]) {
+      expect(judgeCircle(LEVEL3_QUAKE, 'A', guess)).not.toBe('ok')
+      wrong = recordJudgement(wrong, false).wrong
+    }
+    expect(hasFailed(wrong)).toBe(true)
+    expect(attemptsLeft(wrong)).toBe(0)
+    expect(judgeCircle(LEVEL3_QUAKE, 'A', r)).toBe('ok') // the right answer existed all along
   })
 })

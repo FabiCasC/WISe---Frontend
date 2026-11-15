@@ -67,8 +67,9 @@ export class GameModel {
   /** Level 1: seconds spent in each sand patch; patches already judged. */
   sandTime = new Map<Zone, number>();
   private judgedSand = new Set<Zone>();
-  /** Level 2: patches uncovered. */
+  /** Level 2: patches uncovered, and patches already judged (found or missed). */
   found = new Set<Zone>();
+  private judgedSilica = new Set<Zone>();
   /** Level 3: seconds standing still, and where. */
   stillTime = 0;
   private judgedPark = new Set<string>();
@@ -127,6 +128,7 @@ export class GameModel {
     this.sandTime = new Map();
     this.judgedSand = new Set();
     this.found = new Set();
+    this.judgedSilica = new Set();
     this.judgedPark = new Set();
   }
 
@@ -296,18 +298,31 @@ export class GameModel {
   }
 
   private updateSilica(): void {
-    if (!this.onGround) return;
+    if (this.onGround) {
+      for (const z of this.silica) {
+        if (this.found.has(z) || !this.over(z)) continue;
+        this.found.add(z);
+        this.judgedSilica.add(z);
+        if (!this.practice) this.score += 60;
+        this.decisions.push({ concept: 'silice-agua-caliente', correct: true });
+        this.say(
+          this.found.size === 1
+            ? 'Bright white soil! It is about 90% silica. On Earth this forms in hot springs or steam vents.'
+            : `Silica patch ${this.found.size}: hot water once flowed through this ground.`,
+          4.5,
+        );
+      }
+    }
+    // A patch the rover has already driven past without scraping is a sample
+    // lost for good. It was a real decision (jump safely, or stay down and take
+    // the hit), so it is logged as such instead of only ever logging successes.
     for (const z of this.silica) {
-      if (this.found.has(z) || !this.over(z)) continue;
-      this.found.add(z);
-      if (!this.practice) this.score += 60;
-      this.decisions.push({ concept: 'silice-agua-caliente', correct: true });
-      this.say(
-        this.found.size === 1
-          ? 'Bright white soil! It is about 90% silica. On Earth this forms in hot springs or steam vents.'
-          : `Silica patch ${this.found.size}: hot water once flowed through this ground.`,
-        4.5,
-      );
+      if (this.judgedSilica.has(z)) continue;
+      if (z.x + z.w < this.scroll + PLAYER_X) {
+        this.judgedSilica.add(z);
+        this.decisions.push({ concept: 'silice-agua-caliente', correct: false });
+        this.say('You flew over bright soil: in the air the dragged wheel scrapes nothing.', 3);
+      }
     }
   }
 

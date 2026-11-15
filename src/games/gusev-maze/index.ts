@@ -9,12 +9,17 @@ import {
   canGo,
   chooseGhostDir,
   createMover,
+  devilSpeed,
+  dustAfterRespawn,
   key,
   moverPos,
   parseMaze,
   panelPower,
+  roverSpeed,
   scoreMaze,
   stepMover,
+  CLEAN_MIN_DUST,
+  SMART_CLEAN_DUST,
   type Dir,
   type Mover,
 } from './rules'
@@ -77,6 +82,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     goneMs: number
     /** Retraso de salida de la casa, en ms. */
     waitMs: number
+    /** Antirrepeticion del aviso "paneles ya limpios", en ms. */
+    brushedMs: number
     corner: { x: number; y: number }
   }
 
@@ -97,6 +104,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         mover: createMover(home.x, home.y),
         hue: GHOST_COLORS[i % GHOST_COLORS.length],
         goneMs: 0,
+        brushedMs: 0,
         // Salen escalonados y con margen: el jugador necesita unos segundos
         // para orientarse en el mapa antes de tener a uno encima.
         waitMs: 2600 + i * 1600,
@@ -105,7 +113,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     })
   }
 
-  /** Vuelve a colocar a todos tras perder una vida, sin tocar las muestras. */
+  /**
+   * Vuelve a colocar a todos tras perder una vida, sin tocar las muestras.
+   * NO toca el polvo: quien llama decide cuanto se conserva.
+   */
   function resetPositions() {
     player.x = maze.start.x
     player.y = maze.start.y
@@ -116,7 +127,6 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     player.want = 'none'
     spawnGhosts()
     cleanMs = 0
-    dust = 0
   }
 
   function resetAll() {
@@ -131,6 +141,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     elapsed = 0
     respawnMs = 0
     resetPositions()
+    // Partida nueva: paneles limpios. Un respawn por polvo no, ver update().
+    dust = 0
   }
 
   function begin() {
@@ -275,6 +287,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       respawnMs -= dtMs
       if (respawnMs <= 0) {
         resetPositions()
+        // El rover vuelve con los paneles aun sucios: morir ya no sustituye
+        // a un evento de limpieza, solo compra unos segundos y cuesta una vida.
+        dust = dustAfterRespawn(dust)
         phase = 'playing'
       }
       return
@@ -295,7 +310,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     }
 
     // --- Jugador
-    if (stepMover(maze, player, tuning.playerSpeed * panelPower(dust), dt)) {
+    if (stepMover(maze, player, roverSpeed(tuning, dust), dt)) {
       const k = key(player.x, player.y)
       if (maze.pellets.delete(k)) {
         pelletsTaken++
@@ -313,6 +328,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     let gi = 0
     for (const g of ghosts) {
       gi++
+      if (g.brushedMs > 0) g.brushedMs -= dtMs
       if (g.waitMs > 0) {
         g.waitMs -= dtMs
         continue
@@ -336,7 +352,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       // Los remolinos no persiguen: vagan de esquina en esquina, como el
       // viento. Hay que ir a buscarlos.
       const target = CORNERS[(gi + Math.floor(elapsed / 6000)) % CORNERS.length]
-      const speed = tuning.ghostSpeed * 0.7
+      // Misma penalizacion de polvo que el rover: ver devilSpeed() en rules.
+      const speed = devilSpeed(tuning, dust)
 
       if (g.mover.dir === 'none') {
         g.mover.want = chooseGhostDir(maze, g.mover, target, fleeing, rng.next)
@@ -360,13 +377,22 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
       // Cleaning event: the devil's wind blows the dust off the panels.
       const before = dust
+      if (before < CLEAN_MIN_DUST) {
+        // Nothing to clean. The devil is NOT spent, so it stays there for when
+        // the panels actually need it -- and we say so, because silently
+        // eating a devil for four seconds taught the player nothing.
+        if (g.brushedMs <= 0) {
+          g.brushedMs = 1600
+          stage.flash('Panels still clean: save this dust devil for later')
+        }
+        continue
+      }
       g.goneMs = 4000
-      if (before < 0.15) continue
       dust = 0
       cleanMs = tuning.cleanSecs * 1000
       scattered++
       // Going for a devil when power was low is the smart call.
-      if (before >= 0.35) decisions.push({ concept: CONCEPT, correct: true })
+      if (before >= SMART_CLEAN_DUST) decisions.push({ concept: CONCEPT, correct: true })
       stage.flash('Cleaning event! Power ' + Math.round(panelPower(before) * 100) + '% → 100%')
       sfx.tone(980, 120, 'sine', 0.2)
     }
@@ -393,8 +419,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       {
         key: 'limpieza',
         label: 'Panel power',
+        // Numero y barra son ahora la MISMA magnitud, y ambos llegan a 0
+        // justo donde el rover se queda sin energia (dust = 1).
         value: Math.round(panelPower(dust) * 100) + '%',
-        meter: 1 - dust,
+        meter: panelPower(dust),
         tone: dust > 0.7 ? 'bad' : dust > 0.4 ? 'warn' : 'ok',
       },
       { key: 'puntos', label: 'Points', value: String(currentScore(false)) },

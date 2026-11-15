@@ -39,3 +39,19 @@ export const C = {
 } as const;
 
 export const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
+
+/**
+ * On-screen pad. The arcade is also played on tablets, so every keyboard
+ * action needs a place to touch; kept here as a pure function of the canvas
+ * coordinates so it can be tested without Phaser.
+ */
+export type PadZone = 'left' | 'right' | 'jump' | 'pause';
+/** Everything above the horizon is one big jump button. */
+export const SKY_Y = 330;
+export const PAUSE_BOX = { x: W - 110, y: 0, w: 110, h: 50 } as const;
+
+export function padZone(x: number, y: number): PadZone {
+  if (y < PAUSE_BOX.h && x > PAUSE_BOX.x) return 'pause';
+  if (y < SKY_Y) return 'jump';
+  return x < W / 2 ? 'left' : 'right';
+}

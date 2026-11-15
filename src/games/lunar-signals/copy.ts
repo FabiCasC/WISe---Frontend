@@ -10,6 +10,10 @@
  *  - Also pending: accredited photo of what Apollo 15 left behind for the info card.
  *  - The idea that the Moon "rings like a bell" is NOT included until
  *    a source is found.
+ *
+ * Note: these warnings are for the TEAM. Nothing here hands the student a
+ * "data pending verification" disclaimer; what the game invents is declared
+ * in the mission dossier (src/content/missions.ts), where the player reads it.
  */
 export const FICHA_SOURCE_URL = 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1971-063C'
 
@@ -18,8 +22,8 @@ export const COPY = {
     1: {
       title: 'The Echo of Light',
       text:
-        'You are the operator on Earth. Fire the laser, see how long it takes for the echo to return, ' +
-        'and place the marker where light would take exactly that amount of time.',
+        'You are the operator on Earth. Fire the laser, time the echo, and work out how far away ' +
+        'the Moon is. You will not see it: the only thing you have is the stopwatch.',
     },
     2: {
       title: 'Moonquakes',
@@ -35,11 +39,18 @@ export const COPY = {
   l1: {
     idle: 'Press "Fire Laser". The journey is shown in slow motion; the timer tracks real time.',
     flying: 'The pulse travels to the Moon and back...',
-    measured: (s: string) => `Measured echo: ${s} s. Now move the marker until its echo matches.`,
-    tooShort: (mine: string, real: string) =>
-      `Your marker would produce an echo of ${mine} s, but the measured one was ${real} s. Light would take less time: go farther out.`,
-    tooLong: (mine: string, real: string) =>
-      `Your marker would produce an echo of ${mine} s, but the measured one was ${real} s. Light would take more time: go closer in.`,
+    // The Moon is hidden once the echo is measured: the only route to the answer
+    // is the arithmetic, so the message states the two numbers it needs.
+    measured: (s: string, c: string) =>
+      `Measured echo: ${s} s for the round trip. Light travels ${c} km every second. ` +
+      'The Moon is now out of sight: compute the distance and set the marker there.',
+    hint: (c: string) => `Remember: the pulse went there AND back. d = ${c} km/s × t ÷ 2.`,
+    // Direction only. Telling the player the echo their marker would produce
+    // would do the physics for them and turn the slider into a converging dial.
+    tooShort: (real: string) =>
+      `Too close to Earth. From there the echo would come back in less than ${real} s.`,
+    tooLong: (real: string) =>
+      `Too far out. From there the echo would take more than ${real} s to come back.`,
     ok: 'It matches. Light takes more than a second to reach the Moon.',
     conclusion: (km: string) =>
       `Using a stopwatch and an echo, you measured the distance to the Moon: about ${km} km. ` +
@@ -59,13 +70,27 @@ export const COPY = {
   l3: {
     start: 'Measure with the stations that are working. There are no hints here.',
     mismatch: 'That radius does not match this station\'s signal.',
-    ready: 'You have measured with everything that works. Tap the map to mark the quake or state that it is not enough.',
-    pickHint: 'Tap the map to mark where you think the quake happened.',
-    wrongPlace: 'With these stations, this point might not be the only one. Are you sure?',
+    // There is no "it is not enough" button any more: the player SHOWS that two
+    // stations are not enough by marking every point the data still allows.
+    ready:
+      'You have measured with everything that works. Now mark EVERY place on the map where this ' +
+      'quake could be, and then submit your marks.',
+    marksHint: 'Tap the map to drop a mark. "Clear Marks" starts over.',
+    needMarks: 'Submit at least one mark first.',
+    incomplete:
+      'The marks you placed all fit, but they are not all of them. Where else do these two circles ' +
+      'cross? If more than one place fits, the data does not single one out.',
+    wrongMarks:
+      'At least one mark is not where both circles cross. A possible epicentre has to match every ' +
+      'station you measured.',
     conclusion:
-      'With two stations, the quake could be in two different places, and there is no way to choose. ' +
-      'You figured out on your own that another signal is needed.',
+      'You marked both points, and both of them fit. With two stations the quake could be in either ' +
+      'place and there is no way to choose: you showed that another signal is needed.',
   },
+  attemptsLeft: (n: number) => (n === 1 ? '1 attempt left.' : `${n} attempts left.`),
+  failed:
+    'Out of attempts. Guessing until the game says "yes" is not measuring: run the level again and ' +
+    'work the numbers out before you commit.',
   ficha: {
     title: 'What Apollo 15 Left Behind',
     text:
@@ -73,7 +98,7 @@ export const COPY = {
       'The seismometer recorded lunar ground vibrations until the ALSEP stations were turned off ' +
       'on September 30, 1977.',
     link: 'View NASA Source',
-    pending: 'Data pending comparison with the official source.',
   },
   seal: 'Seal the Memory',
+  sealFailed: 'Close the Log',
 } as const

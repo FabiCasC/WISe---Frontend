@@ -198,15 +198,73 @@ export function chooseGhostDir(
   return best
 }
 
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
+
 /**
- * Panel power with dust on it, 0..1. Real fact: dust settling on Spirit's
- * panels cut its power, and passing dust devils blew it off ("cleaning
- * events"). Fully covered panels still give a trickle in this game.
+ * Panel power left, 1..0. Real fact: dust settling on Spirit's panels cut its
+ * power, and passing dust devils blew it off ("cleaning events").
+ *
+ * This is the number the HUD shows, so it MUST hit 0 exactly where the rover
+ * dies (dust = 1). It used to bottom out at 40%, which told the player they
+ * still had power while the game was killing them for running out of it.
  */
 export function panelPower(dust: number): number {
-  const d = Math.min(1, Math.max(0, dust))
-  return 1 - 0.6 * d
+  return 1 - clamp01(dust)
 }
+
+/**
+ * Lowest share of its nominal speed a dusty rover still manages.
+ *
+ * Playability floor, not physics: a rover that crawled to a literal stop could
+ * never reach the dust devil the game is telling it to chase.
+ */
+export const DRIVE_FLOOR = 0.4
+
+/** Speed multiplier for dust on the panels, 1 .. DRIVE_FLOOR. */
+export function driveFactor(dust: number): number {
+  return DRIVE_FLOOR + (1 - DRIVE_FLOOR) * panelPower(dust)
+}
+
+/** Share of the devil's nominal speed actually used in play. */
+export const GHOST_SPEED_FACTOR = 0.7
+
+/** Rover speed in cells per second, exactly as the game computes it. */
+export function roverSpeed(t: { playerSpeed: number }, dust: number): number {
+  return t.playerSpeed * driveFactor(dust)
+}
+
+/**
+ * Dust devil speed in cells per second, exactly as the game computes it.
+ *
+ * It is scaled by the SAME driveFactor as the rover on purpose. With a fixed
+ * devil speed the devils overtook the rover once dust passed ~0.63, i.e. the
+ * game became unwinnable precisely when it was telling the player "power is
+ * low, go chase a devil". Sharing the factor keeps that chase possible.
+ */
+export function devilSpeed(t: { ghostSpeed: number }, dust: number): number {
+  return t.ghostSpeed * GHOST_SPEED_FACTOR * driveFactor(dust)
+}
+
+/** Dust left on the panels after a dust-out costs the rover a life. */
+export const RESPAWN_DUST = 0.6
+
+/**
+ * Dust carried across a respawn.
+ *
+ * Dying used to set dust back to 0 while keeping every sample already
+ * collected, so a death WAS a free, perfect cleaning event -- the player could
+ * finish a level by dying three times and never once learn what a dust devil
+ * is for. A respawn now only brushes the panels off partially.
+ */
+export function dustAfterRespawn(dust: number): number {
+  return Math.min(clamp01(dust), RESPAWN_DUST)
+}
+
+/** Below this much dust a devil has nothing to clean, so it is not consumed. */
+export const CLEAN_MIN_DUST = 0.15
+
+/** Reaching a devil with at least this much dust is the lesson being taught. */
+export const SMART_CLEAN_DUST = 0.35
 
 export interface MazeScore {
   pellets: number

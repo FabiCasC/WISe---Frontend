@@ -324,6 +324,40 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://www.nasa.gov/missions/lunar-reconnaissance-orbiter-looks-at-apollo-12-surveyor-3-landing-sites/',
     accessed: '2026-11-15',
   },
+  'nasa-msl-curiosity': {
+    id: 'nasa-msl-curiosity',
+    title:
+      'Mars Science Laboratory: Curiosity Rover (10 ft long, 9 ft wide, 7 ft tall without the arm; 899 kg in Earth gravity)',
+    publisher: 'NASA Science',
+    url: 'https://science.nasa.gov/mission/msl-curiosity/',
+    accessed: '2026-11-15',
+  },
+  'nasa-dart': {
+    id: 'nasa-dart',
+    title: 'Double Asteroid Redirection Test (DART) (impact on Dimorphos, 26 September 2022)',
+    publisher: 'NASA Science',
+    url: 'https://science.nasa.gov/mission/dart/',
+    accessed: '2026-11-15',
+  },
+  'nasa-dart-defense': {
+    id: 'nasa-dart-defense',
+    title:
+      'Planetary Defense — DART (570 kg spacecraft; Dimorphos orbited Didymos every 11 h 55 min, cut to 11 h 23 min, a difference of 32 minutes; impact at about 22,530 km/h)',
+    publisher: 'NASA Science',
+    url: 'https://science.nasa.gov/planetary-defense-dart/',
+    accessed: '2026-11-15',
+  },
+  'dart-momentum-nature': {
+    id: 'dart-momentum-nature',
+    title:
+      'Momentum transfer from the DART mission impact on asteroid Dimorphos (Nature 616, 2023) — source for the ejecta factor beta and the 6.14 km/s impact speed',
+    publisher: 'Nature',
+    url: 'https://doi.org/10.1038/s41586-023-05878-z',
+    // TODO: el articulo esta tras un muro de acceso y no se pudo abrir para
+    // confirmarlo. Las paginas de NASA NO dan beta ni los 6.14 km/s, asi que
+    // las cifras que dependen de este paper no se afirman como de la NASA.
+    accessed: null,
+  },
   'spaceapps': {
     id: 'spaceapps',
     title: 'NASA Space Apps Challenge 2026',
