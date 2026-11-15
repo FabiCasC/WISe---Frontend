@@ -8,7 +8,7 @@
  * firma ANTES de anadir efectos, arte o sonido.
  */
 
-export type GameId = 'opportunity' | 'lunar-signals' | 'spirit'
+export type GameId = 'opportunity' | 'lunar-signals' | 'spirit'| 'nasa-numbers'
 export type LevelId = 1 | 2 | 3
 export type Lang = 'es' | 'en'
 

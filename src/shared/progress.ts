@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   lang: 'es',
 }
 
-export const GAME_IDS: GameId[] = ['opportunity', 'lunar-signals', 'spirit']
+export const GAME_IDS: GameId[] = ['opportunity', 'lunar-signals', 'spirit', 'nasa-numbers']
 
 export function createEmptyProgress(): Progress {
   return {
@@ -25,6 +25,7 @@ export function createEmptyProgress(): Progress {
       opportunity: { levelsCompleted: [], bestScore: {} },
       'lunar-signals': { levelsCompleted: [], bestScore: {} },
       spirit: { levelsCompleted: [], bestScore: {} },
+      'nasa-numbers': { levelsCompleted: [], bestScore: {} },
     },
     memories: [],
     evidence: [],

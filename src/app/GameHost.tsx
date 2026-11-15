@@ -15,10 +15,12 @@ import { IconBack, IconPause, IconPlay } from './components/Art'
  * Carga perezosa de cada módulo: el bundle de un juego solo viaja al
  * navegador cuando el jugador abre ese portal.
  */
+// En src/app/GameHost.tsx
 const LOADERS: Record<GameId, () => Promise<GameModule>> = {
-  opportunity: () => import('../games/opportunity'),
-  'lunar-signals': () => import('../games/lunar-signals'),
-  spirit: () => import('../games/spirit'),
+  opportunity: () => import('../games/opportunity/index'),
+  'lunar-signals': () => import('../games/lunar-signals/index'),
+  spirit: () => import('../games/spirit/index'),
+  'nasa-numbers': () => import('../games/nasa-numbers/index'), // <-- Añade esta línea
 }
 
 type Status = 'loading' | 'ready' | 'error'
