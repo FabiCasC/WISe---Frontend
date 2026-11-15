@@ -1517,6 +1517,12 @@ a {
   place-items: center;
 }
 
+.arena__mount--spirit {
+  height: auto;
+  aspect-ratio: 1000 / 650;
+  max-height: 100%;
+}
+
 .arena__mount canvas {
   display: block;
   max-width: 100%;
