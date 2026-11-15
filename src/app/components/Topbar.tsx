@@ -5,6 +5,7 @@ import { getRank, learnedConcepts } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
 import { BrandGlyph, IconGear, IconStar } from './Art'
 import WallIcon from './WallIcon'
+import ThemeToggle from './ThemeToggle'
 
 interface Props {
   account: Account
@@ -66,6 +67,8 @@ export default function Topbar({ account, progress, membership, onSettings }: Pr
           <WallIcon name={account.avatar} size={20} />
           <span className="accountpill__name">{account.username}</span>
         </a>
+
+        <ThemeToggle />
 
         <button type="button" className="btn btn--quiet btn--icon" onClick={onSettings} aria-label="Settings">
           <IconGear />
