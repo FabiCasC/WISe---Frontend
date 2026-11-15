@@ -68,14 +68,14 @@ export default function EditorScreen({ project, onBack }: Props) {
     saveCurrentProject()
     setTimeout(() => {
       setIsSaving(false)
-      setToast('Proyecto guardado')
+      setToast('Project saved')
     }, 400)
   }, [])
 
   const handleReviewClick = useCallback(() => {
     const validation = validateProject(spec)
     if (!validation.valid) {
-      setToast(`No puedes enviar: ${validation.errors[0]?.message}`)
+      setToast(`Not ready to send: ${validation.errors[0]?.message}`)
       return
     }
     setShowReview(true)
@@ -85,20 +85,20 @@ export default function EditorScreen({ project, onBack }: Props) {
     const result = submitForReview()
     setShowReview(false)
     if (result) {
-      setToast('✅ Enviado a revisión correctamente')
+      setToast('Sent to your teacher')
     } else {
-      setToast('No se pudo enviar. Verifica los requisitos.')
+      setToast('It did not send. Check the list first.')
     }
   }, [])
 
   const latestReview = getLatestReview()
   const reviewStatus = spec.buildStatus
 
-  const MOBILE_TABS: Array<{ key: ActivePanel; label: string; icon: string }> = [
-    { key: 'blocks',    label: 'Bloques',   icon: '🧩' },
-    { key: 'editor',    label: 'Editor',    icon: '📝' },
-    { key: 'simulator', label: 'Simular',   icon: '▶' },
-    { key: 'entities',  label: 'Objetos',   icon: '🎭' },
+  const MOBILE_TABS: Array<{ key: ActivePanel; label: string }> = [
+    { key: 'blocks',    label: 'Blocks' },
+    { key: 'editor',    label: 'Scripts' },
+    { key: 'simulator', label: 'Run' },
+    { key: 'entities',  label: 'Sprites' },
   ]
 
   return (
@@ -107,7 +107,7 @@ export default function EditorScreen({ project, onBack }: Props) {
       <header className="dg-editor__topbar">
         <div className="dg-editor__topbar-left">
           <button className="dg-btn dg-btn--ghost dg-btn--sm" onClick={onBack}>
-            ← Inicio
+            Back
           </button>
           <div className="dg-editor__title">
             <span className="dg-editor__title-name">{spec.name}</span>
@@ -123,7 +123,7 @@ export default function EditorScreen({ project, onBack }: Props) {
               className="dg-btn dg-btn--warn dg-btn--sm"
               onClick={() => setShowReview(true)}
             >
-              Ver observaciones
+              See the feedback
             </button>
           )}
 
@@ -132,7 +132,7 @@ export default function EditorScreen({ project, onBack }: Props) {
             onClick={() => setShowAI(!showAI)}
             aria-pressed={showAI}
           >
-            🤖 IA
+            AI
           </button>
 
           <button
@@ -140,7 +140,7 @@ export default function EditorScreen({ project, onBack }: Props) {
             onClick={handleSave}
             disabled={isSaving}
           >
-            {isSaving ? '…' : '💾'} Guardar
+            {isSaving ? 'Saving…' : 'Save'}
           </button>
 
           <button
@@ -148,7 +148,7 @@ export default function EditorScreen({ project, onBack }: Props) {
             onClick={handleReviewClick}
             disabled={spec.buildStatus === 'in_review'}
           >
-            {spec.buildStatus === 'in_review' ? '⏳ En revisión' : '📤 Enviar a revisión'}
+            {spec.buildStatus === 'in_review' ? 'In review' : 'Send to teacher'}
           </button>
         </div>
       </header>
@@ -163,7 +163,7 @@ export default function EditorScreen({ project, onBack }: Props) {
             className={`dg-editor__mobile-tab ${activePanel === tab.key ? 'dg-editor__mobile-tab--active' : ''}`}
             onClick={() => setActivePanel(tab.key)}
           >
-            {tab.icon} {tab.label}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -174,7 +174,7 @@ export default function EditorScreen({ project, onBack }: Props) {
         <aside
           className={`dg-editor__panel dg-editor__panel--left ${activePanel === 'blocks' ? 'dg-editor__panel--active' : ''}`}
           role="tabpanel"
-          aria-label="Biblioteca de bloques"
+          aria-label="Block library"
         >
           <BlockLibrary spec={spec} />
         </aside>
@@ -183,7 +183,7 @@ export default function EditorScreen({ project, onBack }: Props) {
         <main
           className={`dg-editor__panel dg-editor__panel--center ${activePanel === 'editor' ? 'dg-editor__panel--active' : ''}`}
           role="tabpanel"
-          aria-label="Editor de programación"
+          aria-label="Script editor"
         >
           <ScriptEditor spec={spec} />
         </main>
@@ -192,7 +192,7 @@ export default function EditorScreen({ project, onBack }: Props) {
         <section
           className={`dg-editor__panel dg-editor__panel--right-top ${activePanel === 'simulator' ? 'dg-editor__panel--active' : ''}`}
           role="tabpanel"
-          aria-label="Simulador del videojuego"
+          aria-label="Game simulator"
         >
           <Simulator spec={spec} />
         </section>
@@ -201,7 +201,7 @@ export default function EditorScreen({ project, onBack }: Props) {
         <section
           className={`dg-editor__panel dg-editor__panel--right-bottom ${activePanel === 'entities' ? 'dg-editor__panel--active' : ''}`}
           role="tabpanel"
-          aria-label="Biblioteca de entidades"
+          aria-label="Sprite library"
         >
           <EntityLibrary spec={spec} />
         </section>
@@ -235,8 +235,8 @@ export default function EditorScreen({ project, onBack }: Props) {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  draft: 'Borrador',
-  in_review: 'En revisión',
-  changes_requested: 'Con observaciones',
-  approved: '✓ Aprobado',
+  draft: 'Draft',
+  in_review: 'In review',
+  changes_requested: 'Changes asked for',
+  approved: 'Approved',
 }

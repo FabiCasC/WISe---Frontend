@@ -83,15 +83,15 @@ const DEMO_PATTERNS: Array<{
 }> = [
   {
     patterns: [
-      /saltar? (más )?alto/i,
-      /salto más (fuerte|alto|grande)/i,
-      /que salte más/i,
+      /jump (higher|further|more)/i,
+      /higher jump/i,
+      /stronger jump/i,
     ],
     response: (_m, ctx) => ({
-      explanation: `¡Buena idea! Para que ${ctx.entityNames[0] ?? 'tu personaje'} salte más alto, necesito aumentar la fuerza del bloque "Saltar". Actualmente configura la fuerza de salto, que es cuánta velocidad hacia arriba recibe el personaje.`,
-      hint: '¿Puedes pensar en qué número representaría un salto más alto? Un valor mayor = más fuerza hacia arriba.',
+      explanation: `Good idea. To make ${ctx.entityNames[0] ?? 'your sprite'} jump higher, I would raise the force on the "Jump" block. That force is how fast the sprite is pushed upwards when it leaves the ground.`,
+      hint: 'What number would make a higher jump? A bigger force means a harder push upwards.',
       proposedChanges: [
-        { type: 'update_entity_property', entityName: ctx.entityNames[0] ?? 'jugador', property: 'speed', value: 250 },
+        { type: 'update_entity_property', entityName: ctx.entityNames[0] ?? 'player', property: 'speed', value: 250 },
       ],
       hasChanges: true,
       isDemo: true,
@@ -99,15 +99,15 @@ const DEMO_PATTERNS: Array<{
   },
   {
     patterns: [
-      /agrega?r? (un? )?enemigo/i,
-      /poner (un? )?enemigo/i,
-      /crear (un? )?enemigo/i,
+      /add (an? )?enem(y|ies)/i,
+      /put (an? )?enemy/i,
+      /make (an? )?enemy/i,
     ],
     response: (_m, _ctx) => ({
-      explanation: 'Puedo agregar un enemigo que patrulla de un lado a otro. Los enemigos tipo "Guardián" se mueven horizontalmente de forma automática. ¿Te parece bien agregarlo en la parte central del escenario?',
-      hint: '¿Qué debería pasar cuando el jugador toca al enemigo? Puedes usar el bloque "Al tocar objeto" para programar esa reacción.',
+      explanation: 'I can add an enemy that walks from side to side. A "Guard" moves left and right on its own. Shall I drop one in the middle of the scene?',
+      hint: 'What should happen when the player touches it? The "When this touches" block is where that reaction goes.',
       proposedChanges: [
-        { type: 'add_entity', template: 'Guardián', position: { x: 350, y: 200 } },
+        { type: 'add_entity', template: 'Guard', position: { x: 350, y: 200 } },
       ],
       hasChanges: true,
       isDemo: true,
@@ -115,15 +115,15 @@ const DEMO_PATTERNS: Array<{
   },
   {
     patterns: [
-      /agrega?r? (una? )?estrella/i,
-      /poner (una? )?estrella/i,
-      /coleccionable/i,
+      /add (a )?star/i,
+      /put (a )?star/i,
+      /collect(ible|able)?s?\b/i,
     ],
     response: (_m, _ctx) => ({
-      explanation: 'Agregaré una estrella coleccionable. Cuando el jugador la toque, sumará puntos automáticamente. ¿Cuántas estrellas te gustaría en total?',
-      hint: 'Las estrellas desaparecen al ser tocadas por el jugador. ¿Podrías usar una variable para contar cuántas has recogido?',
+      explanation: 'I can add a star to collect. When the player touches it, the points go up on their own. How many stars do you want in the end?',
+      hint: 'A star disappears once the player touches it. Could you keep a count of how many were picked up?',
       proposedChanges: [
-        { type: 'add_entity', template: 'Estrella', position: { x: 200, y: 150 } },
+        { type: 'add_entity', template: 'Star', position: { x: 200, y: 150 } },
       ],
       hasChanges: true,
       isDemo: true,
@@ -131,13 +131,13 @@ const DEMO_PATTERNS: Array<{
   },
   {
     patterns: [
-      /puntuaci[oó]n/i,
-      /puntaje/i,
-      /sistema de puntos/i,
+      /score/i,
+      /points?\b/i,
+      /keep count/i,
     ],
     response: (_m, _ctx) => ({
-      explanation: 'El sistema de puntuación ya está incluido con la variable "puntuacion". Cada vez que el jugador recolecta un objeto, los puntos se suman automáticamente. Para aumentar los puntos de un objeto, puedes cambiar su propiedad "puntos" en el panel de propiedades.',
-      hint: '¿Qué objetos deberían valer más puntos? Generalmente, los más difíciles de alcanzar valen más.',
+      explanation: 'Your game already keeps a score. Every time the player picks something up, the points go up on their own. To make one thing worth more, change its "Points when collected" field in the panel on the right.',
+      hint: 'Which things should be worth more? Usually the ones that are hardest to reach.',
       proposedChanges: [],
       hasChanges: false,
       isDemo: true,
@@ -145,13 +145,13 @@ const DEMO_PATTERNS: Array<{
   },
   {
     patterns: [
-      /qu[eé] hace (este|el) bloque/i,
-      /para qu[eé] sirve/i,
-      /expl[ií]ca(me)?/i,
+      /what does (this|the) block do/i,
+      /what is (this|it) for/i,
+      /explain/i,
     ],
     response: (_m, ctx) => ({
-      explanation: `Los bloques de programación son instrucciones que le dicen a tu personaje qué hacer. Los bloques de **Eventos** (naranja) inician la acción, y los bloques de **Movimiento** (azul) mueven al personaje. Los de **Control** (amarillo) permiten repetir o tomar decisiones. Tu proyecto "${ctx.projectName}" tiene ${ctx.scriptCount} scripts programados.`,
-      hint: '¿Qué bloque te genera más dudas? Puedo explicar cualquiera con más detalle.',
+      explanation: `A block is one instruction telling a sprite what to do. **Events** (orange) start the action, **Motion** (blue) moves the sprite, and **Control** (yellow) repeats things or chooses between them. Your project "${ctx.projectName}" has ${ctx.scriptCount} scripts so far.`,
+      hint: 'Which block is the confusing one? I can go through any of them in more detail.',
       proposedChanges: [],
       hasChanges: false,
       isDemo: true,
@@ -159,14 +159,14 @@ const DEMO_PATTERNS: Array<{
   },
   {
     patterns: [
-      /no puede recoger/i,
-      /no funciona/i,
-      /por qu[eé] no/i,
-      /problema con/i,
+      /can(no|')?t pick up/i,
+      /(does|is) ?n'?t work/i,
+      /why (does)?n'?t/i,
+      /problem with/i,
     ],
     response: (_m, ctx) => ({
-      explanation: `Para que ${ctx.entityNames[0] ?? 'el personaje'} pueda recoger objetos, necesitas un script con el evento "Al tocar objeto" conectado al coleccionable. El evento detecta la colisión y ejecuta las acciones que definas. Si no ves el efecto, verifica que: 1) hay un script con evento de colisión, 2) el personaje y el coleccionable están en posiciones donde pueden tocarse.`,
-      hint: '¿Tienes un script que usa el bloque "Al tocar objeto"? Si no, agrégalo y conecta un bloque de acción.',
+      explanation: `For ${ctx.entityNames[0] ?? 'your sprite'} to pick things up, it needs a script that starts with "When this touches", pointed at the thing being collected. Two things to check: 1) that script exists, 2) the two sprites are close enough on screen to actually meet.`,
+      hint: 'Do you have a script starting with "When this touches"? If not, add one and hang an action under it.',
       proposedChanges: [],
       hasChanges: false,
       isDemo: true,
@@ -174,14 +174,14 @@ const DEMO_PATTERNS: Array<{
   },
   {
     patterns: [
-      /mejorar/i,
-      /sugerencia/i,
-      /qu[eé] puedo hacer/i,
-      /recomendaci[oó]n/i,
+      /improve|better/i,
+      /suggest/i,
+      /what (can|should) i do/i,
+      /idea/i,
     ],
     response: (_m, ctx) => ({
-      explanation: `Tu videojuego de tipo ${ctx.genre} tiene ${ctx.entityCount} entidades y ${ctx.scriptCount} scripts. Algunas ideas para mejorarlo: 1) Agrega múltiples coleccionables en posiciones estratégicas, 2) Usa variables para crear un contador de tiempo, 3) Agrega enemigos con distintos comportamientos (patrulla, seguir al jugador), 4) Implementa niveles de dificultad con más obstáculos.`,
-      hint: '¿Qué aspecto del juego sientes que falta? ¿El movimiento, el desafío, o la historia?',
+      explanation: `Your ${ctx.genre} game has ${ctx.entityCount} sprites and ${ctx.scriptCount} scripts. A few ways to push it further: 1) spread things to collect into harder corners, 2) keep a timer and count down, 3) mix enemies that patrol with enemies that chase, 4) make the second half harder than the first.`,
+      hint: 'Which part feels thin to you: the moving, the challenge, or the story?',
       proposedChanges: [],
       hasChanges: false,
       isDemo: true,
@@ -190,8 +190,8 @@ const DEMO_PATTERNS: Array<{
 ]
 
 const GENERIC_RESPONSE: AIResponse = {
-  explanation: 'Entiendo lo que describes. Para implementarlo correctamente en tu videojuego, considera qué bloques representarían esa acción: ¿es un movimiento, una condición, o un evento? Revisa la biblioteca de bloques en el panel izquierdo.',
-  hint: '¿Puedes describir con más detalle qué debería pasar paso a paso?',
+  explanation: 'I follow what you want. Think about which blocks would say that: is it a movement, a condition, or something that starts the action? The library on the left is sorted that way.',
+  hint: 'Can you walk me through what should happen, step by step?',
   proposedChanges: [],
   hasChanges: false,
   isDemo: true,
@@ -233,41 +233,41 @@ export function generateInitialProposal(description: string, genre: GameGenre): 
   const changes: ProposedChange[] = []
 
   // Detectar elementos mencionados
-  const mentionsEnemy = /(enemigo|monstruo|malo|obstáculo)/i.test(description)
-  const mentionsStar = /(estrella|coleccionable|moneda|gema)/i.test(description)
-  const mentionsGoal = /(meta|salida|portal|llegar)/i.test(description)
+  const mentionsEnemy = /(enemy|enemies|monster|baddie|obstacle)/i.test(description)
+  const mentionsStar = /(star|collect|coin|gem|treasure)/i.test(description)
+  const mentionsGoal = /(goal|exit|portal|finish|reach)/i.test(description)
 
   // Siempre hay un jugador
   if (genre === 'arcade' || genre === 'maze') {
     changes.push({ type: 'add_entity', template: 'Robot', position: { x: 50, y: 200 } })
   } else {
-    changes.push({ type: 'add_entity', template: 'Atleta', position: { x: 60, y: 380 } })
+    changes.push({ type: 'add_entity', template: 'Runner', position: { x: 60, y: 380 } })
   }
 
   if (genre === 'platformer') {
-    changes.push({ type: 'add_entity', template: 'Suelo', position: { x: 0, y: 468 } })
-    changes.push({ type: 'add_entity', template: 'Plataforma sólida', position: { x: 150, y: 340 } })
-    changes.push({ type: 'add_entity', template: 'Plataforma sólida', position: { x: 350, y: 260 } })
+    changes.push({ type: 'add_entity', template: 'Ground', position: { x: 0, y: 468 } })
+    changes.push({ type: 'add_entity', template: 'Solid platform', position: { x: 150, y: 340 } })
+    changes.push({ type: 'add_entity', template: 'Solid platform', position: { x: 350, y: 260 } })
   }
 
   if (mentionsEnemy || genre === 'maze') {
-    changes.push({ type: 'add_entity', template: 'Guardián', position: { x: 350, y: 180 } })
+    changes.push({ type: 'add_entity', template: 'Guard', position: { x: 350, y: 180 } })
   }
 
   if (mentionsStar) {
-    changes.push({ type: 'add_entity', template: 'Estrella', position: { x: 200, y: 100 } })
-    changes.push({ type: 'add_entity', template: 'Estrella', position: { x: 500, y: 150 } })
-    changes.push({ type: 'add_entity', template: 'Estrella', position: { x: 650, y: 80 } })
+    changes.push({ type: 'add_entity', template: 'Star', position: { x: 200, y: 100 } })
+    changes.push({ type: 'add_entity', template: 'Star', position: { x: 500, y: 150 } })
+    changes.push({ type: 'add_entity', template: 'Star', position: { x: 650, y: 80 } })
   } else {
     // Siempre hay algo para recolectar
-    changes.push({ type: 'add_entity', template: 'Moneda', position: { x: 250, y: 120 } })
-    changes.push({ type: 'add_entity', template: 'Moneda', position: { x: 450, y: 90 } })
+    changes.push({ type: 'add_entity', template: 'Coin', position: { x: 250, y: 120 } })
+    changes.push({ type: 'add_entity', template: 'Coin', position: { x: 450, y: 90 } })
   }
 
   if (mentionsGoal || genre !== 'arcade') {
     changes.push({
       type: 'add_entity',
-      template: genre === 'platformer' ? 'Meta' : 'Portal',
+      template: genre === 'platformer' ? 'Goal flag' : 'Portal',
       position: { x: 720, y: 200 },
     })
   }
@@ -275,7 +275,7 @@ export function generateInitialProposal(description: string, genre: GameGenre): 
   // Scripts básicos para el jugador
   changes.push({
     type: 'add_script',
-    entityName: 'jugador',
+    entityName: 'player',
     eventType: 'on_key_press',
     blocks: ['move'],
   })
@@ -283,15 +283,15 @@ export function generateInitialProposal(description: string, genre: GameGenre): 
   if (genre === 'platformer') {
     changes.push({
       type: 'add_script',
-      entityName: 'jugador',
+      entityName: 'player',
       eventType: 'on_key_press',
       blocks: ['jump'],
     })
   }
 
   return {
-    explanation: `¡Genial! He analizado tu descripción y preparé una propuesta para tu videojuego de tipo ${GENRE_LABELS[genre]}. Incluye un personaje jugable, algunos objetos para recolectar${mentionsEnemy ? ', enemigos' : ''} y la estructura básica del escenario. Recuerda que tú tienes el control: puedes aceptar esta propuesta y modificarla como quieras.`,
-    hint: `Para hacer tu juego más interesante, piensa en: ¿cómo gana el jugador? ¿Qué hace que sea difícil o fácil?`,
+    explanation: `Here is a first draft for your ${GENRE_LABELS[genre]} game. It has one sprite you control, a few things to collect${mentionsEnemy ? ', some enemies' : ''} and the bones of a scene. It is only a starting point: keep what works and change the rest.`,
+    hint: `Two things worth deciding early: how does the player win, and what makes it hard?`,
     proposedChanges: changes,
     hasChanges: true,
     isDemo: true,
@@ -299,9 +299,9 @@ export function generateInitialProposal(description: string, genre: GameGenre): 
 }
 
 const GENRE_LABELS: Record<GameGenre, string> = {
-  arcade: 'Arcade',
-  platformer: 'Plataformas',
-  maze: 'Laberinto',
+  arcade: 'arcade',
+  platformer: 'platform',
+  maze: 'maze',
 }
 
 // ---------------------------------------------------------------------------

@@ -16,6 +16,8 @@ import {
   removeBlock,
   updateBlockParams,
 } from '../store'
+import SpritePreview from './SpritePreview'
+import { IconArrow, IconClose } from './Icons'
 
 interface Props {
   spec: GameSpecification
@@ -33,9 +35,8 @@ export default function ScriptEditor({ spec }: Props) {
     return (
       <div className="dg-script-editor dg-script-editor--empty">
         <div className="dg-empty-state">
-          <span className="dg-empty-state__icon">🎭</span>
-          <h3>Sin personajes todavía</h3>
-          <p>Agrega personajes, enemigos u objetos desde el panel de Objetos para empezar a programar.</p>
+          <h3>Nothing to program yet</h3>
+          <p>Add a player, an enemy or something to collect from the Sprites panel, then come back here.</p>
         </div>
       </div>
     )
@@ -52,12 +53,8 @@ export default function ScriptEditor({ spec }: Props) {
             onClick={() => selectEntity(entity.id)}
             title={entity.name}
           >
-            <span className="dg-entity-tab__icon">
-              {entity.type === 'player' ? '🧑' :
-               entity.type === 'enemy' ? '👾' :
-               entity.type === 'collectible' ? '⭐' :
-               entity.type === 'platform' ? '▬' :
-               entity.type === 'obstacle' ? '🪨' : '🏁'}
+            <span className="dg-entity-tab__sprite">
+              <SpritePreview sprite={entity.sprite} size={14} />
             </span>
             <span className="dg-entity-tab__name">{entity.name}</span>
           </button>
@@ -66,7 +63,7 @@ export default function ScriptEditor({ spec }: Props) {
 
       {!selectedEntity ? (
         <div className="dg-empty-state">
-          <p>Selecciona un personaje u objeto arriba para ver y editar sus instrucciones.</p>
+          <p>Pick a sprite above to see and change what it does.</p>
         </div>
       ) : (
         <div className="dg-script-editor__body">
@@ -74,7 +71,7 @@ export default function ScriptEditor({ spec }: Props) {
           <div className="dg-script-editor__scripts-col">
             <div className="dg-script-editor__scripts-header">
               <span className="dg-script-editor__scripts-title">
-                Scripts de "{selectedEntity.name}"
+                Scripts for "{selectedEntity.name}"
               </span>
               <button
                 className="dg-btn dg-btn--ghost dg-btn--sm"
@@ -89,7 +86,7 @@ export default function ScriptEditor({ spec }: Props) {
 
             {entityScripts.length === 0 && (
               <div className="dg-script-editor__no-scripts">
-                <p>Sin instrucciones todavía.</p>
+                <p>No scripts yet.</p>
                 <button
                   className="dg-btn dg-btn--primary dg-btn--sm"
                   onClick={() => {
@@ -97,7 +94,7 @@ export default function ScriptEditor({ spec }: Props) {
                     selectScript(s.id)
                   }}
                 >
-                  Crear primer script
+                  Start the first one
                 </button>
               </div>
             )}
@@ -122,8 +119,7 @@ export default function ScriptEditor({ spec }: Props) {
           <div className="dg-script-editor__editor-col">
             {!selectedScript ? (
               <div className="dg-empty-state dg-empty-state--center">
-                <span className="dg-empty-state__icon">📝</span>
-                <p>Selecciona un script o crea uno nuevo para programar las instrucciones.</p>
+                <p>Pick a script on the left, or start a new one.</p>
               </div>
             ) : (
               <ScriptCanvas script={selectedScript} spec={spec} />
@@ -155,23 +151,20 @@ function ScriptListItem({
       className={`dg-script-item ${isSelected ? 'dg-script-item--selected' : ''}`}
       onClick={onSelect}
     >
-      <span className="dg-script-item__event-icon">
-        {eventDef?.icon ?? '▶'}
-      </span>
       <div className="dg-script-item__info">
         <span className="dg-script-item__name">
           {eventDef?.label ?? 'Script'}
         </span>
         <span className="dg-script-item__count">
-          {blockCount - 1} bloque{blockCount !== 2 ? 's' : ''}
+          {blockCount - 1} block{blockCount !== 2 ? 's' : ''}
         </span>
       </div>
       <button
         className="dg-script-item__delete"
         onClick={(e) => { e.stopPropagation(); onDelete() }}
-        aria-label="Eliminar script"
+        aria-label="Delete script"
       >
-        ✕
+        <IconClose size={13} />
       </button>
     </div>
   )
@@ -199,7 +192,7 @@ function ScriptCanvas({ script, spec }: { script: Script; spec: GameSpecificatio
       <div className="dg-script-canvas__header">
         <span className="dg-script-canvas__title">Script</span>
         <span className="dg-script-canvas__hint">
-          Haz clic en un bloque para editar sus parámetros
+          Click a block to change its settings
         </span>
       </div>
 
@@ -233,8 +226,8 @@ function ScriptCanvas({ script, spec }: { script: Script; spec: GameSpecificatio
 
         {blocks.length === 1 && (
           <div className="dg-script-canvas__empty-hint">
-            <span>↑</span>
-            <span>Agrega bloques desde la biblioteca de la izquierda</span>
+            <IconArrow direction="up" />
+            <span>Add blocks from the library on the left</span>
           </div>
         )}
       </div>
@@ -276,7 +269,6 @@ function BlockNode({
         {!isEvent && (
           <span className="dg-block-node__connector" />
         )}
-        <span className="dg-block-node__icon">{def?.icon ?? '?'}</span>
         <span className="dg-block-node__label">{def?.label ?? block.type}</span>
         <div className="dg-block-node__params-preview">
           {block.parameters.slice(0, 2).map((p) => (
@@ -289,9 +281,9 @@ function BlockNode({
           <button
             className="dg-block-node__remove"
             onClick={(e) => { e.stopPropagation(); onRemove() }}
-            aria-label="Eliminar bloque"
+            aria-label="Remove block"
           >
-            ✕
+            <IconClose size={13} />
           </button>
         )}
       </div>
@@ -351,8 +343,8 @@ function ParamEditor({
           value={String(param.value)}
           onChange={(e) => onChange(e.target.value === 'true')}
         >
-          <option value="true">Verdadero</option>
-          <option value="false">Falso</option>
+          <option value="true">True</option>
+          <option value="false">False</option>
         </select>
       ) : options.length > 0 ? (
         <select

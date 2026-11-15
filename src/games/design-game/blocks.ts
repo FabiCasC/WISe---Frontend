@@ -35,7 +35,6 @@ export interface BlockDefinition {
   category: BlockCategory
   label: string
   description: string
-  icon: string
   defaultParams: BlockParameter[]
   /** true si puede contener bloques hijos (control flow) */
   hasChildren?: boolean
@@ -50,29 +49,27 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'on_start',
     category: 'events',
-    label: 'Al iniciar',
-    description: 'Se ejecuta cuando el juego comienza',
-    icon: '▶',
+    label: 'When the game starts',
+    description: 'Runs once, as soon as the game begins',
     defaultParams: [],
     isEvent: true,
   },
   {
     type: 'on_key_press',
     category: 'events',
-    label: 'Al presionar tecla',
-    description: 'Se ejecuta cuando el jugador presiona una tecla',
-    icon: '⌨',
+    label: 'When a key is pressed',
+    description: 'Runs when the player presses this key',
     defaultParams: [
       {
         name: 'key',
         type: 'key',
         value: 'ArrowRight',
         options: [
-          { label: '→ Derecha', value: 'ArrowRight' },
-          { label: '← Izquierda', value: 'ArrowLeft' },
-          { label: '↑ Arriba', value: 'ArrowUp' },
-          { label: '↓ Abajo', value: 'ArrowDown' },
-          { label: 'Espacio', value: ' ' },
+          { label: 'Right arrow', value: 'ArrowRight' },
+          { label: 'Left arrow', value: 'ArrowLeft' },
+          { label: 'Up arrow', value: 'ArrowUp' },
+          { label: 'Down arrow', value: 'ArrowDown' },
+          { label: 'Space', value: ' ' },
           { label: 'W', value: 'w' },
           { label: 'A', value: 'a' },
           { label: 'S', value: 's' },
@@ -85,9 +82,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'on_collision',
     category: 'events',
-    label: 'Al tocar objeto',
-    description: 'Se ejecuta cuando este personaje toca otro objeto',
-    icon: '💥',
+    label: 'When this touches',
+    description: 'Runs when this sprite touches another one',
     defaultParams: [
       {
         name: 'target',
@@ -105,19 +101,18 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'move',
     category: 'movement',
-    label: 'Mover',
-    description: 'Mueve el personaje en una dirección',
-    icon: '→',
+    label: 'Move',
+    description: 'Moves this sprite one way',
     defaultParams: [
       {
         name: 'direction',
         type: 'direction',
         value: 'right',
         options: [
-          { label: 'Derecha', value: 'right' },
-          { label: 'Izquierda', value: 'left' },
-          { label: 'Arriba', value: 'up' },
-          { label: 'Abajo', value: 'down' },
+          { label: 'Right', value: 'right' },
+          { label: 'Left', value: 'left' },
+          { label: 'Up', value: 'up' },
+          { label: 'Down', value: 'down' },
         ],
       },
       {
@@ -130,9 +125,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'jump',
     category: 'movement',
-    label: 'Saltar',
-    description: 'El personaje salta hacia arriba',
-    icon: '↑',
+    label: 'Jump',
+    description: 'Pushes this sprite upwards',
     defaultParams: [
       {
         name: 'force',
@@ -144,9 +138,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'set_position',
     category: 'movement',
-    label: 'Ir a posición',
-    description: 'Mueve el personaje a una posición exacta',
-    icon: '📍',
+    label: 'Go to spot',
+    description: 'Moves this sprite to an exact spot',
     defaultParams: [
       { name: 'x', type: 'number', value: 100 },
       { name: 'y', type: 'number', value: 100 },
@@ -155,9 +148,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'turn',
     category: 'movement',
-    label: 'Girar',
-    description: 'Gira el personaje en grados',
-    icon: '↻',
+    label: 'Turn',
+    description: 'Turns this sprite by some degrees',
     defaultParams: [
       {
         name: 'degrees',
@@ -173,25 +165,22 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'show',
     category: 'appearance',
-    label: 'Mostrar',
-    description: 'Hace visible el personaje',
-    icon: '👁',
+    label: 'Show',
+    description: 'Makes this sprite visible',
     defaultParams: [],
   },
   {
     type: 'hide',
     category: 'appearance',
-    label: 'Ocultar',
-    description: 'Hace invisible el personaje',
-    icon: '🙈',
+    label: 'Hide',
+    description: 'Makes this sprite invisible',
     defaultParams: [],
   },
   {
     type: 'change_sprite',
     category: 'appearance',
-    label: 'Cambiar apariencia',
-    description: 'Cambia el aspecto visual del personaje',
-    icon: '🎨',
+    label: 'Change look',
+    description: 'Changes how this sprite looks',
     defaultParams: [
       {
         name: 'sprite',
@@ -212,9 +201,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'wait',
     category: 'control',
-    label: 'Esperar',
-    description: 'Pausa la ejecución por un tiempo',
-    icon: '⏱',
+    label: 'Wait',
+    description: 'Pauses for a few seconds',
     defaultParams: [
       {
         name: 'seconds',
@@ -226,9 +214,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'repeat',
     category: 'control',
-    label: 'Repetir',
-    description: 'Repite instrucciones un número de veces',
-    icon: '🔄',
+    label: 'Repeat',
+    description: 'Runs the blocks inside it again and again',
     defaultParams: [
       {
         name: 'times',
@@ -241,9 +228,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'if_then',
     category: 'control',
-    label: 'Si... entonces',
-    description: 'Ejecuta instrucciones si se cumple una condición',
-    icon: '❓',
+    label: 'If... then',
+    description: 'Runs the blocks inside only when something is true',
     defaultParams: [
       {
         name: 'condition',
@@ -256,9 +242,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'if_then_else',
     category: 'control',
-    label: 'Si... sino',
-    description: 'Elige entre dos caminos según una condición',
-    icon: '⚡',
+    label: 'If... else',
+    description: 'Picks one of two paths',
     defaultParams: [
       {
         name: 'condition',
@@ -275,9 +260,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'touching',
     category: 'sensors',
-    label: 'Tocando objeto',
-    description: 'Verdadero si este personaje está tocando otro',
-    icon: '📡',
+    label: 'Touching',
+    description: 'True while this sprite touches another one',
     defaultParams: [
       {
         name: 'target',
@@ -290,20 +274,19 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'key_pressed',
     category: 'sensors',
-    label: 'Tecla presionada',
-    description: 'Verdadero si se está presionando una tecla',
-    icon: '🎹',
+    label: 'Key held down',
+    description: 'True while this key is held down',
     defaultParams: [
       {
         name: 'key',
         type: 'key',
         value: 'ArrowRight',
         options: [
-          { label: '→ Derecha', value: 'ArrowRight' },
-          { label: '← Izquierda', value: 'ArrowLeft' },
-          { label: '↑ Arriba', value: 'ArrowUp' },
-          { label: '↓ Abajo', value: 'ArrowDown' },
-          { label: 'Espacio', value: ' ' },
+          { label: 'Right arrow', value: 'ArrowRight' },
+          { label: 'Left arrow', value: 'ArrowLeft' },
+          { label: 'Up arrow', value: 'ArrowUp' },
+          { label: 'Down arrow', value: 'ArrowDown' },
+          { label: 'Space', value: ' ' },
         ],
       },
     ],
@@ -315,9 +298,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'add',
     category: 'operators',
-    label: 'Sumar',
-    description: 'Suma dos valores',
-    icon: '+',
+    label: 'Add',
+    description: 'Adds two numbers together',
     defaultParams: [
       { name: 'a', type: 'number', value: 0 },
       { name: 'b', type: 'number', value: 0 },
@@ -326,9 +308,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'equals',
     category: 'operators',
-    label: 'Igual a',
-    description: 'Verdadero si los valores son iguales',
-    icon: '=',
+    label: 'Equal to',
+    description: 'True when both values are the same',
     defaultParams: [
       { name: 'a', type: 'number', value: 0 },
       { name: 'b', type: 'number', value: 0 },
@@ -337,9 +318,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'greater_than',
     category: 'operators',
-    label: 'Mayor que',
-    description: 'Verdadero si el primer valor es mayor',
-    icon: '>',
+    label: 'Greater than',
+    description: 'True when the first value is bigger',
     defaultParams: [
       { name: 'a', type: 'number', value: 0 },
       { name: 'b', type: 'number', value: 0 },
@@ -348,9 +328,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'less_than',
     category: 'operators',
-    label: 'Menor que',
-    description: 'Verdadero si el primer valor es menor',
-    icon: '<',
+    label: 'Less than',
+    description: 'True when the first value is smaller',
     defaultParams: [
       { name: 'a', type: 'number', value: 0 },
       { name: 'b', type: 'number', value: 0 },
@@ -363,9 +342,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'set_variable',
     category: 'variables',
-    label: 'Asignar variable',
-    description: 'Establece el valor de una variable',
-    icon: '📝',
+    label: 'Set value',
+    description: 'Sets a stored value to a number',
     defaultParams: [
       { name: 'variable', type: 'string', value: '', options: [] },
       { name: 'value', type: 'number', value: 0 },
@@ -374,9 +352,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'change_variable',
     category: 'variables',
-    label: 'Cambiar variable',
-    description: 'Incrementa o decrementa una variable',
-    icon: '±',
+    label: 'Change value',
+    description: 'Adds to or takes away from a stored value',
     defaultParams: [
       { name: 'variable', type: 'string', value: '', options: [] },
       { name: 'amount', type: 'number', value: 1 },
@@ -385,9 +362,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'get_variable',
     category: 'variables',
-    label: 'Leer variable',
-    description: 'Obtiene el valor de una variable',
-    icon: '📖',
+    label: 'Read value',
+    description: 'Reads a stored value',
     defaultParams: [
       { name: 'variable', type: 'string', value: '', options: [] },
     ],
@@ -399,9 +375,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'play_sound',
     category: 'sound',
-    label: 'Reproducir sonido',
-    description: 'Reproduce un efecto de sonido',
-    icon: '🔊',
+    label: 'Play sound',
+    description: 'Plays a sound effect',
     defaultParams: [
       {
         name: 'sound',
@@ -420,9 +395,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'stop_sound',
     category: 'sound',
-    label: 'Detener sonido',
-    description: 'Detiene todos los sonidos',
-    icon: '🔇',
+    label: 'Stop sound',
+    description: 'Stops every sound',
     defaultParams: [],
   },
 ]
@@ -452,12 +426,12 @@ export function createBlock(type: BlockType, overrides: Partial<Block> = {}): Bl
 }
 
 export const BLOCK_CATEGORIES_ORDER: { key: BlockCategory; label: string }[] = [
-  { key: 'events',     label: 'Eventos' },
-  { key: 'movement',   label: 'Movimiento' },
+  { key: 'events',     label: 'Events' },
+  { key: 'movement',   label: 'Motion' },
   { key: 'control',    label: 'Control' },
-  { key: 'sensors',    label: 'Sensores' },
-  { key: 'appearance', label: 'Apariencia' },
-  { key: 'operators',  label: 'Operadores' },
-  { key: 'variables',  label: 'Variables' },
-  { key: 'sound',      label: 'Sonido' },
+  { key: 'sensors',    label: 'Sensing' },
+  { key: 'appearance', label: 'Looks' },
+  { key: 'operators',  label: 'Operators' },
+  { key: 'variables',  label: 'Data' },
+  { key: 'sound',      label: 'Sound' },
 ]

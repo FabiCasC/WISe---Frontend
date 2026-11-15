@@ -36,14 +36,14 @@ export default function BlockLibrary({ spec }: Props) {
   return (
     <div className="dg-block-lib">
       <div className="dg-block-lib__header">
-        <h3 className="dg-block-lib__title">Bloques</h3>
+        <h3 className="dg-block-lib__title">Blocks</h3>
         <input
           className="dg-block-lib__search"
           type="search"
-          placeholder="Buscar…"
+          placeholder="Search…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          aria-label="Buscar bloques"
+          aria-label="Search blocks"
         />
       </div>
 
@@ -69,7 +69,7 @@ export default function BlockLibrary({ spec }: Props) {
       <div className="dg-block-lib__blocks">
         {defs.length === 0 && (
           <p className="dg-block-lib__empty">
-            {search ? 'No se encontraron bloques.' : 'Sin bloques en esta categoría.'}
+            {search ? 'Nothing matches that.' : 'No blocks in this group.'}
           </p>
         )}
         {defs.map((def) => (
@@ -79,8 +79,7 @@ export default function BlockLibrary({ spec }: Props) {
 
       {/* Ayuda contextual */}
       <div className="dg-block-lib__tip">
-        <span>💡</span>
-        <span>Haz clic en un bloque para agregarlo al script seleccionado.</span>
+        <span>Click a block to add it to the script you have open.</span>
       </div>
     </div>
   )
@@ -132,7 +131,6 @@ function BlockItem({ def, spec }: { def: BlockDefinition; spec: GameSpecificatio
         e.dataTransfer.setData('block-type', def.type)
       }}
     >
-      <span className="dg-block-item__icon">{def.icon}</span>
       <div className="dg-block-item__text">
         <span className="dg-block-item__label">{def.label}</span>
         <span className="dg-block-item__desc">{def.description}</span>

@@ -321,7 +321,7 @@ export class GameEngine {
     a: Entity, aState: EntityRuntimeState,
     b: Entity, bState: EntityRuntimeState,
   ): void {
-    // Colectible + player → recolectar
+    // Colectible + player -> recolectar
     if (a.type === 'player' && b.type === 'collectible') {
       bState.visible = false
       if (bState.customState) bState.customState['alive'] = false
@@ -342,7 +342,7 @@ export class GameEngine {
       this.triggerEvent('on_collision', { target: a.id }, b.id)
     }
 
-    // Player + enemy → daño
+    // Player + enemy -> daño
     else if (a.type === 'player' && b.type === 'enemy') {
       this.handlePlayerHit(a.id, b.properties.damage ?? 1)
       this.triggerEvent('on_collision', { target: b.id }, a.id)
@@ -351,7 +351,7 @@ export class GameEngine {
       this.triggerEvent('on_collision', { target: a.id }, b.id)
     }
 
-    // Player + goal → ganar
+    // Player + goal -> ganar
     else if ((a.type === 'player' && b.type === 'goal') ||
              (a.type === 'goal' && b.type === 'player')) {
       this.runtime.phase = 'won'
@@ -370,7 +370,7 @@ export class GameEngine {
     this.emit({ type: 'score_changed', value: this.runtime.score })
     if (newLives <= 0) {
       this.runtime.phase = 'lost'
-      this.emit({ type: 'game_lost', reason: '¡Te quedaste sin vidas!' })
+      this.emit({ type: 'game_lost', reason: 'You ran out of lives.' })
     }
   }
 

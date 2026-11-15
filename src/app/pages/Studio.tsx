@@ -10,22 +10,31 @@ type Room = 'repair' | 'build'
  * #/studio — where the student changes side.
  *
  * Two rooms, in the order a person actually learns:
- *  - Repair bay: fix real bugs in the arcade's own games, using NASA data to
- *    decide what is true. Reading someone else's rule comes before writing
+ *  - Repair bay: run an experiment on a real game, see what it gets wrong,
+ *    and fix the rule. Reading someone else's rule comes before writing
  *    your own, and the bugs here are the real ones this repo had.
  *  - Free build: the block editor and simulator, for building from scratch.
  *
  * Repair is the default, because a blank page is the hardest place to start.
+ *
+ * LAYOUT NOTE: the editor brings its own full-height screen with its own
+ * background, so it is rendered OUTSIDE the page wrapper. Nesting it inside
+ * one squeezed its three panels into a column and double-padded them, which
+ * is what made Studio look cramped and unfinished. The switcher stays a thin
+ * bar rather than two big cards, so it never competes with the heading of
+ * whichever room is open.
  */
 export default function Studio({ accountId }: { accountId?: string }) {
   const [room, setRoom] = useState<Room>('repair')
 
   if (room === 'build') {
     return (
-      <section className="section wrap page studio">
-        <StudioTabs room={room} onChange={setRoom} />
+      <>
+        <div className="wrap studio__bar">
+          <StudioTabs room={room} onChange={setRoom} />
+        </div>
         <DesignGame />
-      </section>
+      </>
     )
   }
 
@@ -35,8 +44,7 @@ export default function Studio({ accountId }: { accountId?: string }) {
         <header className="page__head">
           <h1 className="page__title">Studio</h1>
           <p className="page__lede">
-            You have played these games. Now you are the one who writes them. Here the rules are
-            open, the mistakes are real, and NASA's own measurements are what settle an argument.
+            You have played these games. Now you are the one who fixes them.
           </p>
         </header>
 
@@ -50,26 +58,26 @@ export default function Studio({ accountId }: { accountId?: string }) {
 
 function StudioTabs({ room, onChange }: { room: Room; onChange: (r: Room) => void }) {
   return (
-    <div className="studio__tabs" role="tablist" aria-label="Studio rooms">
+    <div className="studio__switch" role="tablist" aria-label="Studio rooms">
       <button
         type="button"
         role="tab"
         aria-selected={room === 'repair'}
-        className={'studio__tab' + (room === 'repair' ? ' is-on' : '')}
+        className={'studio__seg' + (room === 'repair' ? ' is-on' : '')}
         onClick={() => onChange('repair')}
       >
-        <span className="studio__tab-name">Repair bay</span>
-        <span className="studio__tab-note">Fix {REPAIRS.length} real bugs in these games</span>
+        Repair bay
+        <span className="studio__seg-note">{REPAIRS.length} real bugs</span>
       </button>
       <button
         type="button"
         role="tab"
         aria-selected={room === 'build'}
-        className={'studio__tab' + (room === 'build' ? ' is-on' : '')}
+        className={'studio__seg' + (room === 'build' ? ' is-on' : '')}
         onClick={() => onChange('build')}
       >
-        <span className="studio__tab-name">Free build</span>
-        <span className="studio__tab-note">Make a game of your own with blocks</span>
+        Free build
+        <span className="studio__seg-note">Your own game</span>
       </button>
     </div>
   )

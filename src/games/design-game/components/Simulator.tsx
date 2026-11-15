@@ -15,6 +15,7 @@ import type { GameSpecification } from '../types'
 import { GameEngine } from '../engine'
 import { renderFrame } from '../renderer'
 import { getState } from '../store'
+import { IconArrow, IconPause, IconPlay, IconRestart, IconStop } from './Icons'
 
 interface Props {
   spec: GameSpecification
@@ -171,18 +172,26 @@ export default function Simulator({ spec }: Props) {
     <div className="dg-simulator">
       {/* Controls bar */}
       <div className="dg-simulator__bar">
-        <span className="dg-simulator__title">Simulador</span>
+        <span className="dg-simulator__title">Simulator</span>
         <div className="dg-simulator__controls">
           {phase === 'playing' ? (
-            <button className="dg-sim-btn" onClick={handlePause} title="Pausar">⏸</button>
+            <button className="dg-sim-btn" onClick={handlePause} title="Pause">
+              <IconPause label="Pause" />
+            </button>
           ) : (
-            <button className="dg-sim-btn dg-sim-btn--play" onClick={handlePlay} title="Ejecutar">▶</button>
+            <button className="dg-sim-btn dg-sim-btn--play" onClick={handlePlay} title="Run">
+              <IconPlay label="Run" />
+            </button>
           )}
-          <button className="dg-sim-btn" onClick={handleStop} title="Detener" disabled={phase === 'ready'}>⏹</button>
-          <button className="dg-sim-btn" onClick={handleRestart} title="Reiniciar">↺</button>
+          <button className="dg-sim-btn" onClick={handleStop} title="Stop" disabled={phase === 'ready'}>
+            <IconStop label="Stop" />
+          </button>
+          <button className="dg-sim-btn" onClick={handleRestart} title="Restart">
+            <IconRestart label="Restart" />
+          </button>
         </div>
         {(phase === 'playing' || phase === 'paused') && (
-          <span className="dg-simulator__score">⭐ {score}</span>
+          <span className="dg-simulator__score">Score {score}</span>
         )}
         <PhaseChip phase={phase} />
       </div>
@@ -192,33 +201,32 @@ export default function Simulator({ spec }: Props) {
         <canvas
           ref={canvasRef}
           className="dg-simulator__canvas"
-          aria-label="Simulador del videojuego"
+          aria-label="Game simulator"
           role="img"
         />
         {phase === 'ready' && (
           <div className="dg-simulator__overlay">
             <button className="dg-sim-play-btn" onClick={handlePlay}>
-              <span>▶</span>
-              <span>Ejecutar juego</span>
+              <IconPlay size={32} />
+              <span>Run the game</span>
             </button>
           </div>
         )}
         {phase === 'paused' && (
           <div className="dg-simulator__overlay dg-simulator__overlay--dim">
             <button className="dg-sim-play-btn" onClick={handlePlay}>
-              <span>▶</span>
-              <span>Continuar</span>
+              <IconPlay size={32} />
+              <span>Carry on</span>
             </button>
           </div>
         )}
         {phase === 'lost' && (
           <div className="dg-simulator__overlay dg-simulator__overlay--lost">
             <div className="dg-sim-end">
-              <span className="dg-sim-end__icon">💔</span>
-              <h4 className="dg-sim-end__title">Game Over</h4>
+              <h4 className="dg-sim-end__title">Game over</h4>
               {lostReason && <p className="dg-sim-end__reason">{lostReason}</p>}
               <button className="dg-btn dg-btn--primary dg-btn--sm" onClick={handleRestart}>
-                Reintentar
+                Try again
               </button>
             </div>
           </div>
@@ -226,11 +234,10 @@ export default function Simulator({ spec }: Props) {
         {phase === 'won' && (
           <div className="dg-simulator__overlay dg-simulator__overlay--won">
             <div className="dg-sim-end">
-              <span className="dg-sim-end__icon">🎉</span>
-              <h4 className="dg-sim-end__title">¡Ganaste!</h4>
-              <p className="dg-sim-end__score">Puntuación: {score}</p>
+              <h4 className="dg-sim-end__title">You win</h4>
+              <p className="dg-sim-end__score">Score: {score}</p>
               <button className="dg-btn dg-btn--primary dg-btn--sm" onClick={handleRestart}>
-                Jugar de nuevo
+                Play again
               </button>
             </div>
           </div>
@@ -242,7 +249,7 @@ export default function Simulator({ spec }: Props) {
 
       {/* Nota educativa */}
       <p className="dg-simulator__note">
-        El simulador ejecuta exactamente las instrucciones que programaste.
+        The simulator runs exactly the blocks you put together.
       </p>
     </div>
   )
@@ -250,11 +257,11 @@ export default function Simulator({ spec }: Props) {
 
 function PhaseChip({ phase }: { phase: SimPhase }) {
   const labels: Record<SimPhase, { label: string; color: string }> = {
-    ready:   { label: 'Listo',       color: '#7fd6a3' },
-    playing: { label: '▶ Jugando',   color: '#4A90D9' },
-    paused:  { label: '⏸ Pausado',  color: '#F1C40F' },
-    won:     { label: '✓ Ganaste',   color: '#7fd6a3' },
-    lost:    { label: '✗ Game Over', color: '#E74C3C' },
+    ready:   { label: 'Ready',     color: '#7fd6a3' },
+    playing: { label: 'Running',   color: '#4A90D9' },
+    paused:  { label: 'Paused',    color: '#F1C40F' },
+    won:     { label: 'You win',   color: '#7fd6a3' },
+    lost:    { label: 'Game over', color: '#E74C3C' },
   }
   const { label, color } = labels[phase]
   return (
@@ -275,34 +282,42 @@ function TouchControls({ phase }: { phase: SimPhase }) {
   }
 
   return (
-    <div className="dg-touch-pad" aria-hidden="true">
+    <div className="dg-touch-pad">
       <div className="dg-touch-pad__dpad">
         <button
           className="dg-touch-pad__btn dg-touch-pad__btn--up"
           onPointerDown={() => fireKey('ArrowUp', 'down')}
           onPointerUp={() => fireKey('ArrowUp', 'up')}
-        >↑</button>
+        >
+          <IconArrow direction="up" label="Up" />
+        </button>
         <button
           className="dg-touch-pad__btn dg-touch-pad__btn--left"
           onPointerDown={() => fireKey('ArrowLeft', 'down')}
           onPointerUp={() => fireKey('ArrowLeft', 'up')}
-        >←</button>
+        >
+          <IconArrow direction="left" label="Left" />
+        </button>
         <button
           className="dg-touch-pad__btn dg-touch-pad__btn--right"
           onPointerDown={() => fireKey('ArrowRight', 'down')}
           onPointerUp={() => fireKey('ArrowRight', 'up')}
-        >→</button>
+        >
+          <IconArrow direction="right" label="Right" />
+        </button>
         <button
           className="dg-touch-pad__btn dg-touch-pad__btn--down"
           onPointerDown={() => fireKey('ArrowDown', 'down')}
           onPointerUp={() => fireKey('ArrowDown', 'up')}
-        >↓</button>
+        >
+          <IconArrow direction="down" label="Down" />
+        </button>
       </div>
       <button
         className="dg-touch-pad__btn dg-touch-pad__btn--jump"
         onPointerDown={() => fireKey(' ', 'down')}
         onPointerUp={() => fireKey(' ', 'up')}
-      >⬆ Saltar</button>
+      >Jump</button>
     </div>
   )
 }

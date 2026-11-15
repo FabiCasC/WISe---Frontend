@@ -7,7 +7,6 @@ import { useState } from 'react'
 import type { Entity, EntityType, GameSpecification } from '../types'
 import {
   ENTITY_TEMPLATES as _ENTITY_TEMPLATES,
-  SPRITE_DESCRIPTORS,
   getTemplatesByGenre,
   createEntityFromTemplate,
 } from '../entities'
@@ -18,6 +17,8 @@ import {
   updateEntity,
   removeEntity,
 } from '../store'
+import SpritePreview from './SpritePreview'
+import { IconClose } from './Icons'
 
 interface Props {
   spec: GameSpecification
@@ -44,13 +45,13 @@ export default function EntityLibrary({ spec }: Props) {
           className={`dg-entity-lib__tab ${tab === 'scene' ? 'dg-entity-lib__tab--active' : ''}`}
           onClick={() => setTab('scene')}
         >
-          En el juego ({spec.entities.length})
+          In the game ({spec.entities.length})
         </button>
         <button
           className={`dg-entity-lib__tab ${tab === 'add' ? 'dg-entity-lib__tab--active' : ''}`}
           onClick={() => setTab('add')}
         >
-          + Agregar
+          + Add
         </button>
       </div>
 
@@ -58,8 +59,7 @@ export default function EntityLibrary({ spec }: Props) {
         <div className="dg-entity-lib__body">
           {spec.entities.length === 0 ? (
             <div className="dg-empty-state">
-              <span className="dg-empty-state__icon">🎭</span>
-              <p>Sin objetos en el escenario. Agrégalos desde la pestaña "+ Agregar".</p>
+              <p>Nothing in the scene yet. Put something in it from the "+ Add" tab.</p>
             </div>
           ) : (
             <div className="dg-entity-lib__list">
@@ -93,7 +93,7 @@ export default function EntityLibrary({ spec }: Props) {
                 className={`dg-filter-btn ${filterType === t ? 'dg-filter-btn--active' : ''}`}
                 onClick={() => setFilterType(t)}
               >
-                {TYPE_ICONS[t]} {TYPE_LABELS[t]}
+                {TYPE_LABELS[t]}
               </button>
             ))}
           </div>
@@ -115,8 +115,8 @@ export default function EntityLibrary({ spec }: Props) {
                   setTab('scene')
                 }}
               >
-                <span className="dg-template-btn__emoji">
-                  {SPRITE_DESCRIPTORS[template.sprite]?.emoji ?? '?'}
+                <span className="dg-template-btn__sprite">
+                  <SpritePreview sprite={template.sprite} size={28} />
                 </span>
                 <div className="dg-template-btn__info">
                   <span className="dg-template-btn__name">{template.name}</span>
@@ -143,13 +143,14 @@ function EntityItem({
   onSelect: () => void
   onDelete: () => void
 }) {
-  const desc = SPRITE_DESCRIPTORS[entity.sprite]
   return (
     <div
       className={`dg-entity-item ${isSelected ? 'dg-entity-item--selected' : ''}`}
       onClick={onSelect}
     >
-      <span className="dg-entity-item__emoji">{desc?.emoji ?? '?'}</span>
+      <span className="dg-entity-item__sprite">
+        <SpritePreview sprite={entity.sprite} size={22} />
+      </span>
       <div className="dg-entity-item__info">
         <span className="dg-entity-item__name">{entity.name}</span>
         <span className="dg-entity-item__type">{TYPE_LABELS[entity.type]}</span>
@@ -160,9 +161,9 @@ function EntityItem({
       <button
         className="dg-entity-item__delete"
         onClick={(e) => { e.stopPropagation(); onDelete() }}
-        aria-label={`Eliminar ${entity.name}`}
+        aria-label={`Remove ${entity.name}`}
       >
-        ✕
+        <IconClose size={13} />
       </button>
     </div>
   )
@@ -176,13 +177,14 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
   return (
     <div className="dg-entity-props">
       <h4 className="dg-entity-props__title">
-        {SPRITE_DESCRIPTORS[entity.sprite]?.emoji ?? '?'} {entity.name}
+        <SpritePreview sprite={entity.sprite} size={18} />
+        {' '}{entity.name}
       </h4>
 
       <div className="dg-entity-props__fields">
         {/* Posición */}
         <div className="dg-entity-props__group">
-          <span className="dg-entity-props__group-label">Posición</span>
+          <span className="dg-entity-props__group-label">Position</span>
           <div className="dg-entity-props__row">
             <label>
               X
@@ -219,10 +221,10 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
 
         {/* Tamaño */}
         <div className="dg-entity-props__group">
-          <span className="dg-entity-props__group-label">Tamaño</span>
+          <span className="dg-entity-props__group-label">Size</span>
           <div className="dg-entity-props__row">
             <label>
-              Ancho
+              Width
               <input
                 type="number"
                 className="dg-entity-props__input"
@@ -237,7 +239,7 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
               />
             </label>
             <label>
-              Alto
+              Height
               <input
                 type="number"
                 className="dg-entity-props__input"
@@ -258,7 +260,7 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
         {entity.properties.speed !== undefined && (
           <div className="dg-entity-props__group">
             <label className="dg-entity-props__group-label">
-              Velocidad
+              Speed
               <input
                 type="range"
                 className="dg-entity-props__range"
@@ -281,7 +283,7 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
         {entity.type === 'collectible' && (
           <div className="dg-entity-props__group">
             <label className="dg-entity-props__group-label">
-              Puntos al recolectar
+              Points when collected
               <input
                 type="number"
                 className="dg-entity-props__input"
@@ -302,7 +304,7 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
         {entity.type === 'enemy' && entity.properties.behavior && (
           <div className="dg-entity-props__group">
             <label className="dg-entity-props__group-label">
-              Comportamiento
+              Behaviour
               <select
                 className="dg-entity-props__select"
                 value={entity.properties.behavior}
@@ -315,10 +317,10 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
                   })
                 }
               >
-                <option value="static">Estático</option>
-                <option value="patrol">Patrulla</option>
-                <option value="follow">Seguir al jugador</option>
-                <option value="random">Aleatorio</option>
+                <option value="static">Stay still</option>
+                <option value="patrol">Patrol</option>
+                <option value="follow">Chase the player</option>
+                <option value="random">Wander</option>
               </select>
             </label>
           </div>
@@ -329,21 +331,11 @@ function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecifi
 }
 
 const TYPE_LABELS: Record<EntityType | 'all', string> = {
-  all: 'Todos',
-  player: 'Jugador',
-  enemy: 'Enemigo',
-  collectible: 'Coleccionable',
-  obstacle: 'Obstáculo',
-  platform: 'Plataforma',
-  goal: 'Meta',
-}
-
-const TYPE_ICONS: Record<EntityType | 'all', string> = {
-  all: '🎲',
-  player: '🧑',
-  enemy: '👾',
-  collectible: '⭐',
-  obstacle: '🪨',
-  platform: '▬',
-  goal: '🏁',
+  all: 'All',
+  player: 'Player',
+  enemy: 'Enemy',
+  collectible: 'Pick-up',
+  obstacle: 'Obstacle',
+  platform: 'Platform',
+  goal: 'Goal',
 }

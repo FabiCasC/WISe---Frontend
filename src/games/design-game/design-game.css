@@ -96,7 +96,9 @@
   margin-bottom: 16px;
 }
 
-.dg-welcome__badge-icon { font-size: 18px; }
+.dg-icon { display: block; flex: 0 0 auto; }
+
+.dg-sprite { display: block; flex: 0 0 auto; }
 
 .dg-welcome__title {
   font-size: clamp(32px, 5vw, 54px);
@@ -208,7 +210,6 @@
   box-shadow: 0 0 0 1px rgba(243,181,74,0.3);
 }
 
-.dg-genre-btn__emoji { font-size: 26px; }
 
 .dg-genre-btn__label {
   font-weight: 700;
@@ -258,7 +259,6 @@
   background: rgba(243,181,74,0.07);
 }
 
-.dg-examples__icon { flex: 0 0 auto; }
 
 /* Proyectos recientes */
 .dg-recent {
@@ -304,7 +304,6 @@
   background: rgba(243,181,74,0.07);
 }
 
-.dg-recent__icon { font-size: 22px; flex: 0 0 auto; }
 
 .dg-recent__info {
   flex: 1;
@@ -358,7 +357,6 @@
   background: var(--panel);
 }
 
-.dg-info-card__icon { font-size: 22px; flex: 0 0 auto; }
 
 .dg-info-card strong { display: block; font-size: 13px; margin-bottom: 3px; }
 
@@ -731,7 +729,6 @@
   transform: translateX(2px);
 }
 
-.dg-block-item__icon { font-size: 16px; flex: 0 0 20px; text-align: center; }
 
 .dg-block-item__text { display: flex; flex-direction: column; gap: 1px; }
 
@@ -798,7 +795,7 @@
   font-weight: 700;
 }
 
-.dg-entity-tab__icon { font-size: 14px; }
+.dg-entity-tab__sprite { display: flex; align-items: center; }
 
 .dg-entity-tab__name { max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
 
@@ -867,7 +864,6 @@
   border-color: rgba(74,144,217,0.3);
 }
 
-.dg-script-item__event-icon { font-size: 16px; flex: 0 0 20px; }
 
 .dg-script-item__info { display: flex; flex-direction: column; flex: 1; gap: 2px; min-width: 0; }
 
@@ -987,7 +983,6 @@
   min-height: 44px;
 }
 
-.dg-block-node__icon { font-size: 16px; flex: 0 0 20px; }
 
 .dg-block-node__label { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; }
 
@@ -1168,7 +1163,6 @@
   transition: all var(--dur-fast) var(--ease);
 }
 
-.dg-sim-play-btn span:first-child { font-size: 32px; }
 
 .dg-sim-play-btn:hover { transform: scale(1.05); }
 
@@ -1184,7 +1178,6 @@
   text-align: center;
 }
 
-.dg-sim-end__icon { font-size: 36px; }
 
 .dg-sim-end__title { font-size: 20px; font-weight: 900; font-family: var(--font-display); margin: 0; }
 
@@ -1309,7 +1302,7 @@
   background: rgba(243,181,74,0.1);
 }
 
-.dg-entity-item__emoji { font-size: 18px; flex: 0 0 24px; }
+.dg-entity-item__sprite { display: flex; align-items: center; flex: 0 0 24px; }
 
 .dg-entity-item__info { display: flex; flex-direction: column; flex: 1; gap: 1px; min-width: 0; }
 
@@ -1340,6 +1333,9 @@
 }
 
 .dg-entity-props__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
   font-weight: 700;
   margin-bottom: 10px;
@@ -1432,7 +1428,7 @@
   transform: translateX(2px);
 }
 
-.dg-template-btn__emoji { font-size: 22px; flex: 0 0 28px; }
+.dg-template-btn__sprite { display: flex; align-items: center; flex: 0 0 28px; }
 
 .dg-template-btn__info { display: flex; flex-direction: column; gap: 2px; }
 
@@ -1468,7 +1464,6 @@
   font-size: 14px;
 }
 
-.dg-ai__icon { font-size: 18px; }
 
 .dg-ai__demo-badge {
   font-size: 9px;
@@ -1683,7 +1678,7 @@
   color: var(--action);
 }
 
-.dg-review__summary-value { font-size: 13px; font-weight: 700; color: var(--text); }
+.dg-review__summary-value { display: flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 700; color: var(--text); }
 
 .dg-review__feedback {
   background: rgba(241,196,15,0.08);
@@ -1701,7 +1696,7 @@
 
 .dg-review__issues { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
 
-.dg-review__issue { font-size: 12.5px; }
+.dg-review__issue { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
 .dg-review__issue--error   { color: #E74C3C; }
 .dg-review__issue--warning { color: #F1C40F; }
 .dg-review__issue--suggestion { color: #4A90D9; }
@@ -1743,7 +1738,7 @@
   border-color: rgba(241,196,15,0.25);
 }
 
-.dg-review__notice > span { font-size: 18px; flex: 0 0 auto; }
+.dg-review__notice > .dg-icon { margin-top: 2px; }
 
 .dg-review__notice strong { display: block; margin-bottom: 3px; }
 
@@ -1789,7 +1784,6 @@
 
 .dg-empty-state--center { justify-content: center; }
 
-.dg-empty-state__icon { font-size: 36px; opacity: 0.6; }
 
 .dg-empty-state h3 { font-size: 16px; font-weight: 700; color: var(--text-dim); margin: 0; }
 

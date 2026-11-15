@@ -17,6 +17,7 @@ import {
   openProject,
   saveCurrentProject,
 } from '../store'
+import { IconClose } from './Icons'
 
 interface Props {
   spec: GameSpecification
@@ -27,7 +28,7 @@ export default function AIAssistant({ spec, onClose }: Props) {
   const [messages, setMessages] = useState<AIConversationMessage[]>([
     {
       role: 'assistant',
-      content: `¡Hola! Soy el asistente de Design Game. Puedo ayudarte a mejorar "${spec.name}".\n\nPuedes pedirme cosas como:\n• "Agrega un enemigo que persiga al jugador"\n• "¿Qué hace el bloque de salto?"\n• "¿Por qué mi personaje no se mueve?"\n\n⚠️ **Modo demostración:** no hay IA real conectada. Las respuestas son demostrativas.`,
+      content: `Hello. I am the Design Game helper, and I can talk through "${spec.name}" with you.\n\nTry asking me things like:\n• "Add an enemy that chases the player"\n• "What does the jump block do?"\n• "Why won't my sprite move?"\n\n**Demo mode:** no real AI is connected here. The answers are written in advance.`,
       timestamp: new Date().toISOString(),
       isDemo: true,
     },
@@ -62,12 +63,12 @@ export default function AIAssistant({ spec, onClose }: Props) {
 
       const response = await processAIRequest({ message: text, context })
       const aiMsg = createMessage('assistant', response.explanation, response.proposedChanges)
-      if (response.hint) aiMsg.content += `\n\n💡 **Pista:** ${response.hint}`
+      if (response.hint) aiMsg.content += `\n\n**Hint:** ${response.hint}`
       setMessages((prev) => [...prev, aiMsg])
     } catch {
       setMessages((prev) => [
         ...prev,
-        createMessage('assistant', 'Hubo un problema al procesar tu solicitud. Intenta de nuevo.'),
+        createMessage('assistant', 'Something went wrong on my side. Try asking again.'),
       ])
     } finally {
       setIsLoading(false)
@@ -102,11 +103,12 @@ export default function AIAssistant({ spec, onClose }: Props) {
     <div className="dg-ai">
       <div className="dg-ai__header">
         <div className="dg-ai__title">
-          <span className="dg-ai__icon">🤖</span>
-          <span>Asistente IA</span>
+          <span>AI helper</span>
           <span className="dg-ai__demo-badge">DEMO</span>
         </div>
-        <button className="dg-btn dg-btn--ghost dg-btn--sm" onClick={onClose}>✕</button>
+        <button className="dg-btn dg-btn--ghost dg-btn--sm" onClick={onClose}>
+          <IconClose label="Close" />
+        </button>
       </div>
 
       <div className="dg-ai__messages">
@@ -122,7 +124,7 @@ export default function AIAssistant({ spec, onClose }: Props) {
             {/* Propuesta de cambios */}
             {msg.proposedChanges && msg.proposedChanges.length > 0 && msg.accepted === undefined && (
               <div className="dg-ai__proposal">
-                <p className="dg-ai__proposal-title">Cambios propuestos:</p>
+                <p className="dg-ai__proposal-title">What I would change:</p>
                 <ul className="dg-ai__proposal-list">
                   {msg.proposedChanges.map((c, ci) => (
                     <li key={ci}>{describeChange(c)}</li>
@@ -133,23 +135,23 @@ export default function AIAssistant({ spec, onClose }: Props) {
                     className="dg-btn dg-btn--primary dg-btn--sm"
                     onClick={() => handleAccept(idx)}
                   >
-                    ✓ Aplicar cambios
+                    Apply these
                   </button>
                   <button
                     className="dg-btn dg-btn--ghost dg-btn--sm"
                     onClick={() => handleReject(idx)}
                   >
-                    ✕ Rechazar
+                    No thanks
                   </button>
                 </div>
               </div>
             )}
 
             {msg.accepted === true && (
-              <span className="dg-ai__accepted">✓ Cambios aplicados</span>
+              <span className="dg-ai__accepted">Changes applied</span>
             )}
             {msg.accepted === false && (
-              <span className="dg-ai__rejected">✗ Cambios rechazados</span>
+              <span className="dg-ai__rejected">Changes turned down</span>
             )}
           </div>
         ))}
@@ -158,7 +160,7 @@ export default function AIAssistant({ spec, onClose }: Props) {
           <div className="dg-ai__message dg-ai__message--assistant">
             <div className="dg-ai__loading">
               <span className="dg-spinner" />
-              Pensando…
+              Thinking…
             </div>
           </div>
         )}
@@ -170,7 +172,7 @@ export default function AIAssistant({ spec, onClose }: Props) {
           className="dg-ai__input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Escribe tu pregunta o solicitud…"
+          placeholder="Ask a question, or say what to change…"
           rows={2}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -185,12 +187,12 @@ export default function AIAssistant({ spec, onClose }: Props) {
           onClick={handleSend}
           disabled={!input.trim() || isLoading}
         >
-          Enviar
+          Send
         </button>
       </div>
 
       <p className="dg-ai__disclaimer">
-        ⚠️ Modo demostración. Las respuestas son ejemplos predefinidos, no IA real.
+        Demo mode. These answers are written in advance, not a real AI.
       </p>
     </div>
   )
@@ -218,12 +220,12 @@ function FormattedText({ text }: { text: string }) {
 function describeChange(change: ProposedChange): string {
   switch (change.type) {
     case 'add_entity':
-      return `Agregar "${change.template}" en posición (${change.position?.x ?? '?'}, ${change.position?.y ?? '?'})`
+      return `Put a "${change.template}" at (${change.position?.x ?? '?'}, ${change.position?.y ?? '?'})`
     case 'add_script':
-      return `Crear script para "${change.entityName}" con evento "${change.eventType}"`
+      return `Start a script on "${change.entityName}", beginning with "${change.eventType}"`
     case 'update_entity_property':
-      return `Actualizar ${change.property} de "${change.entityName}" a ${change.value}`
+      return `Set ${change.property} on "${change.entityName}" to ${change.value}`
     case 'add_variable':
-      return `Crear variable "${change.name}" con valor inicial ${change.initialValue}`
+      return `Store a value called "${change.name}", starting at ${change.initialValue}`
   }
 }
