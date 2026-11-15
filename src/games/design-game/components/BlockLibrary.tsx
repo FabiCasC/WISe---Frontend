@@ -1,6 +1,5 @@
 /**
  * DESIGN GAME - BIBLIOTECA DE BLOQUES
- * Panel izquierdo del editor: categorías + bloques arrastrables
  */
 
 import { useState } from 'react'
@@ -12,16 +11,26 @@ import {
   createBlock as createBlockDef,
   type BlockDefinition,
 } from '../blocks'
-import {
-  getState,
-  createScript,
-  appendBlock,
-  selectScript,
-} from '../store'
+import { getState, createScript, appendBlock, selectScript } from '../store'
 
-interface Props {
-  spec: GameSpecification
+/* SVG de icono de pista */
+const stroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+
+function IconInfo() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" {...stroke} /><path d="M12 11v5M12 7.6v.2" {...stroke} /></svg>
 }
+
+/** Mapa de icono SVG por tipo de bloque — usamos símbolos geométricos minimalistas */
+function BlockIcon({ icon }: { icon: string }) {
+  // Los iconos en blocks.ts son caracteres/símbolos. Renderizamos un SVG neutral de categoría.
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" fill="currentColor" opacity={0.7} />
+    </svg>
+  )
+}
+
+interface Props { spec: GameSpecification }
 
 export default function BlockLibrary({ spec }: Props) {
   const [activeCategory, setActiveCategory] = useState<BlockCategory>('events')
@@ -36,18 +45,17 @@ export default function BlockLibrary({ spec }: Props) {
   return (
     <div className="dg-block-lib">
       <div className="dg-block-lib__header">
-        <h3 className="dg-block-lib__title">Bloques</h3>
+        <p className="dg-block-lib__title">Biblioteca de bloques</p>
         <input
           className="dg-block-lib__search"
           type="search"
-          placeholder="Buscar…"
+          placeholder="Buscar bloque…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           aria-label="Buscar bloques"
         />
       </div>
 
-      {/* Categorías */}
       <div className="dg-block-lib__cats">
         {BLOCK_CATEGORIES_ORDER.map(({ key, label }) => (
           <button
@@ -56,20 +64,16 @@ export default function BlockLibrary({ spec }: Props) {
             onClick={() => setActiveCategory(key)}
             style={activeCategory === key ? { borderLeftColor: BLOCK_COLORS[key] } : {}}
           >
-            <span
-              className="dg-block-lib__cat-dot"
-              style={{ background: BLOCK_COLORS[key] }}
-            />
+            <span className="dg-block-lib__cat-dot" style={{ background: BLOCK_COLORS[key] }} />
             {label}
           </button>
         ))}
       </div>
 
-      {/* Bloques de la categoría */}
       <div className="dg-block-lib__blocks">
         {defs.length === 0 && (
           <p className="dg-block-lib__empty">
-            {search ? 'No se encontraron bloques.' : 'Sin bloques en esta categoría.'}
+            {search ? 'Sin resultados.' : 'Sin bloques en esta categoría.'}
           </p>
         )}
         {defs.map((def) => (
@@ -77,9 +81,8 @@ export default function BlockLibrary({ spec }: Props) {
         ))}
       </div>
 
-      {/* Ayuda contextual */}
       <div className="dg-block-lib__tip">
-        <span>💡</span>
+        <span className="dg-block-lib__tip-icon"><IconInfo /></span>
         <span>Haz clic en un bloque para agregarlo al script seleccionado.</span>
       </div>
     </div>
@@ -91,27 +94,23 @@ function BlockItem({ def, spec }: { def: BlockDefinition; spec: GameSpecificatio
 
   const handleClick = () => {
     const { selectedEntityId, selectedScriptId } = getState()
-
-    // Si no hay entidad seleccionada, no se puede agregar
     const targetEntityId = selectedEntityId ?? spec.entities[0]?.id
     if (!targetEntityId) return
 
     if (def.isEvent) {
-      // Los eventos crean un script nuevo
       const script = createScript(targetEntityId)
       selectScript(script.id)
       return
     }
 
-    // Agregar bloque al script seleccionado o crear uno nuevo
     let scriptId = selectedScriptId
     if (!scriptId) {
-      const existingScripts = spec.scripts.filter((s) => s.entityId === targetEntityId)
-      if (existingScripts.length > 0) {
-        scriptId = existingScripts[0].id
+      const existing = spec.scripts.filter((s) => s.entityId === targetEntityId)
+      if (existing.length > 0) {
+        scriptId = existing[0].id
       } else {
-        const newScript = createScript(targetEntityId)
-        scriptId = newScript.id
+        const s = createScript(targetEntityId)
+        scriptId = s.id
       }
       selectScript(scriptId)
     }
@@ -119,7 +118,8 @@ function BlockItem({ def, spec }: { def: BlockDefinition; spec: GameSpecificatio
     if (scriptId) {
       const block = createBlockDef(def.type)
       appendBlock(scriptId, block)
-    }  }
+    }
+  }
 
   return (
     <button
@@ -128,11 +128,11 @@ function BlockItem({ def, spec }: { def: BlockDefinition; spec: GameSpecificatio
       onClick={handleClick}
       title={def.description}
       draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData('block-type', def.type)
-      }}
+      onDragStart={(e) => { e.dataTransfer.setData('block-type', def.type) }}
     >
-      <span className="dg-block-item__icon">{def.icon}</span>
+      <span className="dg-block-item__icon">
+        <BlockIcon icon={def.icon} />
+      </span>
       <div className="dg-block-item__text">
         <span className="dg-block-item__label">{def.label}</span>
         <span className="dg-block-item__desc">{def.description}</span>
