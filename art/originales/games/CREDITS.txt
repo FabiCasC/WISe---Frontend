@@ -15,3 +15,4 @@ lro-search          PIA12909  Apollo 11 site seen by the Lunar Reconnaissance Or
 dart-impact         PIA25329  NASA's DART at the Didymos system (illustration)
 artemis-landing     "11 03 24 artemis 3 on surface"  Artist's concept of a human landing system on the Moon
 snake-express       AS17-140-21496 Harrison Schmitt next to a boulder, Apollo 17 EVA 3
+nasa-numbers        PIA15818  Climbing the Cosmic Distance Ladder (artist's concept, Spitzer Space Telescope)
