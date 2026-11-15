@@ -143,6 +143,7 @@ export const GAMES: GameEntry[] = [
     concepts: [{ id: 'sin-luz-sin-energia', label: 'Without sunlight, a solar rover has no energy' }],
     status: 'live',
     isNew: true,
+    art: 'assets/games/dust-run.webp',
   },
   {
     id: 'gusev-maze',
@@ -153,6 +154,7 @@ export const GAMES: GameEntry[] = [
     concepts: [{ id: 'remolinos-limpian-paneles', label: 'Dust devils can clean a rover’s solar panels' }],
     status: 'live',
     isNew: true,
+    art: 'assets/games/gusev-maze.webp',
   },
   {
     id: 'sun-shade',
@@ -166,6 +168,7 @@ export const GAMES: GameEntry[] = [
     status: 'live',
     isNew: true,
     size: 'wide',
+    art: 'assets/games/sun-shade.webp',
   },
   {
     id: 'artemis-landing',
@@ -184,6 +187,7 @@ export const GAMES: GameEntry[] = [
     // contents overflow a 96px box, which clipped the icon and pushed the
     // PLAY and LV chips outside it.
     size: 'big',
+    art: 'assets/games/artemis-landing.webp',
   },
   {
     id: 'dart-impact',
@@ -199,6 +203,7 @@ export const GAMES: GameEntry[] = [
     status: 'live',
     isNew: true,
     size: 'big',
+    art: 'assets/games/dart-impact.webp',
   },
   {
     id: 'orbital-grid',
@@ -212,6 +217,7 @@ export const GAMES: GameEntry[] = [
     ],
     status: 'live',
     isNew: true,
+    art: 'assets/games/orbital-grid.webp',
   },
 
   // Seven abandoned-hardware games (Canvas 2D, src/games/<id>, texts in content/arcade.ts)
@@ -228,6 +234,7 @@ export const GAMES: GameEntry[] = [
     status: 'live',
     isNew: true,
     size: 'wide',
+    art: 'assets/games/eagle-liftoff.webp',
   },
   {
     id: 'lunar-rover',
@@ -242,6 +249,7 @@ export const GAMES: GameEntry[] = [
     ],
     status: 'live',
     isNew: true,
+    art: 'assets/games/lunar-rover.webp',
   },
   {
     id: 'pathfinder-bounce',
@@ -256,6 +264,7 @@ export const GAMES: GameEntry[] = [
     ],
     status: 'live',
     isNew: true,
+    art: 'assets/games/pathfinder-bounce.webp',
   },
   {
     id: 'sojourner-commands',
@@ -270,6 +279,7 @@ export const GAMES: GameEntry[] = [
     ],
     status: 'live',
     isNew: true,
+    art: 'assets/games/sojourner-commands.webp',
   },
   {
     id: 'phoenix-ice',
@@ -284,6 +294,7 @@ export const GAMES: GameEntry[] = [
     ],
     status: 'live',
     isNew: true,
+    art: 'assets/games/phoenix-ice.webp',
   },
   {
     id: 'ingenuity-flight',
@@ -299,6 +310,7 @@ export const GAMES: GameEntry[] = [
     status: 'live',
     isNew: true,
     size: 'wide',
+    art: 'assets/games/ingenuity-flight.webp',
   },
   {
     id: 'lro-search',
@@ -313,6 +325,7 @@ export const GAMES: GameEntry[] = [
     ],
     status: 'live',
     isNew: true,
+    art: 'assets/games/lro-search.webp',
   },
   // Snake Express — Lunar Express
   {
@@ -329,6 +342,7 @@ export const GAMES: GameEntry[] = [
     status: 'live',
     isNew: true,
     size: 'wide',
+    art: 'assets/games/snake-express.webp',
   },
 
   // ------------------------------------------------------- COMING SOON

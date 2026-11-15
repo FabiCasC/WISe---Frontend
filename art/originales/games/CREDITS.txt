@@ -1,0 +1,17 @@
+Game tile images. All from the NASA Image and Video Library (images.nasa.gov),
+NASA media is generally not copyrighted (NASA Media Usage Guidelines).
+
+dust-run            PIA22521  Shades of Martian Darkness (Opportunity, 2018 dust storm, tau sequence)
+gusev-maze          PIA04413  Artist Concept of Rover on Mars (Mars Exploration Rover)
+orbital-grid        PIA26716  Goldstone's 70-Meter Antenna Under the Stars (Deep Space Network)
+sun-shade           PIA24173  Curiosity's selfie at the 'Mary Anning' location
+eagle-liftoff       AS11-44-6642  Apollo 11 lunar module ascent stage photographed from the command module
+lunar-rover         AS15-86-11603 James Irwin at the Lunar Roving Vehicle, Apollo 15
+pathfinder-bounce   PIA00616  Lander, airbags and Martian terrain (Mars Pathfinder)
+sojourner-commands  PIA00611  Pathfinder rover, airbags and Martian terrain
+phoenix-ice         PIA10906  Disappearing Ice (Phoenix trench)
+ingenuity-flight    PIA23720  Ingenuity Mars Helicopter on the Martian surface (artist's concept)
+lro-search          PIA12909  Apollo 11 site seen by the Lunar Reconnaissance Orbiter
+dart-impact         PIA25329  NASA's DART at the Didymos system (illustration)
+artemis-landing     "11 03 24 artemis 3 on surface"  Artist's concept of a human landing system on the Moon
+snake-express       AS17-140-21496 Harrison Schmitt next to a boulder, Apollo 17 EVA 3

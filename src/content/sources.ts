@@ -114,6 +114,13 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html',
     accessed: '2026-11-15',
   },
+  'nssdc-alsep-apollo12': {
+    id: 'nssdc-alsep-apollo12',
+    title: 'Apollo 12 ALSEP: experiments left on the Moon to keep doing science (Space Apps challenge resource)',
+    publisher: 'NASA NSSDCA',
+    url: 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-099C',
+    accessed: '2026-11-15',
+  },
   'nasa-moon-composition': {
     id: 'nasa-moon-composition',
     title: 'Moon Composition (bright highlands are older crust; dark maria are seas of cooled lava)',
