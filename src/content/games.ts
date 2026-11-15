@@ -252,20 +252,20 @@ export const GAMES: GameEntry[] = [
     art: 'assets/games/lunar-rover.webp',
   },
 
-  {
+    {
     id: 'nasa-numbers',
     title: 'NASA Number Mission',
     destination: 'moon',
     icon: 'rover',
     levels: 3,
     concepts: [
-      { id: 'bateria-no-recargable', label: 'The Apollo rover’s batteries could not be recharged: plan a short route' },
-      { id: 'distancia-caminando-al-lm', label: 'Stay close enough to walk back to the lunar module if the rover breaks' },
-      { id: 'navegar-de-vuelta-al-lm', label: 'The rover’s navigation computer always knew the way back to the lunar module' },
+      { id: 'nasa-numbers-1', label: 'Halving the range each time finds any number in a few tries' },
+      { id: 'nasa-numbers-2', label: 'Real measurements come with a margin of error' },
+      { id: 'nasa-numbers-3', label: 'Distance, the speed of light and the laser echo time are linked' },
     ],
     status: 'live',
     isNew: true,
-    art: 'assets/games/lunar-rover.webp',
+    art: 'assets/games/nasa-numbers.webp',
   },
   
   {

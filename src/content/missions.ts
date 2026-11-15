@@ -310,7 +310,7 @@ export const MISSIONS: MissionCard[] = [
         'Some answers are rounded for play; the mission log shows the exact NASA value.',
       ],
     },
-    sourceIds: ['nssdca-apollo15-lm', 'nssdca-moon-facts', 'jpl-apollo-reflectors', 'jpl-llr-2020'],
+   sourceIds: ['nssdc-apollo15-alsep', 'nssdc-moon-facts', 'jpl-apollo-reflectors', 'jpl-llr-2020'],
     art: 'assets/missions/nasa-numbers.webp',
   },
 ]

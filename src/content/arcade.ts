@@ -367,7 +367,6 @@ export const ARCADE: ArcadeCard[] = [
     ],
     sources: ['nasa-lro', 'pia12889-lro-apollo14', 'pia12897-fra-mauro', 'pia12909-apollo11-second-look', 'nasa-lro-apollo12'],
   },
- 
   
   {
     gameId: 'dart-impact',
@@ -431,7 +430,7 @@ export const ARCADE: ArcadeCard[] = [
         meaning: 'The Moon’s distance, orbit and laser echo time are measured values, not estimates by eye.',
       },
     ],
-    sources: ['nssdc-apollo15-alsep', 'nssdca-moon-facts', 'jpl-apollo-reflectors', 'jpl-llr-2020'],
+   sources: ['nssdc-apollo15-alsep', 'nssdc-moon-facts', 'jpl-apollo-reflectors', 'jpl-llr-2020'],
   },
   {
     gameId: 'artemis-landing',
