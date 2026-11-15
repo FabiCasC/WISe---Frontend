@@ -248,14 +248,140 @@ export function levelConfig(level: LevelId): LevelConfig {
  * Best period cut physically available with this impactor: everything the
  * probe has, delivered perfectly head-on. Used to grade a shot honestly.
  */
-export function bestPossibleCutMin(cfg: LevelConfig): number {
+export function bestPossibleCutMin(spec: ImpactorSpec): number {
   const best = resolveImpact({
-    spec: cfg,
+    spec,
     orbitAngle: 0,
     // Exactly opposite to the heading at angle 0, which is (0, 1).
     probeDirection: { x: 0, y: -1 },
   })
   return -best.changeMin
+}
+
+// --- Aiming preview ---------------------------------------------------------
+
+export interface AimPreviewInput {
+  spec: ImpactorSpec
+  /** Where the probe is now. Any units, so long as every length here shares them. */
+  probe: Vec2
+  /**
+   * Probe velocity, units per second. The line is straight: the preview
+   * answers "what happens if I stop steering now?", which is the only
+   * question the player can actually act on while the probe is in flight.
+   */
+  probeVelocity: Vec2
+  /** Centre of the system, i.e. the parent asteroid. */
+  center: Vec2
+  /** Radius of the moonlet's orbit, in those same units. */
+  orbitRadius: number
+  /** Where the moonlet is right now, radians. */
+  orbitAngle: number
+  /** How fast the moonlet goes round, rad/s, positive with rising angle. */
+  angularRateRadS: number
+  /** Moonlet radius plus probe radius: how close counts as a hit. */
+  captureRadius: number
+  /**
+   * Parent-body radius. The probe can bury itself in the big asteroid long
+   * before it reaches the moonlet, and such a line is a miss, not a shot.
+   */
+  blockerRadius?: number
+  /** How long the probe stays in play, seconds. */
+  horizonS: number
+  /** Walking step, seconds. Finer costs more and buys little. */
+  stepS?: number
+}
+
+export interface AimPreview {
+  /** False when this line never reaches the moonlet. */
+  hits: boolean
+  /** Seconds until the meeting. 0 on a miss. */
+  timeS: number
+  /** Orbit angle of the meeting, radians. 0 on a miss. */
+  impactAngle: number
+  /** Meeting point, in the input's units. Zero on a miss. */
+  impactPoint: Vec2
+  /** -1 head-on, 0 sideways, +1 from behind. 0 on a miss. */
+  alignment: number
+  /** Minutes the orbit would change by. Negative is the good direction. */
+  changeMin: number
+  /** 0..1 for a bar: the share of the best possible cut this line would land. */
+  quality: number
+}
+
+/** A line that reaches nothing. Built fresh so no caller can scribble on it. */
+function noContact(): AimPreview {
+  return {
+    hits: false,
+    timeS: 0,
+    impactAngle: 0,
+    impactPoint: { x: 0, y: 0 },
+    alignment: 0,
+    changeMin: 0,
+    quality: 0,
+  }
+}
+
+/**
+ * What the shot being lined up would actually do, worked out with the very
+ * same resolveImpact that settles the real hit — so the readout on screen
+ * can never promise the player more than the impact delivers.
+ *
+ * The probe flies straight while the moonlet keeps circling, so there is no
+ * closed form for where the two meet: the line is walked forward in small
+ * steps until they overlap, which is exactly how the game's own collision
+ * check works frame by frame.
+ */
+export function previewImpact(input: AimPreviewInput): AimPreview {
+  const step = input.stepS ?? 0.01
+  if (length(input.probeVelocity) === 0 || input.horizonS <= 0 || step <= 0) return noContact()
+
+  const blocker = input.blockerRadius ?? 0
+  let hitTime = -1
+  let hitAngle = 0
+  let point: Vec2 = { x: 0, y: 0 }
+
+  for (let t = 0; t <= input.horizonS; t += step) {
+    const px = input.probe.x + input.probeVelocity.x * t
+    const py = input.probe.y + input.probeVelocity.y * t
+
+    // Crashing into the parent body ends the run before the moonlet matters.
+    if (blocker > 0 && Math.hypot(px - input.center.x, py - input.center.y) <= blocker) {
+      return noContact()
+    }
+
+    const angle = input.orbitAngle + input.angularRateRadS * t
+    const m = orbitPosition(angle, input.orbitRadius)
+    const mx = input.center.x + m.x
+    const my = input.center.y + m.y
+    if (Math.hypot(px - mx, py - my) <= input.captureRadius) {
+      hitTime = t
+      hitAngle = angle
+      point = { x: mx, y: my }
+      break
+    }
+  }
+
+  if (hitTime < 0) return noContact()
+
+  const outcome = resolveImpact({
+    spec: input.spec,
+    orbitAngle: hitAngle,
+    probeDirection: input.probeVelocity,
+  })
+
+  // Measured against the best this impactor can physically do, so a full
+  // bar means there is nothing left to steer for.
+  const best = bestPossibleCutMin(input.spec)
+
+  return {
+    hits: true,
+    timeS: hitTime,
+    impactAngle: hitAngle,
+    impactPoint: point,
+    alignment: outcome.alignment,
+    changeMin: outcome.changeMin,
+    quality: best <= 0 ? 0 : Math.max(0, Math.min(1, -outcome.changeMin / best)),
+  }
 }
 
 // --- Result -----------------------------------------------------------------

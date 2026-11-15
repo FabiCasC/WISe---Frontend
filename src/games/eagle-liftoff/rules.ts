@@ -138,6 +138,20 @@ export function launch(s: State): Verdict {
   return null
 }
 
+/**
+ * Is this lead angle inside the level's launch window?
+ *
+ * Exported so the HUD can colour the gap live while Eagle is still on the
+ * pad. The launch is the whole decision in level 1, and the player was
+ * making it blind: the window existed only inside judgeInsertion, after the
+ * fact, where it could tell you that you were wrong but never that you were
+ * about to be right.
+ */
+export function inWindow(gapDeg: number, spec: LevelSpec): boolean {
+  const [lo, hi] = spec.window
+  return gapDeg >= lo && gapDeg <= hi
+}
+
 /** Judges the launch once Eagle reaches orbit. */
 export function judgeInsertion(s: State, spec: LevelSpec): Verdict {
   const g = gap(s)

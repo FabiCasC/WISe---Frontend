@@ -29,6 +29,15 @@ export const STYLES = `
 .ls-watch__label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint,#7f8fa8)}
 .ls-watch__value{font-family:Orbitron,system-ui,sans-serif;font-size:28px;font-variant-numeric:tabular-nums}
 .ls-tools{display:flex;flex-direction:column;gap:10px}
+
+/* The level hides the dial, the Moon, the pulse and the end panel by setting
+   el.hidden, but any author rule that sets a display value beats the
+   browser's own [hidden] rule. That is why the distance slider and the Mark
+   Distance button were on screen before the laser had even been fired, with
+   an empty readout and a button that silently did nothing: two identical
+   orange buttons, one of them dead. This puts [hidden] back in charge for
+   every element in this game. */
+[class^='ls-'][hidden],[class*=' ls-'][hidden]{display:none !important}
 .ls-slider{width:100%;min-height:44px;accent-color:#6DE2F2}
 
 /* Levels 2 and 3 */

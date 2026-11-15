@@ -30,7 +30,13 @@ export const FIRST_FLIGHT_RPM = 2537
 /** Lift at 2537 rpm on Mars, as a fraction of Mars weight. */
 const LIFT_AT_REF = 1.12
 export const MAX_RPM = 2800
-export const SPIN_UP = 520 // rpm per second while holding "faster"
+/**
+ * Spin rates. The real blades took about 12 s to reach flight speed, but a
+ * player holding a key while nothing moves reads that as a broken game, so
+ * the game spins up in about 1.5 s from idle. The rule that matters (you
+ * cannot lift until you pass the Mars hover speed) is untouched.
+ */
+export const SPIN_UP = 800 // rpm per second while holding "faster"
 export const SPIN_DOWN = 700
 export const TILT_ACCEL = 1.6
 export const VERT_DAMP = 0.8
@@ -49,6 +55,15 @@ export function liftAccel(rpm: number, rho = RHO_MARS): number {
 export function hoverRpm(rho = RHO_MARS, g = MARS_G): number {
   return FIRST_FLIGHT_RPM * Math.sqrt(g / (MARS_G * LIFT_AT_REF * (rho / RHO_MARS)))
 }
+
+/**
+ * The blades are already turning when the flight starts, at half the Mars
+ * hover speed. Two reasons: the player's first key press produces visible
+ * change instead of five seconds of a rising number, and the idle speed is
+ * itself the lesson — it is already far above the speed that would lift the
+ * same helicopter on Earth, and on Mars it still does not leave the ground.
+ */
+export const IDLE_RPM = Math.round(hoverRpm() * 0.5)
 
 export type Ground = 'pebbles' | 'ripples'
 
@@ -85,7 +100,7 @@ export const LEVELS: Record<1 | 2 | 3, LevelSpec> = {
     landing: null,
     hover: { alt: 3, seconds: 6 },
     intro:
-      'Mars air is less than 1% as thick as Earth’s, so the blades must spin very fast to lift you. Hold Up to spin faster, Down to slow. Climb above 3 m, hover there, then land gently.',
+      'Mars air is less than 1% as thick as Earth’s, so the blades must spin very fast to lift you. They are already turning faster than they would ever need on Earth — and you are still on the ground. Up spins them faster, Down slower, and the speed stays where you leave it: set it and watch. Climb above 3 m, hover there 6 seconds, then land gently.',
     goal: 'Hover above 3 m, then land softly',
   },
   2: {
@@ -152,7 +167,7 @@ export function createHeli(spec: LevelSpec): Heli {
     y: 0,
     vx: 0,
     vy: 0,
-    rpm: 0,
+    rpm: IDLE_RPM,
     battery: spec.battery,
     airborne: false,
     maxAlt: 0,

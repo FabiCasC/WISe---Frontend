@@ -150,8 +150,13 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       },
       {
         key: 'vx',
+        // "4.7 m/s" told the player nothing about WHICH WAY they were
+        // sliding, which is the only part they can act on.
         label: 'Drift',
-        value: Math.abs(state.vx).toFixed(1) + ' m/s',
+        value:
+          Math.abs(state.vx) < 0.05
+            ? 'none'
+            : (state.vx > 0 ? 'right ' : 'left ') + Math.abs(state.vx).toFixed(1) + ' m/s',
         tone: Math.abs(state.vx) > cfg.maxTouchdownVxMs ? (state.altitude < 120 ? 'bad' : 'warn') : 'ok',
       },
       {
@@ -399,30 +404,74 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       c.fill()
     }
 
-    // The pad: flat, swept, lit at both ends.
+    // The pad. From 500 m up this is only a few dozen pixels wide, so it has
+    // to shout: at that range a 4px grey strip on grey ground is invisible,
+    // and a player who cannot find the target cannot aim at it.
     const padL = toScreenX(-cfg.padHalfWidthM, s)
     const padR = toScreenX(cfg.padHalfWidthM, s)
-    c.fillStyle = '#8a8779'
-    c.fillRect(padL, GROUND_Y, padR - padL, 4)
+    const overPad = Math.abs(state.x) <= cfg.padHalfWidthM
 
+    c.fillStyle = overPad ? '#2f9e6b' : '#8a8779'
+    c.fillRect(padL, GROUND_Y - 1, padR - padL, 6)
+
+    // Landing lights: a post at each end, tall enough to read from altitude.
+    const postH = Math.max(14, Math.min(26, 10 + s * 3))
     c.strokeStyle = accent
-    c.lineWidth = 2
+    c.lineWidth = 3
     for (const px of [padL, padR]) {
       c.beginPath()
       c.moveTo(px, GROUND_Y)
-      c.lineTo(px, GROUND_Y - Math.min(18, 6 + s * 2))
+      c.lineTo(px, GROUND_Y - postH)
       c.stroke()
+      c.fillStyle = accent
+      c.beginPath()
+      c.arc(px, GROUND_Y - postH, 3, 0, Math.PI * 2)
+      c.fill()
     }
 
-    // Centre mark, once it is big enough to see.
-    if (padR - padL > 60) {
-      const mid = (padL + padR) / 2
-      c.strokeStyle = 'rgba(155,184,211,0.6)'
+    c.fillStyle = overPad ? '#2f9e6b' : accent
+    c.font = '700 11px "Space Grotesk", system-ui, sans-serif'
+    c.textAlign = 'center'
+    c.fillText('PAD', (padL + padR) / 2, GROUND_Y - postH - 7)
+
+    // Where the lander is going to arrive, dropped straight down. This is
+    // the readout the HUD cannot give: "drift 4.7 m/s" says nothing about
+    // WHICH WAY, and the camera follows the ship, so without this line the
+    // pad just slides around with no sense of how far off you are.
+    if (phase === 'flying' || phase === 'intro') {
+      const shipX = W / 2
+      c.save()
+      c.setLineDash([5, 7])
+      c.strokeStyle = overPad ? 'rgba(47,158,107,0.85)' : 'rgba(240,165,0,0.75)'
       c.lineWidth = 1.5
       c.beginPath()
-      c.moveTo(mid, GROUND_Y)
-      c.lineTo(mid, GROUND_Y - 8)
+      c.moveTo(shipX, toScreenY(state.altitude, s) + 12)
+      c.lineTo(shipX, GROUND_Y)
       c.stroke()
+      c.restore()
+
+      // A chevron on the ground marks the spot it is heading for.
+      c.fillStyle = overPad ? '#2f9e6b' : accent
+      c.beginPath()
+      c.moveTo(shipX, GROUND_Y - 9)
+      c.lineTo(shipX - 6, GROUND_Y - 19)
+      c.lineTo(shipX + 6, GROUND_Y - 19)
+      c.closePath()
+      c.fill()
+
+      // How far off, in metres, so "move left" is a number and not a guess.
+      // Drawn under the ship rather than by the pad: the ship is always in
+      // the middle of the view, and down there it collided with the PAD label.
+      if (!overPad) {
+        const off = Math.round(Math.abs(state.x) - cfg.padHalfWidthM)
+        c.fillStyle = accent
+        c.font = '700 12px "Space Grotesk", system-ui, sans-serif'
+        c.fillText(
+          (state.x > 0 ? 'PAD IS ' + off + ' m LEFT' : 'PAD IS ' + off + ' m RIGHT'),
+          shipX,
+          Math.min(GROUND_Y - 44, toScreenY(state.altitude, s) + 36),
+        )
+      }
     }
   }
 
