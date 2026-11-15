@@ -60,6 +60,26 @@
 
 /* --- The bay ------------------------------------------------------------ */
 
+/* Studio paints its own dark surfaces - the cosmic backdrop, the mission
+   cards, the bench stage - and they stay dark in both themes, the same way
+   the game room does. So the TEXT tokens have to be pinned here too.
+   Without this the cards kept their hard-coded dark panel while the ink
+   switched to the light theme's near-black, and the mission titles came out
+   at a contrast ratio of 1.0: invisible, the same failure the arcade HUD
+   had earlier in this project. A surface that opts out of the theme has to
+   opt its foreground out as well. */
+.studio,
+.studio__bar {
+  --text: #dae8fb;
+  --text-dim: #c3d4ef;
+  --text-faint: #a9bce0;
+  --panel: rgba(13, 16, 23, 0.88);
+  --panel-2: rgba(18, 22, 31, 0.9);
+  --hairline: rgb(218 232 251 / 0.16);
+  --hairline-soft: rgb(218 232 251 / 0.1);
+  color: var(--text);
+}
+
 .bay { display: block; max-width: 760px; }
 .bay__intro { margin-bottom: 18px; }
 .bay__h2 { font-family: var(--font-display); font-size: 24px; margin: 0 0 8px; }

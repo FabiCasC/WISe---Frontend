@@ -28,6 +28,28 @@
     <!-- Opcional: ver IMAGENES.md §4.1. Si el archivo no existe, no pasa nada. -->
     <meta property="og:image" content="./assets/brand/og.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      // Runs before the first paint so the page never flashes the wrong
+      // theme. The document ALWAYS ends up with an explicit data-theme,
+      // including when the choice is "follow the system": the stylesheet
+      // then needs no media query and no duplicated token block.
+      (function () {
+        var stored = null
+        try {
+          stored = localStorage.getItem('orbita-arcade:theme')
+        } catch (e) {
+          // Private windows and blocked site data throw. Fall through to
+          // the system preference rather than failing to paint.
+        }
+        var theme =
+          stored === 'dark' || stored === 'light'
+            ? stored
+            : window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
+              ? 'light'
+              : 'dark'
+        document.documentElement.setAttribute('data-theme', theme)
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

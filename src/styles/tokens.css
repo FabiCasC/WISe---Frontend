@@ -105,31 +105,33 @@
   --maxw: 1240px;
 }
 
-/* --- Light theme: cool gray paper, the hero stays a dark sky ------------- */
-@media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
-    --bg-rgb: 237 240 245;
-    --surface-rgb: 255 255 255;
-    --space-800: #edf0f5;
-    --space-700: #edf0f5;
-    --bg: #edf0f5;
-    --panel: #ffffff;
-    --panel-2: #f3f5f9;
-    --panel-soft: #ffffff;
-    --panel-glass: #ffffff;
-    --hairline: #c8cfdb;
-    --hairline-soft: #dfe4ec;
-    --fg-rgb: 12 16 24;
-    --text: #0c1018;
-    --text-dim: #2e3644;
-    --text-faint: #4b5566;
-    --secondary: #e3e8f0;
-    --on-secondary: #0c1018;
-    --link: #8a5300;
-    --shadow-card: 0 1px 0 #d7dde7, 0 10px 24px -18px rgb(12 16 24 / 0.45);
-    --shadow-modal: 0 30px 80px -30px rgb(12 16 24 / 0.5);
-  }
+/* --- Light theme: cool gray paper, the hero stays a dark sky -------------
+   Selected by an explicit attribute, never by a media query. index.html
+   writes data-theme on the document before the first paint, from the stored
+   choice or from the system, so there is exactly ONE place each colour is
+   written down and a theme can never be half-applied. */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg-rgb: 237 240 245;
+  --surface-rgb: 255 255 255;
+  --space-800: #edf0f5;
+  --space-700: #edf0f5;
+  --bg: #edf0f5;
+  --panel: #ffffff;
+  --panel-2: #f3f5f9;
+  --panel-soft: #ffffff;
+  --panel-glass: #ffffff;
+  --hairline: #c8cfdb;
+  --hairline-soft: #dfe4ec;
+  --fg-rgb: 12 16 24;
+  --text: #0c1018;
+  --text-dim: #2e3644;
+  --text-faint: #4b5566;
+  --secondary: #e3e8f0;
+  --on-secondary: #0c1018;
+  --link: #8a5300;
+  --shadow-card: 0 1px 0 #d7dde7, 0 10px 24px -18px rgb(12 16 24 / 0.45);
+  --shadow-modal: 0 30px 80px -30px rgb(12 16 24 / 0.5);
 }
 
 /* El usuario del sistema manda por defecto; el toggle del portal puede
