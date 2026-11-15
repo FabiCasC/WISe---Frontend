@@ -369,7 +369,6 @@ export const GAMES: GameEntry[] = [
   soon('insight-quake', 'InSight Marsquake', 'mars', 'wave', 5, ['Quakes map a planet’s core']),
   soon('viking-soil', 'Viking Soil Test', 'mars', 'rover', 3, ['Chemistry is not biology']),
   soon('moon-phases', 'Moon Phases', 'moon', 'moon', 3, ['Phases are about angles, not shadows']),
-  soon('mars-greenhouse', 'Mars Greenhouse', 'mars', 'astro', 7, ['Plants need pressure, water and light'], { size: 'big' }),
   soon('crater-count', 'Crater Count', 'moon', 'moon', 4, ['More craters means an older surface']),
   soon('sample-return', 'Sample Return', 'mars', 'rocket', 8, ['Launching from another world'], { size: 'wide' }),
   soon('parachute-drop', 'Parachute Drop', 'mars', 'rocket', 4, ['Thin air needs big parachutes']),
