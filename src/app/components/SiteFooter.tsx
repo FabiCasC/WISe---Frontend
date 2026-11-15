@@ -13,7 +13,7 @@ export default function SiteFooter() {
           </div>
 
           <div>
-            <div className="footer__title">Fuentes</div>
+            <div className="footer__title">Sources</div>
             <ul className="footer__list">
               {Object.values(SOURCES)
                 .slice(0, 5)
@@ -28,18 +28,18 @@ export default function SiteFooter() {
           </div>
 
           <div>
-            <div className="footer__title">Alcance declarado</div>
+            <div className="footer__title">Scope</div>
             <ul className="footer__list">
-              <li>Tres juegos · tres niveles cada uno</li>
-              <li>Juego individual y cooperación local en PC</li>
-              <li>Controles táctiles, pausa y reinicio</li>
-              <li>Progreso local, sin cuentas ni servidor</li>
-              <li>Sin multijugador en línea ni ranking global</li>
+              <li>Every game teaches concepts; levels vary by game</li>
+              <li>Solo play and local co-op on PC</li>
+              <li>Touch controls, pause and restart</li>
+              <li>No accounts: in class, each student uses a nickname</li>
+              <li>No online multiplayer or global ranking</li>
             </ul>
           </div>
 
           <div>
-            <div className="footer__title">Evento</div>
+            <div className="footer__title">Event</div>
             <ul className="footer__list">
               <li>
                 <a
@@ -56,7 +56,7 @@ export default function SiteFooter() {
                   target="_blank"
                   rel="noreferrer noopener"
                 >
-                  <IconLink /> Bases legales
+                  <IconLink /> Legal terms
                 </a>
               </li>
             </ul>

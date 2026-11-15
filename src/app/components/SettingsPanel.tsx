@@ -41,13 +41,13 @@ export default function SettingsPanel({
   const [confirming, setConfirming] = useState(false)
 
   return (
-    <Modal title="Ajustes" subtitle="Se guardan en este dispositivo" onClose={onClose}>
+    <Modal title="Settings" subtitle="Saved on this device" onClose={onClose}>
       <div>
         <div className="setting">
           <div>
-            <div className="setting__name">Volumen</div>
+            <div className="setting__name">Volume</div>
             <p className="setting__hint">
-              Al mínimo, silencio total. Los juegos reciben este valor al montarse.
+              At the lowest setting, total silence. Games get this value when they start.
             </p>
           </div>
           <input
@@ -58,77 +58,55 @@ export default function SettingsPanel({
             step={5}
             value={Math.round(settings.volume * 100)}
             onChange={(e) => onChange({ volume: Number(e.target.value) / 100 })}
-            aria-label="Volumen general"
+            aria-label="Main volume"
           />
         </div>
 
         <div className="setting">
           <div>
-            <div className="setting__name">Movimiento reducido</div>
+            <div className="setting__name">Reduced motion</div>
             <p className="setting__hint">
-              Desactiva parallax, estrellas animadas y transiciones largas.
+              Turns off floating shapes, parallax and long transitions.
             </p>
           </div>
           <Switch
             checked={settings.reducedMotion}
             onChange={(v) => onChange({ reducedMotion: v })}
-            label="Movimiento reducido"
+            label="Reduced motion"
           />
         </div>
 
         <div className="setting">
           <div>
-            <div className="setting__name">Modo práctica</div>
+            <div className="setting__name">Practice mode</div>
             <p className="setting__hint">
-              Sin reloj ni límite de movimientos. Sirve para aprender; no puntúa.
+              No timer and no move limit. Good for learning; it does not score.
             </p>
           </div>
           <Switch
             checked={settings.practice}
             onChange={(v) => onChange({ practice: v })}
-            label="Modo práctica"
+            label="Practice mode"
           />
         </div>
 
-        <div className="setting">
-          <div>
-            <div className="setting__name">Idioma de la interfaz</div>
-            <p className="setting__hint">
-              Las fichas científicas mantienen el término técnico original.
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {(['es', 'en'] as const).map((lang) => (
-              <button
-                key={lang}
-                type="button"
-                className={`btn btn--sm ${settings.lang === lang ? 'btn--primary' : 'btn--quiet'}`}
-                onClick={() => onChange({ lang })}
-                aria-pressed={settings.lang === lang}
-              >
-                {lang === 'es' ? 'Español' : 'English'}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {!storageOk && (
         <div className="field field--warn">
-          <div className="field__label">Guardado no disponible</div>
+          <div className="field__label">Saving not available</div>
           <div className="field__value">
-            Este navegador bloquea el almacenamiento local (suele pasar en ventanas
-            privadas). Puedes jugar con normalidad, pero el progreso se perderá al
-            cerrar la pestaña.
+            This browser blocks local storage (common in private windows). You can
+            play normally, but your progress will be lost when you close the tab.
           </div>
         </div>
       )}
 
       <div className="field">
-        <div className="field__label">Datos</div>
+        <div className="field__label">Data</div>
         <div className="field__value" style={{ marginBottom: 12 }}>
-          Borra niveles completados, puntuaciones y recuerdos del pasaporte. No afecta a
-          los recursos del juego.
+          Clears completed levels, scores and unlocked evidence. It does not affect the
+          game files.
         </div>
         {confirming ? (
           <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
@@ -140,14 +118,14 @@ export default function SettingsPanel({
                 setConfirming(false)
               }}
             >
-              Sí, borrar todo
+              Yes, clear everything
             </button>
             <button
               type="button"
               className="btn btn--sm btn--quiet"
               onClick={() => setConfirming(false)}
             >
-              Cancelar
+              Cancel
             </button>
           </div>
         ) : (
@@ -156,7 +134,7 @@ export default function SettingsPanel({
             className="btn btn--sm btn--quiet"
             onClick={() => setConfirming(true)}
           >
-            Reiniciar progreso
+            Reset progress
           </button>
         )}
       </div>

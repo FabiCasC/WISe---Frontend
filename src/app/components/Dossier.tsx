@@ -23,48 +23,48 @@ export default function Dossier({
   return (
     <Modal
       title={mission.hardware}
-      subtitle={`${mission.bodyLabel} · Ficha científica de ${mission.title}`}
+      subtitle={`${mission.bodyLabel} · Science card for ${mission.title}`}
       onClose={onClose}
       footer={
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button type="button" className="btn btn--primary" onClick={onPlay}>
             <IconPlay />
-            Jugar esta misión
+            Play this mission
           </button>
           <button type="button" className="btn btn--quiet" onClick={onClose}>
-            Volver al portal
+            Back to the portal
           </button>
         </div>
       }
     >
       <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))' }}>
         <div className="field">
-          <div className="field__label">Llegada</div>
+          <div className="field__label">Arrival</div>
           <div className="field__value">{d.arrival}</div>
         </div>
         <div className="field">
-          <div className="field__label">Última comunicación</div>
+          <div className="field__label">Last contact</div>
           <div className="field__value">{d.lastContact}</div>
         </div>
         <div className="field">
-          <div className="field__label">Estado de misión</div>
+          <div className="field__label">Mission status</div>
           <div className="field__value">{d.missionEnd}</div>
         </div>
       </div>
 
       <div className="field">
-        <div className="field__label">Para qué servía</div>
+        <div className="field__label">What it was for</div>
         <div className="field__value">{d.purpose}</div>
       </div>
 
       <div className="field">
-        <div className="field__label">Qué aprendimos gracias a él</div>
+        <div className="field__label">What we learned from it</div>
         <div className="field__value">{d.finding}</div>
       </div>
 
       <div>
         <div className="field__label" style={{ marginBottom: 10 }}>
-          Evidencia que desbloquea el juego
+          Evidence the game unlocks
         </div>
         <div style={{ display: 'grid', gap: 10 }}>
           {mission.evidence.map((ev) => (
@@ -78,13 +78,13 @@ export default function Dossier({
       </div>
 
       <div className="field field--warn">
-        <div className="field__label">Qué inventa el juego</div>
+        <div className="field__label">What the game makes up</div>
         <div className="field__value">{d.dramatization}</div>
       </div>
 
       <div>
         <div className="field__label" style={{ marginBottom: 10 }}>
-          Lo que este juego no afirma
+          What this game does not claim
         </div>
         <ul className="list-check">
           {d.notTrue.map((item) => (
@@ -95,7 +95,7 @@ export default function Dossier({
 
       <div>
         <div className="field__label" style={{ marginBottom: 10 }}>
-          Fuentes
+          Sources
         </div>
         <div className="srcs">
           {sources.map((s) => (
@@ -105,7 +105,7 @@ export default function Dossier({
                 {s.title}
                 <span className="src__pub">
                   {s.publisher}
-                  {s.accessed ? ` · acceso ${s.accessed}` : ' · acceso pendiente de verificar'}
+                  {s.accessed ? ` · accessed ${s.accessed}` : ' · access date to be verified'}
                 </span>
               </span>
             </a>

@@ -49,7 +49,7 @@ function shift(hex: string, dh: number, dl: number): string {
   return `hsl(${hh.toFixed(1)} ${s.toFixed(1)}% ${ll.toFixed(1)}%)`
 }
 
-function tileGradient(item: ArchiveItem): string {
+export function tileGradient(item: ArchiveItem): string {
   const [from, to] = PLACE_COLORS[item.place]
   const seed = hash(item.name)
   const dh = ((seed % 29) - 14) * 1.1 // ±15° de tono
@@ -64,7 +64,7 @@ function tileGradient(item: ArchiveItem): string {
  * sale en franjas de color. Mezclado se ve como un arcade; y quien quiera
  * agrupar por destino tiene las pestañas de filtro.
  */
-function shuffled<T>(list: T[], seed = 20261114): T[] {
+export function shuffled<T>(list: T[], seed = 20261114): T[] {
   const out = [...list]
   let s = seed
   const rand = () => {
@@ -93,17 +93,17 @@ const BLOB_SPOTS = [
 ]
 
 const FILTERS: Array<{ id: 'todo' | Place; label: string }> = [
-  { id: 'todo', label: 'Todo' },
-  { id: 'luna', label: 'Luna' },
-  { id: 'marte', label: 'Marte' },
+  { id: 'todo', label: 'All' },
+  { id: 'luna', label: 'Moon' },
+  { id: 'marte', label: 'Mars' },
   { id: 'venus', label: 'Venus' },
-  { id: 'asteroide', label: 'Asteroides' },
-  { id: 'cometa', label: 'Cometas' },
-  { id: 'titan', label: 'Titán' },
-  { id: 'mercurio', label: 'Mercurio' },
-  { id: 'gigante', label: 'Gigantes' },
-  { id: 'orbita', label: 'Órbita' },
-  { id: 'profundo', label: 'Lejos' },
+  { id: 'asteroide', label: 'Asteroids' },
+  { id: 'cometa', label: 'Comets' },
+  { id: 'titan', label: 'Titan' },
+  { id: 'mercurio', label: 'Mercury' },
+  { id: 'gigante', label: 'Giants' },
+  { id: 'orbita', label: 'Orbit' },
+  { id: 'profundo', label: 'Far away' },
 ]
 
 /** Dónde se intercalan los juegos entre las fichas del archivo. */
@@ -165,9 +165,9 @@ export default function Mosaic({ progress, reducedMotion, onPlay, onItem }: Prop
   }
 
   return (
-    <section className="mosaic" id="archivo" aria-label="Archivo orbital">
+    <section className="mosaic" id="archivo" aria-label="Orbital archive">
       <div className="mosaic__bar">
-        <div className="mosaic__tabs" role="tablist" aria-label="Filtrar el archivo">
+        <div className="mosaic__tabs" role="tablist" aria-label="Filter the archive">
           {FILTERS.map((f) => (
             <button
               key={f.id}
@@ -184,10 +184,10 @@ export default function Mosaic({ progress, reducedMotion, onPlay, onItem }: Prop
         <p className="mosaic__hint">
           {gameCount > 0 && (
             <>
-              <strong>{gameCount} juegos</strong> ·{' '}
+              <strong>{gameCount} games</strong> ·{' '}
             </>
           )}
-          {itemCount} equipos · toca cualquier ficha
+          {itemCount} machines · tap any tile
         </p>
       </div>
 
@@ -201,21 +201,7 @@ export default function Mosaic({ progress, reducedMotion, onPlay, onItem }: Prop
               onPlay={() => onPlay(cell.mission)}
             />
           ) : (
-            <button
-              key={cell.item.name}
-              type="button"
-              className={`tile tile--item is-${cell.item.status}`}
-              style={{ background: tileGradient(cell.item) }}
-              onClick={() => onItem(cell.item)}
-              title={`${cell.item.name} · ${PLACE_LABEL[cell.item.place]} · ${cell.item.year}`}
-            >
-              <span className="tile__glyph">
-                <TileIcon kind={cell.item.kind} />
-              </span>
-              <span className="tile__year">{cell.item.year}</span>
-              <span className="tile__status" />
-              <span className="tile__label">{cell.item.name}</span>
-            </button>
+            <ArchiveTile key={cell.item.name} item={cell.item} onOpen={onItem} />
           ),
         )}
       </div>
@@ -232,10 +218,30 @@ export default function Mosaic({ progress, reducedMotion, onPlay, onItem }: Prop
           ['--rot' as string]: `${BLOB_SPOTS[spot].rot}deg`,
         }}
       >
-        <span className="mosaic__blob-word">ÓRBITA</span>
+        <span className="mosaic__blob-word">ORBITA</span>
         <span className="mosaic__blob-sub">ARCADE</span>
-        <span className="mosaic__blob-badge">archivo</span>
+        <span className="mosaic__blob-badge">archive</span>
       </div>
     </section>
+  )
+}
+
+/** Ficha pequeña de un equipo real del archivo: abre su ficha al pulsarla. */
+export function ArchiveTile({ item, onOpen }: { item: ArchiveItem; onOpen: (item: ArchiveItem) => void }) {
+  return (
+    <button
+      type="button"
+      className={`tile tile--item is-${item.status}`}
+      style={{ background: tileGradient(item) }}
+      onClick={() => onOpen(item)}
+      title={`${item.name} · ${PLACE_LABEL[item.place]} · ${item.year}`}
+    >
+      <span className="tile__glyph">
+        <TileIcon kind={item.kind} />
+      </span>
+      <span className="tile__year">{item.year}</span>
+      <span className="tile__status" />
+      <span className="tile__label">{item.name}</span>
+    </button>
   )
 }

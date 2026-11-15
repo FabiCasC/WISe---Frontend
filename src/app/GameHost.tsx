@@ -8,6 +8,7 @@ import type {
   GameSettings,
   LevelId,
 } from '../shared/types'
+import { getGame } from '../content/games'
 import { getMission } from '../content/missions'
 import { IconBack, IconPause, IconPlay } from './components/Art'
 
@@ -15,10 +16,15 @@ import { IconBack, IconPause, IconPlay } from './components/Art'
  * Carga perezosa de cada módulo: el bundle de un juego solo viaja al
  * navegador cuando el jugador abre ese portal.
  */
+/** One loader per playable game. New games: add a line here and an entry in content/games.ts. */
 const LOADERS: Record<GameId, () => Promise<GameModule>> = {
   opportunity: () => import('../games/opportunity'),
   'lunar-signals': () => import('../games/lunar-signals'),
   spirit: () => import('../games/spirit'),
+  'dust-run': () => import('../games/dust-run'),
+  'gusev-maze': () => import('../games/gusev-maze'),
+  'orbital-grid': () => import('../games/orbital-grid'),
+  'sun-shade': () => import('../games/sun-shade'),
 }
 
 type Status = 'loading' | 'ready' | 'error'
@@ -44,6 +50,7 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
   const [paused, setPaused] = useState(false)
 
   const mission = getMission(gameId)
+  const title = getGame(gameId)?.title ?? mission?.title ?? gameId
 
   // Callbacks estables: evitan remontar el juego cuando el padre re-renderiza.
   const onResultRef = useRef(onResult)
@@ -81,7 +88,9 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
 
     const start = teardownRef.current.then(async () => {
       try {
-        const mod = await LOADERS[gameId]()
+        const load = LOADERS[gameId]
+        if (!load) throw new Error('This game is not available yet.')
+        const mod = await load()
         if (cancelled) return
 
         const controller = await mod.mountGame(container, context)
@@ -97,7 +106,7 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
       } catch (err) {
         if (cancelled) return
         console.error('[GameHost] fallo al montar', gameId, err)
-        setError(err instanceof Error ? err.message : 'Error desconocido')
+        setError(err instanceof Error ? err.message : 'Unknown error')
         setStatus('error')
       }
     })
@@ -158,19 +167,19 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
   const level = mission?.levels.find((l) => l.id === levelId)
 
   return (
-    <section className="arena" aria-label={`Partida: ${mission?.title ?? gameId}`}>
+    <section className="arena" aria-label={`Game: ${title}`}>
       <header className="arena__bar">
         <button type="button" className="btn btn--quiet" onClick={() => onExitRef.current()}>
           <IconBack />
-          Portal
+          Arcade
         </button>
 
         <div className="arena__id">
-          <span className="arena__name">{mission?.title ?? gameId}</span>
+          <span className="arena__name">{title}</span>
           <span className="arena__level">
-            Nivel {levelId}
+            Level {levelId}
             {level ? ` · ${level.name}` : ''}
-            {settings.practice ? ' · práctica' : ''}
+            {settings.practice ? ' · practice' : ''}
           </span>
         </div>
 
@@ -184,28 +193,31 @@ export default function GameHost({ gameId, levelId, settings, onResult, onExit }
           aria-pressed={paused}
         >
           {paused ? <IconPlay size={16} /> : <IconPause />}
-          {paused ? 'Reanudar' : 'Pausa'}
+          {paused ? 'Resume' : 'Pause'}
         </button>
       </header>
 
       <div className="arena__stage">
-        <div className="arena__mount" ref={mountRef} />
+        <div
+          className={gameId === 'spirit' ? 'arena__mount arena__mount--spirit' : 'arena__mount'}
+          ref={mountRef}
+        />
 
         {status === 'loading' && (
           <div className="stub" style={{ position: 'absolute' }}>
             <div className="stub__ring" />
-            <p className="stub__text">Abriendo el portal…</p>
+            <p className="stub__text">Opening the game…</p>
           </div>
         )}
 
         {status === 'error' && (
           <div className="stub" style={{ position: 'absolute' }}>
-            <h2 className="stub__title">No se pudo abrir este portal</h2>
+            <h2 className="stub__title">This game could not open</h2>
             <p className="stub__text">
-              {error ?? 'El módulo no respondió.'} El resto del arcade sigue funcionando.
+              {error ?? 'The game module did not respond.'} The rest of the arcade still works.
             </p>
             <button type="button" className="btn btn--primary" onClick={() => onExitRef.current()}>
-              Volver al portal
+              Back to the portal
             </button>
           </div>
         )}

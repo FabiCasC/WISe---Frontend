@@ -1,0 +1,223 @@
+# Nivel de sanidad de cada PR de Órbita Arcade.
+#
+#  1. checks  → typecheck, pruebas y build. Calcula una nota de 0 a 100 y la
+#               publica como comentario fijo en el PR (se actualiza en cada push).
+#               Si algún chequeo falla, el job queda en rojo.
+#  2. review  → una IA revisa el diff con las reglas de .github/prompts/revision-pr.md
+#               y publica su valoración (calidad, contrato, accesibilidad, ciencia).
+#               Por defecto usa GitHub Models: gratis y sin key (GITHUB_TOKEN).
+#
+# No necesita secretos. Opcional: si se agrega ANTHROPIC_API_KEY o
+# CLAUDE_CODE_OAUTH_TOKEN (Settings → Secrets and variables → Actions) e instala
+# https://github.com/apps/claude, la revisión pasa a hacerla Claude.
+
+name: Sanidad del PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: pr-health-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Chequeos y nota
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    outputs:
+      score: ${{ steps.health.outputs.score }}
+      emoji: ${{ steps.health.outputs.emoji }}
+      level: ${{ steps.health.outputs.level }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+
+      - name: Tipos
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck
+
+      - name: Pruebas
+        id: test
+        continue-on-error: true
+        run: |
+          mkdir -p health
+          npx vitest run --reporter=default --reporter=json --outputFile.json=health/vitest.json
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: npm run build
+
+      - name: Calcular nivel de sanidad
+        id: health
+        env:
+          TYPECHECK_OUTCOME: ${{ steps.typecheck.outcome }}
+          TEST_OUTCOME: ${{ steps.test.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node scripts/pr-health.mjs
+          cat health/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      # Los PR desde forks no tienen permiso de escritura: ahí solo queda el resumen del job.
+      - name: Publicar comentario fijo en el PR
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const body = fs.readFileSync('health/report.md', 'utf8')
+            const marker = '<!-- pr-health -->'
+            const { owner, repo } = context.repo
+            const issue_number = context.payload.pull_request.number
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            })
+            const mine = comments.find((c) => c.user.type === 'Bot' && c.body.includes(marker))
+            if (mine) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body })
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body })
+            }
+
+      - name: Bloquear si algún chequeo falló
+        if: steps.typecheck.outcome != 'success' || steps.test.outcome != 'success' || steps.build.outcome != 'success'
+        run: |
+          echo "::error::Nivel de sanidad ${{ steps.health.outputs.score }}/100. Typecheck=${{ steps.typecheck.outcome }} · Pruebas=${{ steps.test.outcome }} · Build=${{ steps.build.outcome }}"
+          exit 1
+
+  review:
+    name: Revisión de IA
+    needs: checks
+    # Corre aunque los chequeos fallen (justo ahí más ayuda). No en borradores ni forks.
+    if: >-
+      always() &&
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      models: read
+      id-token: write
+    env:
+      # Con un secreto de Claude se usa Claude; si no, GitHub Models (gratis, sin key).
+      USE_CLAUDE: ${{ secrets.ANTHROPIC_API_KEY != '' || secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # El commit de merge del PR y su padre en main: HEAD^1..HEAD es el cambio del PR.
+          fetch-depth: 2
+
+      # ------------------------------------------------ GitHub Models (gratis)
+      - name: Preparar diff para el modelo
+        if: env.USE_CLAUDE != 'true'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          HEALTH: ${{ needs.checks.outputs.emoji }} ${{ needs.checks.outputs.score }}/100 (${{ needs.checks.outputs.level }})
+        run: |
+          mkdir -p review
+          # El plan gratis acepta ~8k tokens de entrada: se recorta el diff y se
+          # excluyen archivos generados o binarios que no aportan a la revisión.
+          LIMIT=16000
+          # El código de la app va primero: si hay que recortar, se pierde lo menos importante.
+          EXCL=(':(exclude)package-lock.json' ':(exclude)dist/**' ':(exclude)*.webp' ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.svg')
+          {
+            git diff HEAD^1 HEAD -- src "${EXCL[@]}"
+            git diff HEAD^1 HEAD -- . ':(exclude)src/**' "${EXCL[@]}"
+          } > review/full.diff
+          SIZE=$(wc -c < review/full.diff)
+          {
+            echo "PR #$PR_NUMBER: $PR_TITLE"
+            echo "Nota automática de los chequeos: $HEALTH"
+            echo
+            echo "Archivos cambiados:"
+            git diff --stat HEAD^1 HEAD
+            echo
+            if [ "$SIZE" -gt "$LIMIT" ]; then
+              echo "AVISO: el diff mide $SIZE caracteres y se recortó a $LIMIT. Revisa solo lo que ves."
+            fi
+            echo '```diff'
+            head -c "$LIMIT" review/full.diff
+            echo
+            echo '```'
+          } > review/prompt.txt
+          echo "Diff: $SIZE caracteres"
+
+      - name: Revisar con GitHub Models
+        id: ai
+        if: env.USE_CLAUDE != 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Orden de preferencia: si uno falla o fue retirado, se prueba el siguiente.
+          AI_MODELS: openai/gpt-4.1,openai/gpt-4o,openai/gpt-4o-mini
+          SYSTEM_PROMPT: .github/prompts/revision-pr.md
+          USER_PROMPT: review/prompt.txt
+        run: node scripts/ai-review.mjs
+
+      - name: Publicar revisión en el PR
+        if: env.USE_CLAUDE != 'true'
+        uses: actions/github-script@v7
+        env:
+          AI_MODEL: ${{ steps.ai.outputs.model }}
+        with:
+          script: |
+            const fs = require('fs')
+            const marker = '<!-- pr-ai-review -->'
+            const review = fs.existsSync('review/response.md')
+              ? fs.readFileSync('review/response.md', 'utf8').trim()
+              : '## 🤖 Revisión de IA: no disponible\n\nEl paso de revisión no generó respuesta.'
+            const sha = context.payload.pull_request.head.sha.slice(0, 7)
+            const body = [
+              marker,
+              review,
+              '',
+              `<sub>GitHub Models · ${process.env.AI_MODEL || '—'} · commit \`${sha}\` · Orientativo: no reemplaza la revisión de una persona.</sub>`,
+            ].join('\n')
+            const { owner, repo } = context.repo
+            const issue_number = context.payload.pull_request.number
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            })
+            const mine = comments.find((c) => c.user.type === 'Bot' && c.body.includes(marker))
+            if (mine) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body })
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body })
+            }
+
+      # ------------------------------------- Claude (si hay secreto configurado)
+      - name: Revisar con Claude
+        if: env.USE_CLAUDE == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: >-
+            --max-turns 20
+            --allowedTools "Read,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR: #${{ github.event.pull_request.number }}
+            Nota automática de los chequeos: ${{ needs.checks.outputs.emoji }} ${{ needs.checks.outputs.score }}/100 (${{ needs.checks.outputs.level }}).
+
+            Lee las reglas de revisión en .github/prompts/revision-pr.md y síguelas.
+            Lee el diff con `gh pr diff` y el contexto con `gh pr view`.
+            Deja comentarios en línea (mcp__github_inline_comment__create_inline_comment) solo
+            para problemas concretos, con la corrección sugerida. Luego publica UN comentario
+            general con `gh pr comment` usando exactamente el formato de ese archivo.

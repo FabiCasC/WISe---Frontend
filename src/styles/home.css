@@ -1,0 +1,494 @@
+/* =========================================================================
+   ÓRBITA ARCADE · PORTADA, CATÁLOGO Y MODO CLASE
+   Solo tokens de tokens.css: funciona en modo oscuro y claro.
+   ========================================================================= */
+
+/* --- Botón secundario (Dusk Blue) ----------------------------------------- */
+
+main {
+  flex: 1 0 auto;
+}
+
+/* =========================================================================
+   Barra superior: píldoras de nivel y de clase
+   ========================================================================= */
+
+.levelpill,
+.classpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.levelpill {
+  color: var(--on-badge);
+  background: var(--badge);
+  font-weight: 600;
+  box-shadow: var(--glow-badge);
+}
+
+.levelpill b {
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+
+.levelpill__of {
+  opacity: 0.75;
+}
+
+.classpill {
+  border: 1px solid var(--hairline);
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.classpill:hover {
+  border-color: var(--action);
+}
+
+.classpill__code {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--action);
+}
+
+.classpill__nick {
+  font-weight: 600;
+}
+
+/* =========================================================================
+   Héroe
+   ========================================================================= */
+
+/* --- Ilustración orbital --------------------------------------------------- */
+
+/* --- Recuadro del código --------------------------------------------------- */
+
+.joinbox,
+.classchip-card {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline);
+  background: var(--panel-soft);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+}
+
+.joinbox__label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.joinbox__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.joinbox__input {
+  flex: 1 1 150px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: var(--r-md);
+  border: 2px solid var(--hairline);
+  background: rgb(var(--bg-rgb) / 0.7);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.joinbox__input::placeholder {
+  color: var(--text-faint);
+  opacity: 0.55;
+}
+
+.joinbox__input:focus-visible {
+  outline: none;
+  border-color: var(--action);
+  box-shadow: 0 0 0 4px rgb(var(--accent-rgb) / 0.25);
+}
+
+.joinbox__btn {
+  flex: 1 1 140px;
+  min-height: 52px;
+}
+
+.joinbox__hint,
+.joinbox__error {
+  margin-top: 10px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+.joinbox__error,
+.form__error {
+  color: var(--text);
+  border-left: 3px solid var(--warn);
+  padding-left: 10px;
+}
+
+/* =========================================================================
+   Medidor de nivel general (Thistle)
+   ========================================================================= */
+
+/* =========================================================================
+   Catálogo estilo Friv
+   ========================================================================= */
+
+/* Miniatura quieta hasta que se pasa el mouse o se enfoca: estilo Friv. */
+
+/* En pantallas táctiles no hay hover: el botón de jugar se ve siempre. */
+
+/* Puntos de nivel: ● completado, ○ disponible, candado bloqueado. 44 px de
+   área táctil con un círculo visible de 30 px. */
+
+/* --- Tarjetas por venir ----------------------------------------------------- */
+
+/* =========================================================================
+   Páginas de clase y profesor
+   ========================================================================= */
+
+.page {
+  max-width: 880px;
+}
+
+.page__head {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.page__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-md);
+  background: var(--secondary);
+  color: var(--on-secondary);
+}
+
+.page__title {
+  font-size: clamp(26px, 4vw, 38px);
+}
+
+.page__lede {
+  margin-top: 6px;
+  color: var(--text-dim);
+  max-width: 62ch;
+}
+
+.card {
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline-soft);
+  background: var(--panel-soft);
+  padding: clamp(18px, 3vw, 28px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.card__title {
+  font-size: 20px;
+}
+
+.form {
+  max-width: 520px;
+}
+
+.form__field {
+  display: grid;
+  gap: 6px;
+}
+
+.form__field label {
+  font-weight: 600;
+}
+
+.form__field input,
+.form__field select {
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--hairline);
+  background: rgb(var(--bg-rgb) / 0.7);
+  color: var(--text);
+  font: inherit;
+}
+
+.form__field input:focus-visible,
+.form__field select:focus-visible {
+  outline: none;
+  border-color: var(--action);
+  box-shadow: 0 0 0 4px rgb(var(--accent-rgb) / 0.25);
+}
+
+.form .btn {
+  justify-self: start;
+}
+
+/* --- Clase creada ----------------------------------------------------------- */
+
+.created__label {
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.created__code {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 10vw, 72px);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: var(--action);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.created__help {
+  color: var(--text-dim);
+}
+
+.created__actions,
+.welcome__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.created__note,
+.welcome__note {
+  font-size: 13px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
+.callout {
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  font-size: 14.5px;
+}
+
+.callout--warn {
+  border: 1px solid rgb(255 209 102 / 0.55);
+  background: rgb(255 209 102 / 0.1);
+}
+
+.copyfield {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.copyfield__label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.copyfield__row {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.copyfield__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  background: rgb(var(--bg-rgb) / 0.7);
+  color: var(--text);
+  font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.copyfield__hint {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* --- Bienvenida del alumno -------------------------------------------------- */
+
+.welcome {
+  text-align: center;
+  justify-items: center;
+}
+
+.welcome__hello {
+  font-size: 18px;
+  color: var(--text-dim);
+}
+
+.welcome__nick {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 9vw, 64px);
+  font-weight: 900;
+  color: var(--c-thistle);
+  line-height: 1;
+}
+
+@media (prefers-color-scheme: light) {
+  .welcome__nick {
+    color: var(--c-dusk);
+  }
+}
+
+.welcome__text {
+  max-width: 52ch;
+  color: var(--text-dim);
+}
+
+.welcome__actions {
+  justify-content: center;
+}
+
+/* --- Panel del profesor ----------------------------------------------------- */
+
+.code-inline {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  color: var(--action);
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.kpi {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--panel-soft);
+  border: 1px solid var(--hairline-soft);
+}
+
+.kpi__value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.kpi__value--soon {
+  font-size: 18px;
+  color: var(--text-faint);
+}
+
+.kpi__label {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.tablewrap {
+  overflow-x: auto;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline-soft);
+  background: var(--panel-soft);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+
+.table th,
+.table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline-soft);
+  white-space: nowrap;
+}
+
+.table thead th {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: rgb(var(--fg-rgb) / 0.04);
+}
+
+.table tbody th {
+  font-weight: 700;
+}
+
+.table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.table .num {
+  font-variant-numeric: tabular-nums;
+}
+
+.table .muted {
+  color: var(--text-faint);
+}
+
+.lvpill {
+  display: inline-grid;
+  place-items: center;
+  min-width: 30px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--badge);
+  color: var(--on-badge);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+/* =========================================================================
+   Responsive
+   ========================================================================= */
+
+@media (max-width: 720px) {
+  .topbar__nav {
+    display: none;
+  }
+
+  .classpill__code {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+
+  .levelpill {
+    padding: 0 12px;
+  }
+
+  .levelpill__of {
+    display: none;
+  }
+
+  .brandmark__text {
+    display: none;
+  }
+
+  .page__head {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

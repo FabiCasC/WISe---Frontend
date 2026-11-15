@@ -1,21 +1,23 @@
 import { BRAND } from '../../content/brand'
-import { GAME_IDS } from '../../shared/progress'
+import type { Membership } from '../../shared/classroom'
+import { getRank, learnedConcepts } from '../../shared/progress'
 import type { Progress } from '../../shared/types'
-import { BrandGlyph, IconGear, IconPlay } from './Art'
+import { BrandGlyph, IconGear, IconStar } from './Art'
 
 interface Props {
-  page: 'landing' | 'arcade'
   progress: Progress
+  membership: Membership | null
   onSettings: () => void
 }
 
-export default function Topbar({ page, progress, onSettings }: Props) {
-  const stamps = progress.memories.length
+export default function Topbar({ progress, membership, onSettings }: Props) {
+  const rank = getRank(progress)
+  const learned = learnedConcepts(progress).length
 
   return (
     <header className="topbar">
       <div className="topbar__inner">
-        <a className="brandmark" href="#/" aria-label={`${BRAND.full}, portada`}>
+        <a className="brandmark" href="#/" aria-label={`${BRAND.full}, home`}>
           <BrandGlyph />
           <span className="brandmark__text">
             <span className="brandmark__name">{BRAND.wordmark}</span>
@@ -25,57 +27,37 @@ export default function Topbar({ page, progress, onSettings }: Props) {
 
         <span className="topbar__spacer" />
 
-        <nav className="topbar__nav" aria-label="Secciones">
-          {page === 'landing' ? (
-            <>
-              <a className="navlink" href="#juegos">
-                Juegos
-              </a>
-              <a className="navlink" href="#pasaporte">
-                Pasaporte
-              </a>
-              <a className="navlink" href="#equipo">
-                Equipo
-              </a>
-            </>
-          ) : (
-            <>
-              <a className="navlink" href="#/">
-                Portada
-              </a>
-              <a className="navlink" href="#archivo">
-                Archivo
-              </a>
-            </>
-          )}
+        <nav className="topbar__nav" aria-label="Sections">
+          <a className="navlink" href="#/arcade">
+            Arcade
+          </a>
+          <a className="navlink" href="#/teacher">
+            Teachers
+          </a>
+          <a className="navlink" href="#/archive">
+            Archive
+          </a>
         </nav>
 
-        {page === 'landing' && (
-          <a className="btn btn--primary btn--sm topbar__cta" href="#/arcade">
-            <IconPlay size={16} />
-            Arcade
+        {membership && (
+          <a
+            className="classpill"
+            href="#/class"
+            aria-label={`Class ${membership.code}, your nickname is ${membership.nickname}`}
+          >
+            <span className="classpill__code">{membership.code}</span>
+            <span className="classpill__nick">{membership.nickname}</span>
           </a>
         )}
 
-        {/* Desde el arcade hay que volver a la portada Y bajar a la sección,
-            por eso la ruta lleva el id dentro. */}
-        <a className="passport-pill" href={page === 'landing' ? '#pasaporte' : '#/pasaporte'}>
-          <span className="passport-pill__label">Pasaporte</span>
-          <span className="stamps" aria-hidden="true">
-            {GAME_IDS.map((id) => (
-              <i key={id} className={`stamp${progress.memories.includes(id) ? ' is-on' : ''}`} />
-            ))}
+        <a className="levelpill" href="#/" aria-label={`Rank ${rank.name}, ${learned} concepts learned`}>
+          <IconStar size={15} />
+          <span>
+            {rank.name} <b>{learned}</b>
           </span>
-          <span className="sr-only">{stamps} de 3 recuerdos conseguidos</span>
-          <span style={{ fontVariantNumeric: 'tabular-nums' }}>{stamps}/3</span>
         </a>
 
-        <button
-          type="button"
-          className="btn btn--quiet btn--icon"
-          onClick={onSettings}
-          aria-label="Ajustes"
-        >
+        <button type="button" className="btn btn--quiet btn--icon" onClick={onSettings} aria-label="Settings">
           <IconGear />
         </button>
       </div>

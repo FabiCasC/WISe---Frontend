@@ -47,7 +47,7 @@ export default function GameTile({
         onError={() => setArtLoaded(false)}
       />
 
-      <span className="tile__flag">JUGAR</span>
+      <span className="tile__flag">PLAY</span>
       <span className="tile__shade" />
 
       <span className="tile__caption">

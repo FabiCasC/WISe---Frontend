@@ -6,30 +6,30 @@ import type { GameId } from '../../shared/types'
 
 export function BrandGlyph({ className = 'brandmark__glyph' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 64 64" role="img" aria-label="Órbita Arcade">
+    <svg className={className} viewBox="0 0 64 64" role="img" aria-label="Orbita Arcade">
       <defs>
         <radialGradient id="bg-core" cx="38%" cy="32%">
           <stop offset="0" stopColor="#ffffff" />
-          <stop offset="0.45" stopColor="#6DE2F2" />
-          <stop offset="1" stopColor="#1C6E86" />
+          <stop offset="0.45" stopColor="#75CBD1" />
+          <stop offset="1" stopColor="#3E5BA3" />
         </radialGradient>
       </defs>
-      <rect width="64" height="64" rx="15" fill="#0A1A30" />
-      <rect width="64" height="64" rx="15" fill="none" stroke="rgba(109,226,242,.35)" />
+      <rect width="64" height="64" rx="15" fill="#0C0D45" />
+      <rect width="64" height="64" rx="15" fill="none" stroke="rgba(117,203,209,.4)" />
       <ellipse
         cx="32"
         cy="32"
         rx="26"
         ry="9.5"
         fill="none"
-        stroke="#E68A68"
+        stroke="#F2D2FF"
         strokeWidth="2.4"
         opacity="0.9"
         transform="rotate(-24 32 32)"
       />
       <circle cx="32" cy="32" r="11.5" fill="url(#bg-core)" />
       <circle cx="28" cy="28" r="3" fill="#ffffff" opacity="0.65" />
-      <circle cx="53" cy="18.5" r="3.1" fill="#E68A68" />
+      <circle cx="53" cy="18.5" r="3.1" fill="#F2D2FF" />
     </svg>
   )
 }
@@ -115,6 +115,86 @@ export function IconLink({ size = 15 }: IconProps) {
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M14 5h5v5M19 5l-8 8" {...stroke} />
       <path d="M18 14v4a1.8 1.8 0 0 1-1.8 1.8H6A1.8 1.8 0 0 1 4.2 18V7.8A1.8 1.8 0 0 1 6 6h4" {...stroke} />
+    </svg>
+  )
+}
+
+export function IconCheck({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m5 12.5 4.5 4.5L19 7.5" {...stroke} strokeWidth={2.6} />
+    </svg>
+  )
+}
+
+export function IconCross({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" {...stroke} strokeWidth={2.6} />
+    </svg>
+  )
+}
+
+export function IconLock({ size = 16 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="5" y="10.5" width="14" height="10" rx="2.2" {...stroke} />
+      <path d="M8.5 10.5V7.8a3.5 3.5 0 0 1 7 0v2.7" {...stroke} />
+    </svg>
+  )
+}
+
+export function IconCopy({ size = 16 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="8.5" y="8.5" width="11" height="11" rx="2" {...stroke} />
+      <path d="M15.5 5.5V5a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 5v8A1.5 1.5 0 0 0 6 14.5h.5" {...stroke} />
+    </svg>
+  )
+}
+
+export function IconTeacher({ size = 20 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3.5" y="4" width="17" height="11" rx="1.8" {...stroke} />
+      <path d="M8 19.5h8M12 15v4.5M7.5 8.5h6M7.5 11h4" {...stroke} />
+    </svg>
+  )
+}
+
+export function IconUsers({ size = 20 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="9" cy="9" r="3.2" {...stroke} />
+      <path d="M3.5 19a5.5 5.5 0 0 1 11 0M15.5 6.2a3 3 0 0 1 0 5.6M17 14.2a5 5 0 0 1 3.5 4.8" {...stroke} />
+    </svg>
+  )
+}
+
+export function IconStar({ size = 18 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m12 3.5 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z" {...stroke} />
+    </svg>
+  )
+}
+
+export function IconVR({ size = 30 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3.5 8.5A1.5 1.5 0 0 1 5 7h14a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 19 16h-3.6l-1.9-2.4a1.9 1.9 0 0 0-3 0L8.6 16H5a1.5 1.5 0 0 1-1.5-1.5Z" {...stroke} />
+      <circle cx="8" cy="11.3" r="1.4" {...stroke} />
+      <circle cx="16" cy="11.3" r="1.4" {...stroke} />
+    </svg>
+  )
+}
+
+export function IconRocket({ size = 30 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3c3 2.2 4.5 5.4 4.5 9.2L14.8 16H9.2l-1.7-3.8C7.5 8.4 9 5.2 12 3Z" {...stroke} />
+      <circle cx="12" cy="9.5" r="1.6" {...stroke} />
+      <path d="M9.2 16 7 18.5l.4-4M14.8 16l2.2 2.5-.4-4M11 19.5h2" {...stroke} />
     </svg>
   )
 }

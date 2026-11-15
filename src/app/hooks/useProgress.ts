@@ -35,8 +35,8 @@ export function useProgress(): ProgressApi {
 
   // Idioma del documento, para lectores de pantalla.
   useEffect(() => {
-    document.documentElement.lang = progress.settings.lang
-  }, [progress.settings.lang])
+    document.documentElement.lang = 'en'
+  }, [])
 
   const record = useCallback((result: GameResult) => {
     setProgress((prev) => applyResult(prev, result))
