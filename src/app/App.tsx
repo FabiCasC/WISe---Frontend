@@ -126,10 +126,19 @@ export default function App() {
           /* el respaldo local nunca debe interrumpir la partida */
         })
       }
-      const title = getGame(result.gameId)?.title ?? getMission(result.gameId)?.title ?? result.gameId
+      const game = getGame(result.gameId)
+      const title = game?.title ?? getMission(result.gameId)?.title ?? result.gameId
+      // A finished level goes straight on to the next one of the same game:
+      // the player stays in the game and sees every level in order. Only the
+      // last level (or leaving on purpose) returns to the arcade.
+      if (result.completed && game && result.levelId < game.levels) {
+        setToast(`Level ${result.levelId} complete! Level ${result.levelId + 1} of ${game.levels}`)
+        navigate(`#/play/${result.gameId}/${result.levelId + 1}`)
+        return
+      }
       setToast(
         result.completed
-          ? `Level complete in ${title}!`
+          ? `You finished every level of ${title}!`
           : 'Game closed before finishing. You can try again any time.',
       )
       exitGame()

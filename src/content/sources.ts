@@ -41,8 +41,8 @@ export const SOURCES: Record<string, Source> = {
     id: 'apollo-15',
     title: 'Apollo 15 — Mission Overview',
     publisher: 'NASA Science',
-    url: 'https://science.nasa.gov/mission/apollo-15/',
-    accessed: null, // TODO equipo: verificar el día del evento
+    url: 'https://www.nasa.gov/mission/apollo-15/',
+    accessed: '2026-11-15',
   },
   'alsep-pds': {
     id: 'alsep-pds',
@@ -112,6 +112,13 @@ export const SOURCES: Record<string, Source> = {
     title: 'Moon Fact Sheet (surface gravity 1.62 m/s², Earth 9.80 m/s²)',
     publisher: 'NASA NSSDCA',
     url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html',
+    accessed: '2026-11-15',
+  },
+  'nasa-apollo11-overview': {
+    id: 'nasa-apollo11-overview',
+    title: 'Apollo 11 Mission Overview (ascent burn of 435 s to an 11 x 55 mile orbit, below Columbia; docking about 3.5 hours later)',
+    publisher: 'NASA History',
+    url: 'https://www.nasa.gov/history/apollo-11-mission-overview/',
     accessed: '2026-11-15',
   },
   'nssdc-apollo11-lm': {

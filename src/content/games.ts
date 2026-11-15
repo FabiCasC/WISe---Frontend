@@ -216,15 +216,14 @@ export const GAMES: GameEntry[] = [
 
   // Seven abandoned-hardware games (Canvas 2D, src/games/<id>, texts in content/arcade.ts)
   {
-    id: 'apollo11-descent',
-    title: 'Land the Eagle',
+    id: 'eagle-liftoff',
+    title: 'Eagle Liftoff',
     destination: 'moon',
     icon: 'rocket',
     levels: 3,
     concepts: [
-      { id: 'gravedad-lunar-sexta-parte', label: 'Moon gravity is one sixth of Earth’s, so a small engine and little fuel can land you' },
-      { id: 'velocidad-horizontal-cero', label: 'A lander must stop sliding sideways before it touches down' },
-      { id: 'elegir-terreno-plano', label: 'Pick flat ground: a soft landing on boulders still tips you over' },
+      { id: 'ventana-de-lanzamiento', label: 'Lift off when the ship you must meet is a little ahead of you' },
+      { id: 'orbita-baja-mas-rapida', label: 'A lower orbit is faster: drop below a ship to catch it, then climb back' },
     ],
     status: 'live',
     isNew: true,

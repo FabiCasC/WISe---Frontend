@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ARCADE } from './arcade'
 import { getGame } from './games'
 import { SOURCES } from './sources'
-import { conceptFor as apollo } from '../games/apollo11-descent/rules'
+import { conceptFor as apollo } from '../games/eagle-liftoff/rules'
 import { conceptFor as rover } from '../games/lunar-rover/rules'
 import { conceptFor as pathfinder } from '../games/pathfinder-bounce/rules'
 import { conceptFor as sojourner } from '../games/sojourner-commands/rules'
@@ -16,7 +16,7 @@ import { conceptFor as lro } from '../games/lro-search/rules'
  * card must cite sources that exist.
  */
 const GAMES_CONCEPTS: Record<string, (level: 1 | 2 | 3) => string> = {
-  'apollo11-descent': apollo,
+  'eagle-liftoff': apollo,
   'lunar-rover': rover,
   'pathfinder-bounce': pathfinder,
   'sojourner-commands': sojourner,
