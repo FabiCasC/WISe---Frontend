@@ -170,6 +170,27 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html',
     accessed: '2026-11-15',
   },
+  'nssdc-sojourner': {
+    id: 'nssdc-sojourner',
+    title: 'Mars Pathfinder Rover (Sojourner): 10 to 15 minute delay, hazard avoidance, links through the lander, APXS',
+    publisher: 'NASA NSSDCA',
+    url: 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=MESURPR',
+    accessed: '2026-11-15',
+  },
+  'pia00629-yogi': {
+    id: 'pia00629-yogi',
+    title: 'PIA00629 — Soil and Rock Yogi (Barnacle Bill, first APXS target; Yogi)',
+    publisher: 'NASA/JPL Photojournal',
+    url: 'https://photojournal.jpl.nasa.gov/catalog/PIA00629',
+    accessed: '2026-11-15',
+  },
+  'pia00906-wedge': {
+    id: 'pia00906-wedge',
+    title: 'PIA00906 — Sojourner APXS & Wedge (seen from the rover’s rear camera)',
+    publisher: 'NASA/JPL Photojournal',
+    url: 'https://photojournal.jpl.nasa.gov/catalog/PIA00906',
+    accessed: '2026-11-15',
+  },
   'spaceapps': {
     id: 'spaceapps',
     title: 'NASA Space Apps Challenge 2026',

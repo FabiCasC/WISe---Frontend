@@ -9,6 +9,7 @@ export type ArcadeId =
   | 'apollo11-descent'
   | 'lunar-rover'
   | 'pathfinder-bounce'
+  | 'sojourner-commands'
 
 /**
  * SALA ARCADE — minijuegos cortos.
@@ -228,6 +229,32 @@ export const ARCADE: ArcadeCard[] = [
       },
     ],
     sources: ['nssdc-pathfinder', 'nasa-pathfinder', 'nssdc-mars-facts'],
+  },
+  {
+    gameId: 'sojourner-commands',
+    title: 'Sojourner’s Plan',
+    kicker: 'Program the rover · Sojourner',
+    genre: 'Programming puzzle',
+    fact:
+      'Sojourner, the first rover on Mars (1997), was driven by an operator on Earth using pictures from the rover and the Pathfinder lander. Radio signals took 10 to 15 minutes to arrive, so it carried a hazard-avoidance system. All its messages went through the lander. Its APXS, which measured what rocks are made of, was on an arm at the back. Barnacle Bill was the first rock it measured and Yogi the second.',
+    dramatization:
+      'The terrain is a grid of 1 m squares, one plan per sol, at most 12 commands per plan, and the number of sols are game rules. The rock names are real but their places on the grid are simplified. The hidden rocks on level 3 are invented.',
+    learning: 'When a robot is minutes of radio away, you plan ahead and the robot must be smart enough to stop by itself.',
+    accent: '#F2A65A',
+    durationMin: [2, 5],
+    levels: [
+      { id: 1, name: 'Ten minutes away', goal: 'Reach Barnacle Bill in 2 sols with planned moves' },
+      { id: 2, name: 'Back up to Yogi', goal: 'Measure Yogi with the APXS on the back' },
+      { id: 3, name: 'The rover stops itself', goal: 'Measure Wedge past rocks the lander cannot see' },
+    ],
+    evidence: [
+      {
+        id: 'ev-sojourner',
+        label: 'Sojourner rover',
+        meaning: 'The first wheeled robot on Mars: 10.5 kg, six wheels, driven from Earth with plans sent minutes ahead.',
+      },
+    ],
+    sources: ['nssdc-sojourner', 'pia00629-yogi', 'pia00906-wedge', 'nasa-pathfinder'],
   },
 ]
 

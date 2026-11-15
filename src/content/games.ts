@@ -225,6 +225,20 @@ export const GAMES: GameEntry[] = [
     status: 'live',
     isNew: true,
   },
+  {
+    id: 'sojourner-commands',
+    title: 'Sojourner’s Plan',
+    destination: 'mars',
+    icon: 'rover',
+    levels: 3,
+    concepts: [
+      { id: 'retraso-de-senal', label: 'Radio takes minutes to reach Mars, so rover drivers plan moves ahead instead of steering live' },
+      { id: 'apxs-va-detras', label: 'Sojourner’s APXS was on its back: it backed up to rocks to measure them' },
+      { id: 'autonomia-evita-peligros', label: 'Far from Earth, a rover must stop by itself in front of hazards' },
+    ],
+    status: 'live',
+    isNew: true,
+  },
 
   // ------------------------------------------------------- COMING SOON
   soon('hubble-focus', 'Hubble Focus', 'orbit', 'scope', 7, ['Mirrors focus light', 'A blurry image has a cause', 'Telescopes can be repaired in orbit'], { size: 'big', isNew: true }),
