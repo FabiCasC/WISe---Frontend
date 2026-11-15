@@ -1,0 +1,1038 @@
+/* =========================================================================
+   STUDIO + REPAIR BAY
+   -------------------------------------------------------------------------
+   Reads like a worksheet, not a dashboard: one column, numbered steps, and
+   every state written as a word so nothing depends on colour or on an icon.
+   Uses the portal tokens, so light and dark both follow the global theme.
+   ========================================================================= */
+
+/* A thin switcher, not two big cards. The editor below brings its own
+   heading, and two large cards on top of it read as a second hero. */
+
+.studio__bar {
+  padding-top: 14px;
+  padding-bottom: 10px;
+}
+
+.studio__switch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin: 18px 0 24px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--panel);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.studio__bar .studio__switch { margin: 0; }
+
+.studio__seg {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 9px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.studio__seg:hover { color: var(--text); }
+
+.studio__seg:focus-visible {
+  outline: 3px solid var(--action);
+  outline-offset: 2px;
+}
+
+.studio__seg.is-on {
+  background: var(--action);
+  color: var(--on-accent, #05060a);
+}
+
+.studio__seg-note { font-size: 12px; font-weight: 600; opacity: 0.75; }
+
+/* --- The bay ------------------------------------------------------------ */
+
+.bay { display: block; max-width: 760px; }
+.bay__intro { margin-bottom: 18px; }
+.bay__h2 { font-family: var(--font-display); font-size: 24px; margin: 0 0 8px; }
+.bay__h3 { font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; }
+.bay__h4 { font-family: var(--font-display); font-size: 15px; margin: 0 0 6px; }
+.bay__lede { color: var(--text-dim); line-height: 1.55; margin: 0; }
+.bay__text { line-height: 1.55; margin: 0 0 10px; }
+
+.bay__count {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  margin: 0 0 18px;
+  font-size: 15px;
+}
+
+.bay__clean { color: var(--text-dim); }
+
+.bay__list { list-style: none; display: grid; gap: 10px; margin: 0; padding: 0; }
+
+.bay__card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 14px;
+  padding: 14px 16px;
+  text-align: left;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.bay__card:hover { border-color: var(--action); }
+
+.bay__card:focus-visible {
+  outline: 3px solid var(--action);
+  outline-offset: 2px;
+}
+
+.bay__num {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-faint);
+  line-height: 1.2;
+}
+
+.bay__body { display: grid; gap: 3px; min-width: 0; }
+
+.bay__game {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.bay__game--big { font-size: 13px; margin: 0 0 18px; }
+
+.bay__title { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
+.bay__symptom { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
+
+.bay__state {
+  align-self: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.bay__state.is-fixed {
+  border-color: transparent;
+  background: var(--ok, #1f7a4d);
+  color: #ffffff;
+}
+
+.bay__state--inline { margin-left: 10px; }
+
+.bay__back,
+.bay__next {
+  display: inline-block;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--hairline);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.bay__back { margin-bottom: 18px; }
+.bay__back:hover,
+.bay__next:hover { border-color: var(--action); }
+
+.bay__back:focus-visible,
+.bay__next:focus-visible {
+  outline: 3px solid var(--action);
+  outline-offset: 2px;
+}
+
+.bay__step {
+  padding: 18px 0;
+  border-top: 1px solid var(--hairline-soft, var(--hairline));
+}
+
+/* --- The rule, drawn as blocks ------------------------------------------ */
+
+.blocks {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 14px;
+}
+
+.blocks__row {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: var(--secondary);
+  color: var(--on-secondary, var(--text));
+  line-height: 1.4;
+}
+
+.blocks__row--slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: transparent;
+  border: 2px dashed var(--action);
+  padding: 7px 10px;
+}
+
+.blocks__row--slot.is-fixed {
+  border-style: solid;
+  border-color: var(--ok, #1f7a4d);
+}
+
+.blocks__slot {
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--action);
+  color: var(--on-accent, #05060a);
+}
+
+.blocks__tag {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* --- Evidence ----------------------------------------------------------- */
+
+.bay__evidence {
+  margin: 0 0 10px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--action);
+  border-radius: 0 10px 10px 0;
+  background: var(--panel);
+  line-height: 1.6;
+}
+
+.bay__source { display: grid; gap: 2px; margin: 0; font-size: 13px; }
+.bay__source a { color: var(--link, var(--action)); }
+.bay__publisher { color: var(--text-faint); }
+
+/* --- Choices ------------------------------------------------------------ */
+
+.bay__options { list-style: none; display: grid; gap: 10px; margin: 12px 0 0; padding: 0; }
+
+.bay__option {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  border: 2px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.bay__option:hover:not(:disabled) { border-color: var(--action); }
+
+.bay__option:focus-visible {
+  outline: 3px solid var(--action);
+  outline-offset: 2px;
+}
+
+.bay__option:disabled { cursor: default; }
+
+.bay__option.is-right { border-color: var(--ok, #1f7a4d); }
+.bay__option.is-wrong { border-color: var(--hairline); opacity: 0.6; }
+
+.bay__option-label { font-weight: 600; }
+
+.bay__option-state {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.bay__feedback {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  background: var(--panel);
+  line-height: 1.6;
+}
+
+.bay__feedback p { margin: 0 0 8px; }
+.bay__feedback p:last-child { margin-bottom: 0; }
+.bay__feedback.is-right { border-color: var(--ok, #1f7a4d); }
+.bay__retry { color: var(--text-dim); font-size: 14px; }
+
+.bay__done {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  background: var(--panel);
+}
+
+.bay__done p { margin: 0 0 14px; line-height: 1.6; }
+
+@media (max-width: 560px) {
+  .bay__card { grid-template-columns: auto 1fr; }
+  .bay__state { grid-column: 2; justify-self: start; margin-top: 6px; }
+  .bay__option { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+
+/* =========================================================================
+   TEST BENCHES
+   -------------------------------------------------------------------------
+   The part the student actually does. Colour is used to separate things
+   that behave differently (ground, dust, the two spacecraft), never as the
+   only way to tell a state: every state is also a word on screen.
+   ========================================================================= */
+
+.bench {
+  --bench-go: #f0a500;
+  --bench-ok: #2f9e6b;
+  --bench-warn: #d2601c;
+  --bench-cool: #3f8fd2;
+  --bench-ink: var(--text);
+
+  margin: 18px 0 22px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--hairline);
+  background: var(--panel);
+}
+
+.bench__ask {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.bench__stage {
+  border-radius: 12px;
+  background: var(--panel-2, rgb(var(--fg-rgb) / 0.04));
+  padding: 8px;
+}
+
+.bench__svg { display: block; width: 100%; height: auto; }
+
+.bench__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bench__btn {
+  padding: 11px 16px;
+  border-radius: 999px;
+  border: 2px solid var(--hairline);
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bench__btn:hover { border-color: var(--bench-go); }
+
+.bench__btn:focus-visible {
+  outline: 3px solid var(--bench-go);
+  outline-offset: 2px;
+}
+
+.bench__btn.is-on {
+  border-color: var(--bench-cool);
+  background: rgb(63 143 210 / 0.14);
+}
+
+.bench__btn--go {
+  border-color: transparent;
+  background: var(--bench-go);
+  color: #1b1200;
+}
+
+.bench__btn--go:hover { filter: brightness(1.06); }
+
+.bench__readout {
+  margin-left: auto;
+  font-size: 15px;
+  color: var(--text-dim);
+}
+
+.bench__readout strong { color: var(--text); font-size: 17px; }
+
+.bench__hint { margin: 10px 0 0; font-size: 14px; color: var(--text-faint); }
+
+.bench__result {
+  margin: 10px 0 0;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: rgb(47 158 107 / 0.14);
+  border-left: 4px solid var(--bench-ok);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* --- Shapes inside the stages ------------------------------------------ */
+
+.bench__label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  fill: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.bench__ground { stroke: var(--text-faint); stroke-width: 2; }
+.bench__rock { fill: var(--text-faint); }
+
+.bench__rover {
+  fill: var(--bench-cool);
+  transition: fill 160ms linear;
+}
+
+.bench__rover.is-stuck { fill: var(--bench-warn); }
+.bench__wheel { fill: var(--text-dim); }
+
+.bench__map { fill: rgb(var(--fg-rgb) / 0.05); }
+.bench__ring { fill: none; stroke: var(--bench-cool); stroke-width: 2; opacity: 0.75; }
+.bench__station { fill: var(--text-faint); }
+.bench__station.is-on { fill: var(--bench-go); }
+
+.bench__candidate {
+  fill: none;
+  stroke: var(--bench-warn);
+  stroke-width: 3;
+}
+
+.bench__panel { fill: var(--bench-cool); }
+.bench__dust { fill: #b9a98f; }
+.bench__grid line { stroke: rgb(255 255 255 / 0.3); stroke-width: 1; }
+.bench__bar { fill: rgb(var(--fg-rgb) / 0.14); }
+.bench__barfill { fill: var(--bench-ok); transition: fill 200ms linear; }
+.bench__barfill.is-low { fill: var(--bench-warn); }
+
+.bench__moon { fill: var(--text-faint); }
+.bench__orbit { fill: none; stroke: var(--hairline); stroke-width: 2; stroke-dasharray: 4 6; }
+.bench__orbit.is-on { stroke: var(--bench-go); stroke-dasharray: none; }
+.bench__columbia { fill: var(--bench-cool); }
+.bench__eagle { fill: var(--bench-go); }
+
+/* --- What you saw ------------------------------------------------------- */
+
+.bay__seen {
+  display: grid;
+  gap: 6px;
+  margin: 18px 0 4px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  background: var(--panel);
+}
+
+.bay__saw { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.35; }
+.bay__says { margin: 0; font-size: 15px; color: var(--text-dim); line-height: 1.4; }
+
+.bay__prompt { margin: 16px 0 8px; font-size: 16px; font-weight: 600; }
+
+.bay__chip {
+  padding: 11px 18px;
+  border-radius: 999px;
+  border: 2px solid var(--hairline);
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bay__chip:hover:not(:disabled) { border-color: var(--bench-go); }
+
+.bay__chip:focus-visible {
+  outline: 3px solid var(--bench-go);
+  outline-offset: 2px;
+}
+
+.bay__chip.is-wrong {
+  opacity: 0.45;
+  cursor: default;
+  text-decoration: line-through;
+}
+
+.bay__note {
+  margin: 12px 0 0;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border-left: 4px solid var(--text-faint);
+  background: var(--panel);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.bay__note.is-right { border-left-color: var(--bench-ok); }
+
+.bay__card.is-fixed { border-color: var(--bench-ok); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bench__rover,
+  .bench__barfill { transition: none; }
+}
+
+/* --- Compact mission header --------------------------------------------- */
+
+.bay__h1 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.4vw, 34px);
+  margin: 0 0 8px;
+}
+
+.bay__crumb {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.bay__backlink {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--panel);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bay__backlink:hover { color: var(--text); border-color: var(--action); }
+
+.bay__backlink:focus-visible {
+  outline: 3px solid var(--action);
+  outline-offset: 2px;
+}
+
+.bay__crumb-sep { color: var(--text-faint); }
+
+.bay__crumb-game {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.bay__crumb-title {
+  font-family: var(--font-display);
+  font-size: clamp(19px, 2.4vw, 23px);
+  font-weight: 700;
+  margin: 0;
+}
+
+/* The switcher is navigation, not a heading: keep it tight to the top. */
+.studio .studio__switch { margin: 10px 0 16px; }
+
+/* --- Keep the bench above the fold --------------------------------------- */
+
+/* The stage is the only thing the student needs on screen when a mission
+   opens. Stretched to the full column width the SVG was 400px tall, which
+   pushed its own controls below the fold on a laptop. Capping its height
+   letterboxes the drawing instead, which costs nothing: the viewBox keeps
+   its aspect and centres itself. */
+
+.studio.page { padding-top: 20px; }
+
+.bench__svg {
+  max-height: min(40vh, 300px);
+}
+
+.bench { margin-top: 10px; }
+
+/* --- Studio Cosmic Backdrop -------------------------------------------- */
+
+.studio-sky {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(110% 75% at 50% -10%, rgb(25 45 95 / 0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 65% 55% at 10% 30%, rgb(40 85 180 / 0.16) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 50% at 90% 45%, rgb(190 90 40 / 0.14) 0%, transparent 68%),
+    linear-gradient(180deg, #030408 0%, #050814 35%, #060a18 70%, #04060c 100%);
+}
+
+.studio-sky__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Ensure studio content is elevated above the fixed cosmic background */
+.studio,
+.studio__bar,
+.dg-welcome,
+.dg-editor {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Upgraded Repair Bay UI for Kids & Students ------------------------- */
+
+.bay__header-card {
+  margin-bottom: 24px;
+  padding: 24px 26px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(13, 16, 23, 0.95) 0%, rgba(10, 14, 20, 0.98) 100%);
+  border: 1px solid rgba(243, 181, 74, 0.25);
+  box-shadow: 0 16px 36px -16px rgba(0, 0, 0, 0.8), 0 0 24px -10px rgba(243, 181, 74, 0.12);
+}
+
+.bay__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(243, 181, 74, 0.14);
+  border: 1px solid rgba(243, 181, 74, 0.35);
+  color: var(--c-gold);
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.bay__badge-sep { opacity: 0.5; }
+
+.bay__h1 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.5vw, 36px);
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 8px;
+  letter-spacing: -0.015em;
+}
+
+/* Astronaut Level & Progress Tracker */
+.bay__tracker {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(18, 24, 38, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bay__tracker-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.bay__rank-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bay__rank-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 8px rgba(243, 181, 74, 0.4));
+}
+
+.bay__rank-badge {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--c-gold);
+}
+
+.bay__rank-title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.bay__stats-badge {
+  text-align: right;
+}
+
+.bay__stats-pct {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--c-gold);
+  line-height: 1;
+}
+
+.bay__stats-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.bay__meter-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  overflow: visible;
+}
+
+.bay__meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f59e0b 0%, #10b981 100%);
+  position: relative;
+  transition: width 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.bay__meter-rocket {
+  position: absolute;
+  right: -10px;
+  top: -8px;
+  font-size: 16px;
+  transform: rotate(45deg);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.bay__milestones {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.bay__milestone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.bay__milestone-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.bay__milestone.is-done .bay__milestone-dot {
+  background: #10b981;
+  border-color: #10b981;
+  color: #05060a;
+}
+
+.bay__milestone.is-done .bay__milestone-lbl {
+  color: #ece6d8;
+  font-weight: 600;
+}
+
+/* Card upgrade */
+.bay__card {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  text-align: left;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: rgba(13, 16, 23, 0.88);
+  backdrop-filter: blur(8px);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.bay__card:hover {
+  transform: translateY(-2px);
+  border-color: var(--mission-accent, var(--action));
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.8), 0 0 18px -6px var(--mission-accent, var(--action));
+}
+
+.bay__card.is-fixed {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(13, 22, 19, 0.88);
+}
+
+.bay__icon-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  gap: 2px;
+}
+
+.bay__icon-symbol { font-size: 24px; line-height: 1; }
+.bay__icon-num { font-family: var(--font-display); font-size: 10px; font-weight: 800; color: var(--text-faint); }
+
+.bay__top-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.bay__category-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mission-accent, var(--c-gold));
+  letter-spacing: 0.04em;
+}
+
+.bay__ask {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.bay__pills-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.bay__concept-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ece6d8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bay__xp-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(243, 181, 74, 0.15);
+  color: var(--c-gold);
+  border: 1px solid rgba(243, 181, 74, 0.3);
+}
+
+.bay__state-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: rgba(243, 181, 74, 0.12);
+  border: 1px solid rgba(243, 181, 74, 0.35);
+  color: var(--c-gold);
+  white-space: nowrap;
+  transition: background 160ms, color 160ms;
+}
+
+.bay__card:hover .bay__state-badge:not(.is-fixed) {
+  background: var(--c-gold);
+  color: #05060a;
+}
+
+.bay__state-badge.is-fixed {
+  background: #10b981;
+  border-color: #10b981;
+  color: #05060a;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.35);
+}
+
+/* Stepper inside Mission */
+.bay__stepper {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 16px 0 20px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(13, 16, 23, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
+}
+
+.bay__step-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.bay__step-node-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bay__step-node.is-current {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.bay__step-node.is-current .bay__step-node-num {
+  background: var(--c-gold);
+  color: #05060a;
+}
+
+.bay__step-node.is-done .bay__step-node-num {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.bay__hint-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #bae6fd;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+
+.bay__hint-icon { font-size: 22px; }
+
+.bay__seen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 18px 0;
+}
+
+@media (max-width: 600px) {
+  .bay__seen { grid-template-columns: 1fr; }
+}
+
+.bay__seen-box {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(13, 16, 23, 0.85);
+  border: 1px solid var(--hairline);
+}
+
+.bay__seen-box--saw {
+  border-left: 3px solid #10b981;
+}
+
+.bay__seen-box--says {
+  border-left: 3px solid #f59e0b;
+}
+
+.bay__seen-tag {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.bay__celebration-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #a7f3d0;
+  margin-top: 14px;
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.15);
+}
+
+.bay__celebration-emoji { font-size: 32px; }
+.bay__celebration-title { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #ffffff; margin: 0 0 2px; }
+
+.bay__nasa-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.2);
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  color: #93c5fd;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}

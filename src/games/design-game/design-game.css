@@ -743,8 +743,13 @@
 
 .dg-editor__workspace {
   display: grid;
-  grid-template-columns: 216px 1fr 316px;
-  grid-template-rows: 1fr 220px;
+  /* The preview is the thing the student is building; at 316px it was
+     the narrowest panel on screen, 16% of the width, while the middle
+     column sat 1356px wide and mostly empty. The game gets the room. */
+  grid-template-columns: 216px minmax(0, 1fr) clamp(360px, 32vw, 680px);
+  /* The preview row hugs its own content; the sprite list below takes
+     whatever is left, instead of a gap sitting between the two. */
+  grid-template-rows: auto minmax(220px, 1fr);
   grid-template-areas:
     "left center right-top"
     "left center right-bottom";
@@ -1434,13 +1439,17 @@
 }
 
 .dg-simulator__canvas-wrap {
-  flex: 1;
+  flex: 0 0 auto;
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--space-900);
+  /* Whatever margin is left once the scene is fitted should read as a
+     frame around the game, not as a dead black screen next to it. */
+  background: var(--panel, #11141c);
+  padding: 8px;
+  min-height: 0;
 }
 
 .dg-simulator__canvas {
@@ -2381,3 +2390,62 @@
 .dg-welcome__content > *:nth-child(3) { animation-delay: 0.08s; }
 .dg-welcome__content > *:nth-child(4) { animation-delay: 0.12s; }
 .dg-welcome__content > *:nth-child(5) { animation-delay: 0.16s; }
+
+/* --- How to use, where the empty middle panel used to be ----------------- */
+
+.dg-empty-state__lead {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 18px;
+}
+
+.dg-howto {
+  list-style: none;
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  max-width: 430px;
+  text-align: left;
+}
+
+.dg-howto li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.dg-howto__num {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--dg-accent, #f3b54a);
+  color: #1b1200;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.dg-howto li > span:last-child {
+  display: grid;
+  gap: 3px;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.dg-howto strong { font-size: 15px; }
+
+
+/* --- The middle panel before a sprite is picked --------------------------- */
+
+.dg-empty-state {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0;
+  padding: 24px;
+}
+
+.dg-empty-state > * { max-width: 460px; }

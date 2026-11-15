@@ -41,8 +41,8 @@ export default function ScriptEditor({ spec }: Props) {
       <div className="dg-script-editor dg-script-editor--empty">
         <div className="dg-empty-state">
           <span className="dg-empty-state__icon"><IconCode /></span>
-          <h3>Sin personajes todavía</h3>
-          <p>Agrega personajes u objetos desde el panel Objetos para empezar a programar.</p>
+          <h3>No sprites yet</h3>
+          <p>Add sprites from the Sprites panel, then you can program them.</p>
         </div>
       </div>
     )
@@ -66,8 +66,35 @@ export default function ScriptEditor({ spec }: Props) {
       </div>
 
       {!selectedEntity ? (
+        /* This is the widest panel on screen and the first thing a child
+           looks at. One sentence floating in it says nothing about what to
+           do next, so it carries the three steps instead, in the order
+           they happen. */
         <div className="dg-empty-state">
-          <p>Selecciona una entidad arriba para ver y editar sus instrucciones.</p>
+          <p className="dg-empty-state__lead">Pick a sprite above to start.</p>
+          <ol className="dg-howto">
+            <li>
+              <span className="dg-howto__num">1</span>
+              <span>
+                <strong>Pick a sprite</strong>
+                Tap one of the tabs above. Each one has its own blocks.
+              </span>
+            </li>
+            <li>
+              <span className="dg-howto__num">2</span>
+              <span>
+                <strong>Give it blocks</strong>
+                Drag them from the left. Start with one that says "When...".
+              </span>
+            </li>
+            <li>
+              <span className="dg-howto__num">3</span>
+              <span>
+                <strong>Play it</strong>
+                Press play on the right and watch your blocks run.
+              </span>
+            </li>
+          </ol>
         </div>
       ) : (
         <div className="dg-script-editor__body">
@@ -78,7 +105,7 @@ export default function ScriptEditor({ spec }: Props) {
               <button
                 className="dg-btn dg-btn--quiet dg-btn--sm"
                 onClick={() => { const s = createScript(selectedEntity.id); selectScript(s.id) }}
-                title="Nuevo script"
+                title="New script"
               >
                 <IconAdd />
               </button>
@@ -86,12 +113,12 @@ export default function ScriptEditor({ spec }: Props) {
 
             {entityScripts.length === 0 && (
               <div className="dg-script-editor__no-scripts">
-                <p>Sin instrucciones.</p>
+                <p>No scripts yet.</p>
                 <button
                   className="dg-btn dg-btn--primary dg-btn--sm"
                   onClick={() => { const s = createScript(selectedEntity.id); selectScript(s.id) }}
                 >
-                  Crear script
+                  New script
                 </button>
               </div>
             )}
@@ -114,7 +141,7 @@ export default function ScriptEditor({ spec }: Props) {
             {!selectedScript ? (
               <div className="dg-empty-state dg-empty-state--center">
                 <span className="dg-empty-state__icon"><IconCode /></span>
-                <p>Selecciona un script o crea uno nuevo.</p>
+                <p>Pick a script, or start a new one.</p>
               </div>
             ) : (
               <ScriptCanvas script={selectedScript} spec={spec} />
@@ -148,12 +175,12 @@ function ScriptListItem({ script, isSelected, onSelect, onDelete }: {
       </span>
       <div className="dg-script-item__info">
         <span className="dg-script-item__name">{eventDef?.label ?? 'Script'}</span>
-        <span className="dg-script-item__count">{blockCount - 1} bloque{blockCount !== 2 ? 's' : ''}</span>
+        <span className="dg-script-item__count">{blockCount - 1} block{blockCount !== 2 ? 's' : ''}</span>
       </div>
       <button
         className="dg-script-item__delete"
         onClick={(e) => { e.stopPropagation(); onDelete() }}
-        aria-label="Eliminar script"
+        aria-label="Delete script"
       >
         <IconClose />
       </button>
@@ -180,8 +207,8 @@ function ScriptCanvas({ script, spec }: { script: Script; spec: GameSpecificatio
   return (
     <div className="dg-script-canvas">
       <div className="dg-script-canvas__header">
-        <span className="dg-script-canvas__title">Secuencia de instrucciones</span>
-        <span className="dg-script-canvas__hint">Haz clic en un bloque para editar sus parámetros</span>
+        <span className="dg-script-canvas__title">Block sequence</span>
+        <span className="dg-script-canvas__hint">Click a block to change its settings</span>
       </div>
 
       <div
@@ -209,7 +236,7 @@ function ScriptCanvas({ script, spec }: { script: Script; spec: GameSpecificatio
 
         {blocks.length === 1 && (
           <div className="dg-script-canvas__empty-hint">
-            <span>Agrega bloques desde la biblioteca de la izquierda</span>
+            <span>Add blocks from the library on the left</span>
           </div>
         )}
       </div>
@@ -254,7 +281,7 @@ function BlockNode({ block, script, spec, isEvent, isEditing, onEdit, onRemove }
           ))}
         </div>
         {!isEvent && (
-          <button className="dg-block-node__remove" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label="Eliminar bloque">
+          <button className="dg-block-node__remove" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label="Delete block">
             <IconClose />
           </button>
         )}
@@ -299,8 +326,8 @@ function ParamEditor({ param, spec, onChange }: {
 
       {param.type === 'boolean' ? (
         <select className="dg-param-editor__input" value={String(param.value)} onChange={(e) => onChange(e.target.value === 'true')}>
-          <option value="true">Verdadero</option>
-          <option value="false">Falso</option>
+          <option value="true">True</option>
+          <option value="false">False</option>
         </select>
       ) : options.length > 0 ? (
         <select className="dg-param-editor__input" value={String(param.value)} onChange={(e) => onChange(param.type === 'number' ? Number(e.target.value) : e.target.value)}>

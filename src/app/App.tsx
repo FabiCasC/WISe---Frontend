@@ -280,7 +280,7 @@ function Portal({ account, onLogout, onClassCreated }: PortalProps) {
         />
 
         <main id="main">
-          {page.name === 'studio' && <Studio />}
+          {page.name === 'studio' && <Studio accountId={account.id} />}
           {page.name === 'profile' && (
             <Profile
               account={account}

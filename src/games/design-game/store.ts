@@ -110,7 +110,7 @@ export function createNewProject(params: {
   const id = `dg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
   const scene: Scene = {
     id: 'scene_main',
-    name: 'Escena principal',
+    name: 'Main scene',
     background: defaultBackground(params.genre),
     size: { width: 800, height: 500 },
     gravity: params.genre === 'platformer' ? 800 : 0,
@@ -427,12 +427,12 @@ export function validateProject(project: GameSpecification): ValidationResult {
   const warnings: ValidationWarning[] = []
 
   if (!project.name.trim()) {
-    errors.push({ code: 'NO_NAME', message: 'El proyecto no tiene nombre.' })
+    errors.push({ code: 'NO_NAME', message: 'Your project has no name yet.' })
   }
 
   const hasScene = !!project.scene
   if (!hasScene) {
-    errors.push({ code: 'NO_SCENE', message: 'El proyecto no tiene escenario.' })
+    errors.push({ code: 'NO_SCENE', message: 'Your project has no scene yet.' })
   }
 
   const hasInteractive = project.entities.some(
@@ -441,7 +441,7 @@ export function validateProject(project: GameSpecification): ValidationResult {
   if (!hasInteractive) {
     errors.push({
       code: 'NO_INTERACTIVE',
-      message: 'Agrega al menos un personaje jugable, una meta o un coleccionable.',
+      message: 'Add at least one player, one goal or one thing to collect.',
     })
   }
 
@@ -449,7 +449,7 @@ export function validateProject(project: GameSpecification): ValidationResult {
   if (!hasScripts) {
     errors.push({
       code: 'NO_SCRIPTS',
-      message: 'Agrega al menos una instrucción de programación para tu videojuego.',
+      message: 'Add at least one script, so something actually happens.',
     })
   }
 
@@ -457,7 +457,7 @@ export function validateProject(project: GameSpecification): ValidationResult {
   if (!hasPlayer) {
     warnings.push({
       code: 'NO_PLAYER',
-      message: 'No hay un personaje jugador. ¿El jugador controla alguna entidad?',
+      message: 'Nothing here is a player yet. What will you control?',
     })
   }
 
@@ -466,7 +466,7 @@ export function validateProject(project: GameSpecification): ValidationResult {
     if (!entity) {
       errors.push({
         code: 'ORPHAN_SCRIPT',
-        message: `Un script referencia a una entidad que no existe (${script.entityId}).`,
+        message: `A script points at a sprite that no longer exists (${script.entityId}).`,
         reference: { type: 'script', id: script.id },
       })
     }

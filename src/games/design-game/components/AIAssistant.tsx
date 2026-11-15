@@ -38,7 +38,7 @@ export default function AIAssistant({ spec, onClose }: Props) {
   const [messages, setMessages] = useState<AIConversationMessage[]>([
     {
       role: 'assistant',
-      content: `Hola. Soy el asistente de Design Game.\n\nPuedo ayudarte con "${spec.name}". Puedes pedirme cosas como:\n· "Agrega un enemigo que persiga al jugador"\n· "Que mi personaje salte más alto"\n· "Explícame qué hace el bloque de salto"\n· "¿Por qué no puedo recoger las estrellas?"\n\nModo demostración: las respuestas son ejemplos predefinidos, no IA real.`,
+      content: `Hi. I am the Design Game assistant.\n\nI can help you with "${spec.name}". You can ask me things like:\n· "Add an enemy that follows the player"\n· "Make my sprite jump higher"\n· "Explain what the jump block does"\n· "Why can I not pick up the stars?"\n\nDemo mode: the answers are set examples, not a real AI.`,
       timestamp: new Date().toISOString(),
       isDemo: true,
     },
@@ -70,10 +70,10 @@ export default function AIAssistant({ spec, onClose }: Props) {
       }
       const response = await processAIRequest({ message: text, context })
       let content = response.explanation
-      if (response.hint) content += `\n\nPista: ${response.hint}`
+      if (response.hint) content += `\n\nHint: ${response.hint}`
       setMessages((prev) => [...prev, createMessage('assistant', content, response.proposedChanges)])
     } catch {
-      setMessages((prev) => [...prev, createMessage('assistant', 'Hubo un problema al procesar tu solicitud. Intenta de nuevo.')])
+      setMessages((prev) => [...prev, createMessage('assistant', 'Something went wrong. Try asking again.')])
     } finally {
       setIsLoading(false)
     }
@@ -98,10 +98,10 @@ export default function AIAssistant({ spec, onClose }: Props) {
       <div className="dg-ai__header">
         <div className="dg-ai__title">
           <span className="dg-ai__title-icon"><IconBot /></span>
-          Asistente IA
+          AI assistant
           <span className="dg-ai__demo-badge">DEMO</span>
         </div>
-        <button className="dg-btn dg-btn--quiet dg-btn--sm" onClick={onClose} aria-label="Cerrar asistente">
+        <button className="dg-btn dg-btn--quiet dg-btn--sm" onClick={onClose} aria-label="Close assistant">
           <IconClose />
         </button>
       </div>
@@ -115,7 +115,7 @@ export default function AIAssistant({ spec, onClose }: Props) {
 
             {msg.proposedChanges && msg.proposedChanges.length > 0 && msg.accepted === undefined && (
               <div className="dg-ai__proposal">
-                <p className="dg-ai__proposal-title">Cambios propuestos</p>
+                <p className="dg-ai__proposal-title">Changes I suggest</p>
                 <ul className="dg-ai__proposal-list">
                   {msg.proposedChanges.map((c, ci) => (
                     <li key={ci}>{describeChange(c)}</li>
@@ -123,20 +123,20 @@ export default function AIAssistant({ spec, onClose }: Props) {
                 </ul>
                 <div className="dg-ai__proposal-actions">
                   <button className="dg-btn dg-btn--primary dg-btn--sm" onClick={() => handleAccept(idx)}>
-                    Aplicar cambios
+                    Apply changes
                   </button>
                   <button className="dg-btn dg-btn--quiet dg-btn--sm" onClick={() => handleReject(idx)}>
-                    Rechazar
+                    No thanks
                   </button>
                 </div>
               </div>
             )}
 
             {msg.accepted === true && (
-              <span className="dg-ai__accepted"><IconCheck /> Cambios aplicados</span>
+              <span className="dg-ai__accepted"><IconCheck /> Changes applied</span>
             )}
             {msg.accepted === false && (
-              <span className="dg-ai__rejected">Cambios rechazados</span>
+              <span className="dg-ai__rejected">Changes not applied</span>
             )}
           </div>
         ))}
@@ -144,7 +144,7 @@ export default function AIAssistant({ spec, onClose }: Props) {
         {isLoading && (
           <div className="dg-ai__message dg-ai__message--assistant">
             <div className="dg-ai__loading">
-              <span className="dg-spinner" /> Procesando…
+              <span className="dg-spinner" /> Thinking…
             </div>
           </div>
         )}
@@ -156,7 +156,7 @@ export default function AIAssistant({ spec, onClose }: Props) {
           className="dg-ai__input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Escribe tu pregunta o solicitud…"
+          placeholder="Type your question here…"
           rows={2}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
           disabled={isLoading}
@@ -165,14 +165,14 @@ export default function AIAssistant({ spec, onClose }: Props) {
           className="dg-btn dg-btn--primary dg-btn--sm"
           onClick={handleSend}
           disabled={!input.trim() || isLoading}
-          aria-label="Enviar mensaje"
+          aria-label="Send message"
         >
           <IconSend />
         </button>
       </div>
 
       <p className="dg-ai__disclaimer">
-        Modo demostración. Las respuestas son ejemplos predefinidos, no IA real.
+        Demo mode. The answers are set examples, not a real AI.
       </p>
     </div>
   )
@@ -195,9 +195,9 @@ function FormattedText({ text }: { text: string }) {
 
 function describeChange(change: ProposedChange): string {
   switch (change.type) {
-    case 'add_entity':             return `Agregar "${change.template}" en (${change.position?.x ?? '?'}, ${change.position?.y ?? '?'})`
-    case 'add_script':             return `Crear script para "${change.entityName}" con evento "${change.eventType}"`
-    case 'update_entity_property': return `Actualizar ${change.property} de "${change.entityName}" a ${change.value}`
-    case 'add_variable':           return `Crear variable "${change.name}" con valor ${change.initialValue}`
+    case 'add_entity':             return `Add "${change.template}" at (${change.position?.x ?? '?'}, ${change.position?.y ?? '?'})`
+    case 'add_script':             return `Add a script for "${change.entityName}" starting with "${change.eventType}"`
+    case 'update_entity_property': return `Change ${change.property} of "${change.entityName}" to ${change.value}`
+    case 'add_variable':           return `Add a variable "${change.name}" set to ${change.initialValue}`
   }
 }

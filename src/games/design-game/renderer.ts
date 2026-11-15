@@ -432,10 +432,10 @@ function renderHUD(
   ctx.font = 'bold 14px "Nunito", sans-serif'
   ctx.textAlign = 'left'
   ctx.textBaseline = 'middle'
-  ctx.fillText(`Puntuación: ${score}`, 10, 18)
+  ctx.fillText(`Score: ${score}`, 10, 18)
 
   ctx.textAlign = 'right'
-  ctx.fillText(`Vidas: ${lives}`, width - 10, 18)
+  ctx.fillText(`Lives: ${lives}`, width - 10, 18)
 
   if (runtime.phase === 'won') {
     ctx.fillStyle = 'rgba(0,0,0,0.75)'
@@ -444,10 +444,10 @@ function renderHUD(
     ctx.font = 'bold 36px "Nunito", sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText('¡Ganaste! 🎉', width / 2, height / 2 - 20)
+    ctx.fillText('You win', width / 2, height / 2 - 20)
     ctx.fillStyle = '#ece6d8'
     ctx.font = '18px "Nunito", sans-serif'
-    ctx.fillText(`Puntuación: ${runtime.score}`, width / 2, height / 2 + 20)
+    ctx.fillText(`Score: ${runtime.score}`, width / 2, height / 2 + 20)
   }
 
   if (runtime.phase === 'lost') {
@@ -460,7 +460,7 @@ function renderHUD(
     ctx.fillText('Game Over', width / 2, height / 2 - 20)
     ctx.fillStyle = '#ece6d8'
     ctx.font = '16px "Nunito", sans-serif'
-    ctx.fillText('Presiona reiniciar para intentarlo de nuevo', width / 2, height / 2 + 20)
+    ctx.fillText('Press Restart to try again', width / 2, height / 2 + 20)
   }
 
   if (runtime.phase === 'ready') {
@@ -470,6 +470,6 @@ function renderHUD(
     ctx.font = '15px "Nunito", sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText('Presiona ▶ para jugar', width / 2, height / 2)
+    ctx.fillText('Press Run to play', width / 2, height / 2)
   }
 }

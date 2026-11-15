@@ -93,12 +93,19 @@ export default function Simulator({ spec }: Props) {
     const observer = new ResizeObserver(() => {
       const parent = canvas.parentElement
       if (!parent) return
-      const { width } = parent.getBoundingClientRect()
-      const aspect = spec.scene.size.width / spec.scene.size.height
-      canvas.width  = spec.scene.size.width
-      canvas.height = spec.scene.size.height
-      canvas.style.width  = `${width}px`
-      canvas.style.height = `${Math.round(width / aspect)}px`
+      // Fit the scene to BOTH sides of the box, not just its width. Sizing
+      // by width alone left the game short of the column's height, and the
+      // leftover was painted near-black above and below it: a dead band
+      // bigger than some of the game itself. Scaling by whichever side runs
+      // out first makes the game as large as the panel allows.
+      const { width, height } = parent.getBoundingClientRect()
+      const sw = spec.scene.size.width
+      const sh = spec.scene.size.height
+      canvas.width = sw
+      canvas.height = sh
+      const scale = Math.min(width / sw, height / sh)
+      canvas.style.width = `${Math.round(sw * scale)}px`
+      canvas.style.height = `${Math.round(sh * scale)}px`
     })
     observer.observe(canvas.parentElement ?? canvas)
     return () => observer.disconnect()
@@ -143,15 +150,15 @@ export default function Simulator({ spec }: Props) {
     <div className="dg-simulator">
       {/* Barra de controles */}
       <div className="dg-simulator__bar">
-        <span className="dg-simulator__title">Simulador</span>
+        <span className="dg-simulator__title">Game preview</span>
 
         <div className="dg-simulator__controls">
           {phase === 'playing'
-            ? <button className="dg-sim-btn" onClick={handlePause}  title="Pausar"><IconPause /></button>
-            : <button className="dg-sim-btn dg-sim-btn--play" onClick={handlePlay} title="Ejecutar"><IconPlay /></button>
+            ? <button className="dg-sim-btn" onClick={handlePause}  title="Pause"><IconPause /></button>
+            : <button className="dg-sim-btn dg-sim-btn--play" onClick={handlePlay} title="Play"><IconPlay /></button>
           }
-          <button className="dg-sim-btn" onClick={handleStop}    title="Detener"   disabled={phase === 'ready'}><IconStop /></button>
-          <button className="dg-sim-btn" onClick={handleRestart} title="Reiniciar"><IconRestart /></button>
+          <button className="dg-sim-btn" onClick={handleStop}    title="Stop"   disabled={phase === 'ready'}><IconStop /></button>
+          <button className="dg-sim-btn" onClick={handleRestart} title="Restart"><IconRestart /></button>
         </div>
 
         {(phase === 'playing' || phase === 'paused') && (
@@ -168,7 +175,7 @@ export default function Simulator({ spec }: Props) {
         <canvas
           ref={canvasRef}
           className="dg-simulator__canvas"
-          aria-label="Simulador del videojuego"
+          aria-label="Game preview"
           role="img"
         />
 
@@ -176,7 +183,7 @@ export default function Simulator({ spec }: Props) {
           <div className="dg-simulator__overlay">
             <button className="dg-sim-play-btn" onClick={handlePlay}>
               <span className="dg-sim-play-btn__icon"><IconPlay /></span>
-              Ejecutar juego
+              Play game
             </button>
           </div>
         )}
@@ -185,7 +192,7 @@ export default function Simulator({ spec }: Props) {
           <div className="dg-simulator__overlay dg-simulator__overlay--dim">
             <button className="dg-sim-play-btn" onClick={handlePlay}>
               <span className="dg-sim-play-btn__icon"><IconPlay /></span>
-              Continuar
+              Resume
             </button>
           </div>
         )}
@@ -196,7 +203,7 @@ export default function Simulator({ spec }: Props) {
               <span className="dg-sim-end__icon dg-sim-end__icon--lost"><IconCross /></span>
               <h4 className="dg-sim-end__title">Game Over</h4>
               {lostReason && <p className="dg-sim-end__reason">{lostReason}</p>}
-              <button className="dg-btn dg-btn--primary dg-btn--sm" onClick={handleRestart}>Reintentar</button>
+              <button className="dg-btn dg-btn--primary dg-btn--sm" onClick={handleRestart}>Try again</button>
             </div>
           </div>
         )}
@@ -205,9 +212,9 @@ export default function Simulator({ spec }: Props) {
           <div className="dg-simulator__overlay dg-simulator__overlay--won">
             <div className="dg-sim-end">
               <span className="dg-sim-end__icon dg-sim-end__icon--won"><IconCheck /></span>
-              <h4 className="dg-sim-end__title">Ganaste</h4>
-              <p className="dg-sim-end__score">Puntuación: {score}</p>
-              <button className="dg-btn dg-btn--primary dg-btn--sm" onClick={handleRestart}>Jugar de nuevo</button>
+              <h4 className="dg-sim-end__title">You win</h4>
+              <p className="dg-sim-end__score">Score: {score}</p>
+              <button className="dg-btn dg-btn--primary dg-btn--sm" onClick={handleRestart}>Play again</button>
             </div>
           </div>
         )}
@@ -217,7 +224,7 @@ export default function Simulator({ spec }: Props) {
       <TouchControls phase={phase} engine={engineRef} />
 
       <p className="dg-simulator__note">
-        El simulador ejecuta exactamente las instrucciones que programaste.
+        This runs exactly the blocks you put together.
       </p>
     </div>
   )
@@ -229,10 +236,10 @@ export default function Simulator({ spec }: Props) {
 
 function PhaseChip({ phase }: { phase: SimPhase }) {
   const map: Record<SimPhase, { label: string; color: string }> = {
-    ready:   { label: 'Listo',       color: 'var(--ok)' },
-    playing: { label: 'Jugando',     color: '#4a90d9' },
-    paused:  { label: 'Pausado',     color: 'var(--warn)' },
-    won:     { label: 'Completado',  color: 'var(--ok)' },
+    ready:   { label: 'Ready',       color: 'var(--ok)' },
+    playing: { label: 'Playing',     color: '#4a90d9' },
+    paused:  { label: 'Paused',      color: 'var(--warn)' },
+    won:     { label: 'Finished',    color: 'var(--ok)' },
     lost:    { label: 'Game Over',   color: '#e06c5a' },
   }
   const { label, color } = map[phase]
@@ -278,7 +285,7 @@ function TouchControls({ phase, engine }: {
         className="dg-touch-pad__btn dg-touch-pad__btn--jump"
         onPointerDown={() => fire(' ', 'down')} onPointerUp={() => fire(' ', 'up')}
       >
-        <IconUp /> Saltar
+        <IconUp /> Jump
       </button>
     </div>
   )
