@@ -1,7 +1,12 @@
 import type { LevelId } from '../shared/types'
 
 /** Minijuegos de la sala arcade (también están en content/games.ts). */
-export type ArcadeId = 'dust-run' | 'gusev-maze' | 'orbital-grid' | 'sun-shade'
+export type ArcadeId =
+  | 'dust-run'
+  | 'gusev-maze'
+  | 'orbital-grid'
+  | 'sun-shade'
+  | 'apollo11-descent'
 
 /**
  * SALA ARCADE — minijuegos cortos.
@@ -36,6 +41,8 @@ export interface ArcadeCard {
   levels: ArcadeLevel[]
   /** Evidencia que sella la partida, con el mismo formato que las misiones. */
   evidence: { id: string; label: string; meaning: string }[]
+  /** Ids in content/sources.ts that back the fact (official NASA pages). */
+  sources?: string[]
 }
 
 export const ARCADE: ArcadeCard[] = [
@@ -140,6 +147,33 @@ export const ARCADE: ArcadeCard[] = [
         meaning: 'Three antenna complexes spread around the planet keep in touch with probes while the Earth turns.',
       },
     ],
+  },
+  {
+    gameId: 'apollo11-descent',
+    title: 'Land the Eagle',
+    kicker: 'Lunar landing · Apollo lunar module',
+    genre: 'Landing physics',
+    fact:
+      'The Moon pulls with 1.62 m/s², about one sixth of Earth’s 9.80 m/s². The Apollo lunar module had two stages: the descent stage, with the landing rocket and four legs, was the launch pad for the ascent stage and was left behind on the Moon. On Apollo 11, Neil Armstrong saw the computer taking Eagle into a boulder-strewn area, flew past it and landed on smoother ground. The low-fuel light had come on at about 100 feet (30 m).',
+    dramatization:
+      'The real landing burn lasted about 12.6 minutes and the engine could throttle up and down. Here the engine is only on or off, the side jets are simplified, fuel is counted in seconds of burn, and the safe limits (2 m/s down, 1 m/s sideways) are game numbers. The lander is drawn a little bigger than life; only the 9.4 m leg span is real.',
+    learning: 'Low gravity lets a small engine land you, but only if you stop sliding and pick flat ground.',
+    accent: '#F3B54A',
+    durationMin: [1, 3],
+    levels: [
+      { id: 1, name: 'One-sixth gravity', goal: 'Touch down slower than 2 m/s with a few seconds of fuel' },
+      { id: 2, name: 'Stop the drift', goal: 'Cancel an 8 m/s sideways slide before touchdown' },
+      { id: 3, name: 'Fly past the boulders', goal: 'Find the smooth ground and land there' },
+    ],
+    evidence: [
+      {
+        id: 'ev-lm-descent-stage',
+        label: 'Lunar module descent stage',
+        meaning:
+          'The bottom half of each Apollo lunar module stayed on the Moon as a launch pad. Six of them are still there, from Apollo 11, 12, 14, 15, 16 and 17.',
+      },
+    ],
+    sources: ['nssdc-moon-facts', 'nssdc-apollo11-lm', 'nasa-apollo11-landing', 'nssdc-apollo17-lm'],
   },
 ]
 

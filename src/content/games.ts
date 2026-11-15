@@ -181,6 +181,23 @@ export const GAMES: GameEntry[] = [
     isNew: true,
   },
 
+  // Seven abandoned-hardware games (Canvas 2D, src/games/<id>, texts in content/arcade.ts)
+  {
+    id: 'apollo11-descent',
+    title: 'Land the Eagle',
+    destination: 'moon',
+    icon: 'rocket',
+    levels: 3,
+    concepts: [
+      { id: 'gravedad-lunar-sexta-parte', label: 'Moon gravity is one sixth of Earth’s, so a small engine and little fuel can land you' },
+      { id: 'velocidad-horizontal-cero', label: 'A lander must stop sliding sideways before it touches down' },
+      { id: 'elegir-terreno-plano', label: 'Pick flat ground: a soft landing on boulders still tips you over' },
+    ],
+    status: 'live',
+    isNew: true,
+    size: 'wide',
+  },
+
   // ------------------------------------------------------- COMING SOON
   soon('hubble-focus', 'Hubble Focus', 'orbit', 'scope', 7, ['Mirrors focus light', 'A blurry image has a cause', 'Telescopes can be repaired in orbit'], { size: 'big', isNew: true }),
   soon('webb-unfold', 'Webb Mirror Unfold', 'deep', 'scope', 6, ['Infrared sees through dust', 'Mirror segments must line up'], { size: 'wide', isNew: true }),
@@ -194,7 +211,6 @@ export const GAMES: GameEntry[] = [
   soon('cassini-rings', 'Cassini Ring Dive', 'giant', 'planet', 7, ['Saturn’s rings are ice and rock'], { size: 'wide' }),
   soon('dart-impact', 'DART Impact', 'small', 'comet', 3, ['Momentum can nudge an asteroid']),
   soon('parker-dive', 'Parker Sun Dive', 'sun', 'sun', 5, ['Heat shields reflect heat', 'The corona is hotter than the surface']),
-  soon('apollo11-descent', 'Apollo 11 Descent', 'moon', 'rocket', 4, ['Hover, then touch down']),
   soon('apollo13-power', 'Apollo 13 Power Down', 'deep', 'rocket', 6, ['An energy budget can save lives'], { size: 'wide' }),
   soon('gateway-build', 'Lunar Gateway Build', 'moon', 'station', 7, ['Modules connect in orbit']),
   soon('europa-ice', 'Europa Ice Probe', 'giant', 'planet', 5, ['Ice can hide an ocean']),
