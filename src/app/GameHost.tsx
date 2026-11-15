@@ -25,6 +25,8 @@ const LOADERS: Record<GameId, () => Promise<GameModule>> = {
   'gusev-maze': () => import('../games/gusev-maze'),
   'orbital-grid': () => import('../games/orbital-grid'),
   'sun-shade': () => import('../games/sun-shade'),
+  'dart-impact': () => import('../games/dart-impact'),
+  'artemis-landing': () => import('../games/artemis-landing'),
   'snake-express': () => import('../games/snake-express'),
 }
 

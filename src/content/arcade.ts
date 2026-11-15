@@ -1,7 +1,13 @@
 import type { LevelId } from '../shared/types'
 
 /** Minijuegos de la sala arcade (también están en content/games.ts). */
-export type ArcadeId = 'dust-run' | 'gusev-maze' | 'orbital-grid' | 'sun-shade'
+export type ArcadeId =
+  | 'dust-run'
+  | 'gusev-maze'
+  | 'orbital-grid'
+  | 'sun-shade'
+  | 'dart-impact'
+  | 'artemis-landing'
 
 /**
  * SALA ARCADE — minijuegos cortos.
@@ -138,6 +144,70 @@ export const ARCADE: ArcadeCard[] = [
         id: 'ev-dsn',
         label: 'Deep Space Network',
         meaning: 'Three antenna complexes spread around the planet keep in touch with probes while the Earth turns.',
+      },
+    ],
+  },
+  {
+    gameId: 'dart-impact',
+    title: 'DART Impact',
+    kicker: 'Planetary defence · Didymos',
+    genre: 'Timing and momentum',
+    fact:
+      'On 26 September 2022 NASA flew DART, a 570 kg spacecraft, into Dimorphos at 6.1 km/s. The moonlet was not pushed aside: it was slowed by a few millimetres per second, which dropped it into a tighter orbit and cut its 11.9-hour period by about 32 minutes. The debris thrown off the surface flew away and pushed back, multiplying the effect roughly 3.6 times.',
+    dramatization:
+      'The timing is theatre. The real approach took ten months and the final hour was flown by the spacecraft on its own; here the orbit is sped up to a few seconds so one run fits in a minute. Levels 1 and 2 are rehearsals against a bigger, slower target and hand you spare impactors: the real mission had exactly one.',
+    learning: 'A small, fast impact changes an asteroid’s speed — and only a head-on hit slows it down.',
+    accent: '#C9A227',
+    durationMin: [1, 3],
+    levels: [
+      { id: 1, name: 'Navigation rehearsal', goal: 'Cut the orbit by 12 min · 3 impactors' },
+      { id: 2, name: 'Dress rehearsal', goal: 'Cut the orbit by 22 min · 2 impactors' },
+      { id: 3, name: '26 September 2022', goal: 'Cut the orbit by 30 min · one shot only' },
+    ],
+    evidence: [
+      {
+        id: 'ev-dimorphos-32min',
+        label: 'A 32-minute cut',
+        meaning:
+          'Telescopes on Earth measured Dimorphos’ orbit before and after the impact. The 32-minute change proved that a spacecraft can move an asteroid, and that we can measure by how much.',
+      },
+      {
+        id: 'ev-ejecta-beta',
+        label: 'The ejecta plume',
+        meaning:
+          'Rock blasted off the surface carried momentum away from the asteroid, pushing it about 3.6 times harder than the spacecraft alone could have. How much a target throws off decides how well deflection works.',
+      },
+    ],
+  },
+  {
+    gameId: 'artemis-landing',
+    title: 'Artemis Landing',
+    kicker: 'Powered descent · the Moon',
+    genre: 'Fuel and nerve',
+    fact:
+      'The Moon has no atmosphere, so a parachute does nothing: every lunar landing has to be flown down on engine thrust alone. Gravity there is 1.62 m/s², a sixth of Earth’s, but it never stops pulling, so hovering burns fuel while buying no descent at all. Apollo 11 touched down with about 25 seconds of fuel left after Neil Armstrong flew past a boulder field to reach smooth ground.',
+    dramatization:
+      'A real descent takes about twelve minutes and is flown mostly by computer, with the crew taking over near the end. Here it is one short fall, in two dimensions, with a single engine and side thrusters. The fuel loads are picked so each level is tight but landable, not copied from a flight plan.',
+    learning: 'With no air to brake against, the engine is the only brake — and fuel is just time in disguise.',
+    accent: '#9BB8D3',
+    durationMin: [1, 3],
+    levels: [
+      { id: 1, name: 'Equatorial practice', goal: 'Land under 3 m/s on a wide pad · 520 kg' },
+      { id: 2, name: 'South pole approach', goal: 'Narrower pad, faster arrival · 430 kg' },
+      { id: 3, name: 'Twenty-five seconds', goal: 'Smallest pad, under 2.2 m/s · 420 kg' },
+    ],
+    evidence: [
+      {
+        id: 'ev-no-atmosphere-landing',
+        label: 'No air, no parachute',
+        meaning:
+          'Mars landers can use parachutes because Mars has a thin atmosphere. The Moon has none at all, so everything that lands there must carry the fuel to stop itself.',
+      },
+      {
+        id: 'ev-apollo11-fuel',
+        label: 'Twenty-five seconds left',
+        meaning:
+          'Apollo 11 landed with roughly 25 seconds of hovering fuel remaining. Fuel on a descent is not a reserve, it is a clock: every second spent deciding is a second you cannot spend landing.',
       },
     ],
   },
