@@ -214,6 +214,22 @@ export const GAMES: GameEntry[] = [
     isNew: true,
   },
 
+  // Snake Express — Lunar Express
+  {
+    id: 'snake-express',
+    title: 'Lunar Express',
+    destination: 'moon',
+    icon: 'rover',
+    levels: 1,
+    concepts: [
+      { id: 'equipos-en-la-luna', label: 'Lunar equipment left behind and why' },
+      { id: 'muestras-lunares', label: 'Moon samples and their scientific value' },
+    ],
+    status: 'live',
+    isNew: true,
+    size: 'wide',
+  },
+
   // ------------------------------------------------------- COMING SOON
   soon('hubble-focus', 'Hubble Focus', 'orbit', 'scope', 7, ['Mirrors focus light', 'A blurry image has a cause', 'Telescopes can be repaired in orbit'], { size: 'big', isNew: true }),
   soon('webb-unfold', 'Webb Mirror Unfold', 'deep', 'scope', 6, ['Infrared sees through dust', 'Mirror segments must line up'], { size: 'wide', isNew: true }),

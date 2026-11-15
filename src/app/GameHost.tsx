@@ -27,6 +27,7 @@ const LOADERS: Record<GameId, () => Promise<GameModule>> = {
   'sun-shade': () => import('../games/sun-shade'),
   'dart-impact': () => import('../games/dart-impact'),
   'artemis-landing': () => import('../games/artemis-landing'),
+  'snake-express': () => import('../games/snake-express'),
 }
 
 type Status = 'loading' | 'ready' | 'error'
