@@ -572,7 +572,7 @@
 /* Workspace 4-panel layout */
 .dg-editor__workspace {
   display: grid;
-  grid-template-columns: 220px 1fr 320px;
+  grid-template-columns: 220px minmax(0, 1fr) clamp(340px, 28vw, 460px);
   grid-template-rows: 1fr 220px;
   grid-template-areas:
     "left center right-top"
@@ -1865,3 +1865,45 @@
 .dg-welcome__content > *:nth-child(2) { animation-delay: 0.05s; }
 .dg-welcome__content > *:nth-child(3) { animation-delay: 0.1s; }
 .dg-welcome__content > *:nth-child(4) { animation-delay: 0.15s; }
+
+
+/* --- How to use, where the empty middle panel used to be ----------------- */
+
+.dg-empty-state__lead {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 18px;
+}
+
+.dg-howto {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  max-width: 420px;
+  text-align: left;
+}
+
+.dg-howto li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.dg-howto__num {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--dg-accent, #f3b54a);
+  color: #1b1200;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.dg-howto li > span:last-child { display: grid; gap: 2px; }
+.dg-howto strong { font-size: 15px; }
+.dg-howto span span, .dg-howto li > span:last-child { font-size: 13.5px; line-height: 1.45; }

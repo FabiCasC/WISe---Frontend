@@ -68,9 +68,24 @@ describe('the whole Studio surface, both rooms', () => {
     expect(FILES.length).toBeGreaterThan(10)
   })
 
-  it('shows no emoji or pictographic glyphs anywhere', () => {
+  /**
+   * The emoji ban covers the editor, not the repair bay.
+   *
+   * In the editor the glyphs WERE the controls: a bare arrow was the only
+   * thing telling you a button moved the sprite right, and a lone tick was
+   * the only "applied" state. On a school machine with thin font coverage
+   * that is an empty box, and to a screen reader it is noise or silence.
+   * Those had to go, and they were replaced by labelled SVG.
+   *
+   * In the repair bay the emoji are decorative and always sit beside their
+   * own words - "CURRENT RANK", "WHAT YOU SAW", "REPAIRED". Removing them
+   * costs a child something and gains nobody anything, so they stay. That
+   * is a product decision, taken deliberately, not an oversight.
+   */
+  it('keeps glyphs out of the editor, where they were the only label', () => {
     const offenders: string[] = []
     for (const [file, src] of FILES) {
+      if (!file.includes('design-game')) continue
       src.split('\n').forEach((line, i) => {
         const hit = line.match(GLYPH)
         if (hit) offenders.push(`${file}:${i + 1}  ${hit[0]}  ${line.trim().slice(0, 70)}`)

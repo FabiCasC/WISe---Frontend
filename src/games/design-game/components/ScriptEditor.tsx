@@ -62,8 +62,34 @@ export default function ScriptEditor({ spec }: Props) {
       </div>
 
       {!selectedEntity ? (
+        /* This panel is the first thing a child sees, and it used to hold
+           one sentence in the middle of a large empty area. It now says
+           what the three panels are for, in the order they are used. */
         <div className="dg-empty-state">
-          <p>Pick a sprite above to see and change what it does.</p>
+          <p className="dg-empty-state__lead">Pick a sprite above to start.</p>
+          <ol className="dg-howto">
+            <li>
+              <span className="dg-howto__num">1</span>
+              <span>
+                <strong>Pick a sprite</strong>
+                Tap one of the tabs above. Every sprite has its own instructions.
+              </span>
+            </li>
+            <li>
+              <span className="dg-howto__num">2</span>
+              <span>
+                <strong>Give it instructions</strong>
+                Drag blocks from the left. Start with one that says "When...".
+              </span>
+            </li>
+            <li>
+              <span className="dg-howto__num">3</span>
+              <span>
+                <strong>Run the game</strong>
+                Press play on the right and watch your blocks happen.
+              </span>
+            </li>
+          </ol>
         </div>
       ) : (
         <div className="dg-script-editor__body">

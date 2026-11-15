@@ -2,6 +2,7 @@ import { useState } from 'react'
 import DesignGame from '../../games/design-game/DesignGame'
 import RepairBay from '../components/RepairBay'
 import SiteFooter from '../components/SiteFooter'
+import StudioCosmicBackdrop from '../components/StudioCosmicBackdrop'
 import { REPAIRS } from '../../content/repairs'
 
 type Room = 'repair' | 'build'
@@ -27,28 +28,25 @@ type Room = 'repair' | 'build'
 export default function Studio({ accountId }: { accountId?: string }) {
   const [room, setRoom] = useState<Room>('repair')
 
-  if (room === 'build') {
-    return (
-      <>
-        <div className="wrap studio__bar">
-          <StudioTabs room={room} onChange={setRoom} />
-        </div>
-        <DesignGame />
-      </>
-    )
-  }
-
   return (
     <>
-      {/* No page header here: with the switcher, a back button and a mission
-          title stacked on top of it, the bench - the only part the student
-          actually uses - started below the fold. The room owns its heading
-          and drops it entirely once a mission is open. */}
-      <section className="section wrap page studio">
-        <StudioTabs room={room} onChange={setRoom} />
-        <RepairBay accountId={accountId} />
-      </section>
-      <SiteFooter />
+      <StudioCosmicBackdrop />
+      {room === 'build' ? (
+        <>
+          <div className="wrap studio__bar">
+            <StudioTabs room={room} onChange={setRoom} />
+          </div>
+          <DesignGame />
+        </>
+      ) : (
+        <>
+          <section className="section wrap page studio">
+            <StudioTabs room={room} onChange={setRoom} />
+            <RepairBay accountId={accountId} />
+          </section>
+          <SiteFooter />
+        </>
+      )}
     </>
   )
 }

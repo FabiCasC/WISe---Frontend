@@ -10,6 +10,7 @@ interface Star {
   twinklePhase: number
   twinkleSpeed: number
   glowBoost: number
+  isProminent: boolean
 }
 
 interface ShootingStar {
@@ -24,9 +25,9 @@ interface ShootingStar {
 
 const STAR_COLORS = [
   '#ffffff',
-  '#e6f0ff',
-  '#d2e4ff',
-  '#fae2bc',
+  '#e4f0ff',
+  '#d0e4ff',
+  '#fbe4be',
   '#bfe8ff',
   '#f3b54a',
 ]
@@ -37,11 +38,9 @@ interface Props {
 
 /**
  * HeroConstellation:
- * Interactive celestial starfield with living constellation lines connecting
- * nearby stars and stretching to the mouse cursor on hover.
- *
- * Sits seamlessly in the upper deep space of the hero band (.band), preserving
- * all layout, typography, controls, and authored horizon illustrations intact.
+ * Dynamic, high-impact cosmic starfield with constellation lines that connect
+ * between stars and actively track the mouse pointer on hover.
+ * Seamlessly integrates into .band with zero hard edges or cutoffs.
  */
 export default function HeroConstellation({ reducedMotion = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -83,13 +82,13 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
       canvas.height = Math.floor(height * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
-      // Calibrated star count: dense enough to feel expansive, elegant enough to avoid clutter
-      const count = Math.min(130, Math.max(50, Math.round((width * height) / 9000)))
+      // Well-proportioned count: dense enough for rich constellations, perfectly performant
+      const count = Math.min(135, Math.max(55, Math.round((width * height) / 8800)))
 
       stars = Array.from({ length: count }, () => {
-        const isProminent = Math.random() < 0.14
+        const isProminent = Math.random() < 0.13
         const r = isProminent
-          ? 1.9 + Math.random() * 0.9
+          ? 2.1 + Math.random() * 0.9
           : 0.55 + Math.random() * 1.15
         const color =
           STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)]
@@ -97,13 +96,14 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
         return {
           x: Math.random() * width,
           y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.2,
-          vy: (Math.random() - 0.5) * 0.16,
+          vx: (Math.random() - 0.5) * 0.22,
+          vy: (Math.random() - 0.5) * 0.17,
           r,
           color,
           twinklePhase: Math.random() * Math.PI * 2,
-          twinkleSpeed: 0.8 + Math.random() * 1.6,
+          twinkleSpeed: 0.8 + Math.random() * 1.5,
           glowBoost: 0,
+          isProminent,
         }
       })
     }
@@ -112,10 +112,10 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
       if (reducedMotion || shooters.length >= 2 || width <= 1) return
       const fromLeft = Math.random() > 0.4
       const startX = fromLeft
-        ? Math.random() * (width * 0.6)
-        : width * 0.4 + Math.random() * (width * 0.6)
+        ? Math.random() * (width * 0.5)
+        : width * 0.4 + Math.random() * (width * 0.5)
       const startY = Math.random() * (height * 0.35)
-      const angle = (Math.PI / 6) + (Math.random() - 0.5) * 0.25
+      const angle = Math.PI / 6 + (Math.random() - 0.5) * 0.22
       const speed = 9 + Math.random() * 7
 
       shooters.push({
@@ -123,9 +123,9 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
         y: startY,
         vx: (fromLeft ? 1 : -0.75) * Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        length: 100 + Math.random() * 90,
+        length: 110 + Math.random() * 90,
         life: 1,
-        decay: 0.012 + Math.random() * 0.008,
+        decay: 0.012 + Math.random() * 0.007,
       })
     }
 
@@ -137,8 +137,8 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
       mouse.y += (mouse.targetY - mouse.y) * 0.16
       mouse.alpha += (mouse.targetAlpha - mouse.alpha) * 0.08
 
-      const MOUSE_RADIUS = 170
-      const STAR_MAX_DIST = 96
+      const MOUSE_RADIUS = 180
+      const STAR_MAX_DIST = 98
       const STAR_MAX_DIST_SQ = STAR_MAX_DIST * STAR_MAX_DIST
 
       // 1. Mouse starlight aura
@@ -149,15 +149,15 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
           0,
           mouse.x,
           mouse.y,
-          MOUSE_RADIUS * 0.9,
+          MOUSE_RADIUS * 0.85,
         )
-        aura.addColorStop(0, `rgba(243, 181, 74, ${0.12 * mouse.alpha})`)
-        aura.addColorStop(0.35, `rgba(180, 225, 255, ${0.045 * mouse.alpha})`)
+        aura.addColorStop(0, `rgba(243, 181, 74, ${0.13 * mouse.alpha})`)
+        aura.addColorStop(0.35, `rgba(180, 225, 255, ${0.05 * mouse.alpha})`)
         aura.addColorStop(1, 'rgba(0, 0, 0, 0)')
 
         ctx.fillStyle = aura
         ctx.beginPath()
-        ctx.arc(mouse.x, mouse.y, MOUSE_RADIUS * 0.9, 0, Math.PI * 2)
+        ctx.arc(mouse.x, mouse.y, MOUSE_RADIUS * 0.85, 0, Math.PI * 2)
         ctx.fill()
       }
 
@@ -177,15 +177,15 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
             const norm = 1 - dist / STAR_MAX_DIST
             let lineAlpha = norm * 0.12
 
-            // Active mouse proximity illuminates and reveals constellation bonds
+            // Active mouse proximity illuminates constellation lines
             if (!reducedMotion && mouse.alpha > 0.01) {
               const dMA = Math.hypot(sA.x - mouse.x, sA.y - mouse.y)
               const dMB = Math.hypot(sB.x - mouse.x, sB.y - mouse.y)
               const nearMouse = Math.min(dMA, dMB)
               if (nearMouse < MOUSE_RADIUS) {
                 const boost =
-                  (1 - nearMouse / MOUSE_RADIUS) * 0.36 * mouse.alpha
-                lineAlpha = Math.min(0.5, lineAlpha + boost)
+                  (1 - nearMouse / MOUSE_RADIUS) * 0.38 * mouse.alpha
+                lineAlpha = Math.min(0.52, lineAlpha + boost)
               }
             }
 
@@ -228,7 +228,7 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
 
             // Connect subtle glowing line between cursor and star
             const lineAlpha =
-              Math.pow(proximity, 1.25) * 0.44 * mouse.alpha
+              Math.pow(proximity, 1.25) * 0.45 * mouse.alpha
             const grad = ctx.createLinearGradient(
               mouse.x,
               mouse.y,
@@ -242,12 +242,12 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
             ctx.moveTo(mouse.x, mouse.y)
             ctx.lineTo(s.x, s.y)
             ctx.strokeStyle = grad
-            ctx.lineWidth = 0.95 + proximity * 0.6
+            ctx.lineWidth = 0.95 + proximity * 0.65
             ctx.stroke()
 
-            // Micro-gravity floating reaction
-            s.x += (mouse.x - s.x) * 0.0028 * proximity
-            s.y += (mouse.y - s.y) * 0.0028 * proximity
+            // Micro-gravity interactive reaction
+            s.x += (mouse.x - s.x) * 0.003 * proximity
+            s.y += (mouse.y - s.y) * 0.003 * proximity
           }
         }
 
@@ -258,10 +258,10 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
             0.42 *
               Math.sin(t * 0.0016 * s.twinkleSpeed + s.twinklePhase)
 
-        // Fade gracefully as approaching the very bottom horizon edge
+        // Fade gracefully as approaching the very bottom terrain edge
         const bottomFade =
-          s.y > height * 0.74
-            ? Math.max(0.18, 1 - (s.y - height * 0.74) / (height * 0.26))
+          s.y > height * 0.78
+            ? Math.max(0.2, 1 - (s.y - height * 0.78) / (height * 0.22))
             : 1
 
         const baseAlpha =
@@ -281,7 +281,7 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
         ctx.fill()
 
         // Starlight halo for prominent stars or cursor-excited stars
-        if (s.r > 1.8 || s.glowBoost > 0.22) {
+        if (s.isProminent || s.glowBoost > 0.22) {
           ctx.beginPath()
           ctx.arc(
             s.x,
@@ -293,6 +293,19 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
           ctx.fillStyle = s.color
           ctx.globalAlpha = baseAlpha * (0.16 + s.glowBoost * 0.2)
           ctx.fill()
+
+          // Subtle 4-point telescope diffraction cross on prominent stars
+          if (s.isProminent) {
+            const flareLen = s.r * 2.8 * (1 + s.glowBoost * 0.4)
+            ctx.beginPath()
+            ctx.moveTo(s.x - flareLen, s.y)
+            ctx.lineTo(s.x + flareLen, s.y)
+            ctx.moveTo(s.x, s.y - flareLen)
+            ctx.lineTo(s.x, s.y + flareLen)
+            ctx.strokeStyle = `rgba(255, 255, 255, ${baseAlpha * 0.4})`
+            ctx.lineWidth = 0.65
+            ctx.stroke()
+          }
         }
       }
 
@@ -301,11 +314,11 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
         ctx.beginPath()
         ctx.arc(mouse.x, mouse.y, 2.2, 0, Math.PI * 2)
         ctx.fillStyle = '#ffffff'
-        ctx.globalAlpha = 0.65 * mouse.alpha
+        ctx.globalAlpha = 0.7 * mouse.alpha
         ctx.fill()
       }
 
-      // 5. Shooting stars
+      // 5. Shooting stars (meteors)
       if (!reducedMotion) {
         shooters = shooters.filter((sh) => sh.life > 0)
         for (const sh of shooters) {
@@ -392,7 +405,6 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
 
     build()
 
-    // ResizeObserver ensures seamless response to layout and window changes
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
         if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
@@ -408,7 +420,7 @@ export default function HeroConstellation({ reducedMotion = false }: Props) {
       draw(0)
     } else {
       raf = requestAnimationFrame(loop)
-      shooterTimer = window.setInterval(spawnShooter, 5200)
+      shooterTimer = window.setInterval(spawnShooter, 5000)
 
       window.addEventListener('pointermove', onPointerMove, { passive: true })
       window.addEventListener('blur', onPointerLeave)

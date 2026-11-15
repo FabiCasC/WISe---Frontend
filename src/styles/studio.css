@@ -587,3 +587,452 @@
 }
 
 .bench { margin-top: 10px; }
+
+/* --- Studio Cosmic Backdrop -------------------------------------------- */
+
+.studio-sky {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(110% 75% at 50% -10%, rgb(25 45 95 / 0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 65% 55% at 10% 30%, rgb(40 85 180 / 0.16) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 50% at 90% 45%, rgb(190 90 40 / 0.14) 0%, transparent 68%),
+    linear-gradient(180deg, #030408 0%, #050814 35%, #060a18 70%, #04060c 100%);
+}
+
+.studio-sky__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Ensure studio content is elevated above the fixed cosmic background */
+.studio,
+.studio__bar,
+.dg-welcome,
+.dg-editor {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Upgraded Repair Bay UI for Kids & Students ------------------------- */
+
+.bay__header-card {
+  margin-bottom: 24px;
+  padding: 24px 26px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(13, 16, 23, 0.95) 0%, rgba(10, 14, 20, 0.98) 100%);
+  border: 1px solid rgba(243, 181, 74, 0.25);
+  box-shadow: 0 16px 36px -16px rgba(0, 0, 0, 0.8), 0 0 24px -10px rgba(243, 181, 74, 0.12);
+}
+
+.bay__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(243, 181, 74, 0.14);
+  border: 1px solid rgba(243, 181, 74, 0.35);
+  color: var(--c-gold);
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.bay__badge-sep { opacity: 0.5; }
+
+.bay__h1 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.5vw, 36px);
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 8px;
+  letter-spacing: -0.015em;
+}
+
+/* Astronaut Level & Progress Tracker */
+.bay__tracker {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(18, 24, 38, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bay__tracker-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.bay__rank-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bay__rank-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 8px rgba(243, 181, 74, 0.4));
+}
+
+.bay__rank-badge {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--c-gold);
+}
+
+.bay__rank-title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.bay__stats-badge {
+  text-align: right;
+}
+
+.bay__stats-pct {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--c-gold);
+  line-height: 1;
+}
+
+.bay__stats-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.bay__meter-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  overflow: visible;
+}
+
+.bay__meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f59e0b 0%, #10b981 100%);
+  position: relative;
+  transition: width 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.bay__meter-rocket {
+  position: absolute;
+  right: -10px;
+  top: -8px;
+  font-size: 16px;
+  transform: rotate(45deg);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.bay__milestones {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.bay__milestone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.bay__milestone-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.bay__milestone.is-done .bay__milestone-dot {
+  background: #10b981;
+  border-color: #10b981;
+  color: #05060a;
+}
+
+.bay__milestone.is-done .bay__milestone-lbl {
+  color: #ece6d8;
+  font-weight: 600;
+}
+
+/* Card upgrade */
+.bay__card {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  text-align: left;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: rgba(13, 16, 23, 0.88);
+  backdrop-filter: blur(8px);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.bay__card:hover {
+  transform: translateY(-2px);
+  border-color: var(--mission-accent, var(--action));
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.8), 0 0 18px -6px var(--mission-accent, var(--action));
+}
+
+.bay__card.is-fixed {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(13, 22, 19, 0.88);
+}
+
+.bay__icon-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  gap: 2px;
+}
+
+.bay__icon-symbol { font-size: 24px; line-height: 1; }
+.bay__icon-num { font-family: var(--font-display); font-size: 10px; font-weight: 800; color: var(--text-faint); }
+
+.bay__top-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.bay__category-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mission-accent, var(--c-gold));
+  letter-spacing: 0.04em;
+}
+
+.bay__ask {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.bay__pills-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.bay__concept-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ece6d8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bay__xp-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(243, 181, 74, 0.15);
+  color: var(--c-gold);
+  border: 1px solid rgba(243, 181, 74, 0.3);
+}
+
+.bay__state-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: rgba(243, 181, 74, 0.12);
+  border: 1px solid rgba(243, 181, 74, 0.35);
+  color: var(--c-gold);
+  white-space: nowrap;
+  transition: background 160ms, color 160ms;
+}
+
+.bay__card:hover .bay__state-badge:not(.is-fixed) {
+  background: var(--c-gold);
+  color: #05060a;
+}
+
+.bay__state-badge.is-fixed {
+  background: #10b981;
+  border-color: #10b981;
+  color: #05060a;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.35);
+}
+
+/* Stepper inside Mission */
+.bay__stepper {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 16px 0 20px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(13, 16, 23, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
+}
+
+.bay__step-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.bay__step-node-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bay__step-node.is-current {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.bay__step-node.is-current .bay__step-node-num {
+  background: var(--c-gold);
+  color: #05060a;
+}
+
+.bay__step-node.is-done .bay__step-node-num {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.bay__hint-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #bae6fd;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+
+.bay__hint-icon { font-size: 22px; }
+
+.bay__seen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 18px 0;
+}
+
+@media (max-width: 600px) {
+  .bay__seen { grid-template-columns: 1fr; }
+}
+
+.bay__seen-box {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(13, 16, 23, 0.85);
+  border: 1px solid var(--hairline);
+}
+
+.bay__seen-box--saw {
+  border-left: 3px solid #10b981;
+}
+
+.bay__seen-box--says {
+  border-left: 3px solid #f59e0b;
+}
+
+.bay__seen-tag {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.bay__celebration-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #a7f3d0;
+  margin-top: 14px;
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.15);
+}
+
+.bay__celebration-emoji { font-size: 32px; }
+.bay__celebration-title { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #ffffff; margin: 0 0 2px; }
+
+.bay__nasa-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.2);
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  color: #93c5fd;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}

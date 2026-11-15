@@ -10,14 +10,6 @@
  * lunar horizon on load (see .hz__earth in the stylesheet).
  */
 
-// Deterministic stars: the lunar sky has no air, so they stay sharp.
-const STARS = Array.from({ length: 90 }, (_, i) => {
-  let h = (i + 7) * 2654435761
-  const r = () => ((h = (h ^ (h >>> 13)) * 1274126177) >>> 0) / 4294967296
-  const x = r() * 1500
-  return { x, y: r() * 250, r: 0.5 + r() * 0.9, o: (0.3 + r() * 0.6) * (x > 820 ? Math.max(0, 1 - (x - 820) / 420) : 1) }
-})
-
 const INK = '#07080b'
 const GOLD = '#f3b54a'
 
@@ -25,10 +17,11 @@ export default function Horizons() {
   return (
     <svg className="hz" viewBox="0 0 1600 420" preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false">
       <defs>
-        <radialGradient id="hz-dusk" cx="1180" cy="330" r="640" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#c7a27a" stopOpacity="0.85" />
-          <stop offset="0.35" stopColor="#7a5236" stopOpacity="0.6" />
-          <stop offset="1" stopColor="#05060a" stopOpacity="0" />
+        <radialGradient id="hz-dusk" cx="1180" cy="330" r="380" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#c7a27a" stopOpacity="0.75" />
+          <stop offset="0.35" stopColor="#7a5236" stopOpacity="0.35" />
+          <stop offset="0.75" stopColor="#2e150c" stopOpacity="0.08" />
+          <stop offset="0.95" stopColor="#05060a" stopOpacity="0" />
         </radialGradient>
         <radialGradient id="hz-sun" cx="50%" cy="50%" r="50%">
           <stop offset="0" stopColor="#ffffff" />
@@ -58,11 +51,8 @@ export default function Horizons() {
         </linearGradient>
       </defs>
 
-      {/* ---- Skies: black over the Moon, dusty dusk over Mars ---- */}
-      <rect x="0" y="0" width="1600" height="330" fill="url(#hz-dusk)" />
-      {STARS.map((s, i) => (
-        <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#f4ecdc" opacity={s.o} />
-      ))}
+      {/* ---- Martian dusk: smoothly bounded to the Mars side and fading to 0 ---- */}
+      <rect x="760" y="40" width="840" height="290" fill="url(#hz-dusk)" />
 
       {/* Earth above the lunar horizon */}
       <g className="hz__earth">
