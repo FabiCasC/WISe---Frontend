@@ -42,7 +42,12 @@ const GLYPH =
  * (the files may be written either way) and no words English also uses.
  */
 const SPANISH =
-  /\b(juego|videojuego|bloques|personaje|movimiento|sonido|guardar|crear|enviar|revisi[oó]n|borrador|simulador|buscar|describe|ejemplos|puntuaci[oó]n|vidas|apariencia|sensores|operadores|variables|esquiva|salta|recolecta|laberinto|plataformas|propio|instrucciones|a[ñn]adir|eliminar|siguiente|anterior|cargando)\b/i
+  // `describe` and `variables` were in this list and should never have been:
+  // both are ordinary English words, so the rule was forcing worse English on
+  // the UI to keep itself green. "Variables" had to be relabelled "Data" and
+  // "Describe your game" became a paraphrase. A rule that makes the product
+  // worse in order to pass is broken, not strict.
+  /\b(juego|videojuego|bloques|personaje|movimiento|sonido|guardar|crear|enviar|revisi[oó]n|borrador|simulador|buscar|ejemplos|puntuaci[oó]n|vidas|apariencia|sensores|operadores|esquiva|salta|recolecta|laberinto|plataformas|propio|instrucciones|a[ñn]adir|eliminar|siguiente|anterior|cargando)\b/i
 
 /** Only strings the student can actually read: quoted literals and JSX text. */
 function readableStrings(src: string): { line: number; text: string }[] {

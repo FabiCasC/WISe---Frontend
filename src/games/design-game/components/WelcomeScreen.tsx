@@ -111,7 +111,7 @@ export default function WelcomeScreen({
           {/* Descripción */}
           <div className="dg-field">
             <label className="dg-field__label" htmlFor="dg-description">
-              What happens in your game?
+              Describe your game
               <span className="dg-field__label-note"> (at least 10 characters)</span>
             </label>
             <textarea

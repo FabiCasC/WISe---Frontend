@@ -432,6 +432,6 @@ export const BLOCK_CATEGORIES_ORDER: { key: BlockCategory; label: string }[] = [
   { key: 'sensors',    label: 'Sensing' },
   { key: 'appearance', label: 'Looks' },
   { key: 'operators',  label: 'Operators' },
-  { key: 'variables',  label: 'Data' },
+  { key: 'variables',  label: 'Variables' },
   { key: 'sound',      label: 'Sound' },
 ]
