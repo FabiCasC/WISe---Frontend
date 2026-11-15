@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { C, H, PAUSE_BOX, PLAYER_X, SKY_Y, W, hex } from './config';
-import { INSTRUCTIONS } from './data/levels';
+import { BACK_BOX, C, H, PAUSE_BOX, PLAYER_X, SKY_Y, W, hex } from './config';
+import { INSTRUCTIONS, TAKEAWAY } from './data/levels';
 import { SILICA_NEEDED, type GameModel } from './state';
 
 type FontKey = 'small' | 'font' | 'medium' | 'big' | 'huge';
@@ -290,17 +290,23 @@ export class Renderer {
 
   private complete(m: GameModel) {
     this.background(0);
-    this.t('LEVEL COMPLETE!', 'big', C.GREEN, W / 2, 220, true);
-    this.rover(455, 310);
-    this.t(`You finished mission ${m.level}.`, 'font', C.CREAM, W / 2, 420, true);
+    this.t('LEVEL COMPLETE!', 'big', C.GREEN, W / 2, 130, true);
+    this.rover(455, 215);
+    this.t('WHAT YOU JUST SAW', 'small', C.YELLOW, W / 2, 335, true);
+    (TAKEAWAY[m.level] ?? []).forEach((line, i) => this.t(line, 'small', C.CREAM, W / 2, 380 + i * 36, true));
+    this.t(`Points: ${m.score}`, 'font', C.YELLOW, W / 2, 480, true);
+    this.t('Press ENTER or tap to continue', 'medium', C.GREEN, W / 2, 545, true);
   }
 
   private lost(m: GameModel) {
     this.background(0);
-    this.t('MISSION LOST', 'huge', C.RED, W / 2, 205, true);
-    this.t(m.lossReason, 'small', C.CREAM, W / 2, 300, true);
-    this.rover(455, 365, C.RED);
-    this.t(`Points: ${m.score}`, 'font', C.YELLOW, W / 2, 465, true);
+    this.t('MISSION LOST', 'huge', C.RED, W / 2, 150, true);
+    this.t(m.lossReason, 'small', C.CREAM, W / 2, 245, true);
+    this.rover(455, 295, C.RED);
+    this.t(`Points: ${m.score}`, 'font', C.YELLOW, W / 2, 410, true);
+    this.t('Press ENTER or tap to try again', 'medium', C.GREEN, W / 2, 470, true);
+    this.bar(C.NAVY2, BACK_BOX.x, BACK_BOX.y, BACK_BOX.w, BACK_BOX.h, 12);
+    this.t('B · Back to the arcade', 'small', C.CREAM, W / 2, BACK_BOX.y + BACK_BOX.h / 2, true);
   }
 
   private paused(m: GameModel) {

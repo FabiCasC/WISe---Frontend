@@ -1886,3 +1886,270 @@ main {
   justify-self: stretch;
   margin-top: 6px;
 }
+
+/* =========================================================================
+   Level 0: guide and practice coach bar
+   ========================================================================= */
+
+.tut {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px 24px;
+  overflow-y: auto;
+  background: radial-gradient(120% 90% at 50% 0%, #11151f, #05060a 70%);
+  color: var(--c-starlight);
+}
+
+.tut__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tut__kicker {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-gold);
+}
+
+.tut__card {
+  width: min(100%, 680px);
+  margin: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  padding: clamp(18px, 4vw, 30px);
+  border-radius: var(--r-xl);
+  border: 1px solid #2a3142;
+  background: #0d1017;
+  box-shadow: var(--shadow-modal);
+}
+
+.tut__game {
+  font-size: 13px;
+  color: #a39d8e;
+}
+
+.tut__title {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 5vw, 32px);
+  outline: none;
+}
+
+.tut__dots {
+  display: flex;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tut__dots li {
+  flex: 1;
+  height: 5px;
+  border-radius: 99px;
+  background: #1a2030;
+}
+
+.tut__dots li.is-on,
+.tut__dots li.is-done {
+  background: var(--c-gold);
+}
+
+.tut__dots li.is-done {
+  opacity: 0.5;
+}
+
+.tut__body {
+  display: grid;
+  gap: 12px;
+}
+
+.tut__story {
+  font-size: 16px;
+  line-height: 1.55;
+  color: #ece6d8;
+}
+
+.tut__label {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a39d8e;
+}
+
+.tut__learn,
+.tut__controls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.tut__learn li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: #141925;
+  line-height: 1.4;
+}
+
+.tut__learn svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--ok);
+}
+
+.tut__controls li {
+  display: grid;
+  grid-template-columns: minmax(96px, auto) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: #141925;
+  line-height: 1.4;
+}
+
+.tut__controls small {
+  color: #a39d8e;
+}
+
+.tut__keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  border-radius: 8px;
+  border: 1px solid #3a4258;
+  border-bottom-width: 3px;
+  background: #1d2433;
+  font: 800 14px var(--font-ui);
+  color: #ece6d8;
+}
+
+.tut__parts {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.tut__parts > div {
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: #141925;
+  border-left: 4px solid var(--c-gold);
+}
+
+.tut__parts dt {
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.tut__parts dd {
+  margin: 0;
+  color: #c4bdad;
+  line-height: 1.45;
+  font-size: 14.5px;
+}
+
+.tut__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* Practice: the real game, with a strip at the bottom for the coach. */
+.level0 .arena {
+  inset: 0 0 84px 0;
+}
+
+.coach {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 90;
+  min-height: 84px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 16px;
+  background: #0d1017;
+  border-top: 2px solid var(--c-gold);
+  color: #ece6d8;
+}
+
+.coach__text {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 280px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.coach__text b {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-gold);
+}
+
+.coach__actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 560px) {
+  .tut__top {
+    flex-wrap: wrap;
+  }
+
+  .tut__kicker {
+    order: 3;
+    flex: 1 0 100%;
+    text-align: center;
+  }
+
+  .level0 .arena {
+    inset: 0 0 128px 0;
+  }
+
+  .coach {
+    min-height: 128px;
+  }
+
+  .tut__controls li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+}
+
+.coach__text .is-done {
+  color: var(--ok);
+}
+
+.coach__text .is-done svg {
+  vertical-align: -2px;
+}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getGame, type GameEntry } from '../content/games'
 import { getMission } from '../content/missions'
+import { getTutorial } from '../content/tutorials'
 import {
   loadMembership,
   localClassService,
@@ -20,10 +21,12 @@ import {
 } from '../shared/accounts'
 import { computeMedals, medalStatsFromProgress } from '../shared/medals'
 import { applyResult, isLevelUnlocked, nextPlayableLevel } from '../shared/progress'
+import { loadSeen, saveSeen, withSeen } from '../shared/tutorial'
 import type { GameId, GameResult, LevelId } from '../shared/types'
 import Dossier from './components/Dossier'
 import { GameSheet } from './components/GameWall'
 import SettingsPanel from './components/SettingsPanel'
+import TutorialFlow from './components/TutorialFlow'
 import Sky from './components/Sky'
 import Topbar from './components/Topbar'
 import GameHost from './GameHost'
@@ -105,6 +108,7 @@ function Portal({ account, onLogout, onClassCreated }: PortalProps) {
   // The account id doubles as the anonymous id the class dashboard sees.
   const playerId = account.id
   const [membership, setMembership] = useState<Membership | null>(() => loadMembership(account.id))
+  const [seenGuides, setSeenGuides] = useState<string[]>(() => loadSeen(account.id))
   const [dossierId, setDossierId] = useState<GameId | null>(null)
   const [sheetGame, setSheetGame] = useState<GameEntry | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -177,19 +181,41 @@ function Portal({ account, onLogout, onClassCreated }: PortalProps) {
         if (game) setSheetGame(game)
         return
       }
-      const lvl =
+      let lvl =
         levelId && levelId <= game.levels && isLevelUnlocked(progress, gameId, levelId)
           ? levelId
           : nextPlayableLevel(progress, gameId, game.levels)
+      // Level 0 (how to play): on request, and by itself the first time a
+      // player is about to start level 1 of a game.
+      if (getTutorial(gameId) && (levelId === 0 || (lvl === 1 && !seenGuides.includes(gameId)))) lvl = 0
       navigate(`#/play/${gameId}/${lvl}`)
     },
-    [progress],
+    [progress, seenGuides],
+  )
+
+  /** Leaves Level 0 for the real game, and remembers the guide was seen. */
+  const startFromGuide = useCallback(
+    (gameId: GameId) => {
+      setSeenGuides((prev) => {
+        const next = withSeen(prev, gameId)
+        saveSeen(account.id, next)
+        return next
+      })
+      const levels = getGame(gameId)?.levels ?? 1
+      navigate(`#/play/${gameId}/${nextPlayableLevel(progress, gameId, levels)}`)
+    },
+    [account.id, progress],
   )
 
   const exitGame = useCallback(() => navigate(pageHash), [pageHash])
 
   const handleResult = useCallback(
     (result: GameResult) => {
+      // Level 0 is practice: finishing it counts for nothing, it just moves on.
+      if (route.name === 'play' && route.levelId === 0) {
+        startFromGuide(result.gameId)
+        return
+      }
       record(result)
       if (membership) {
         // Mismo cálculo que hace record(), para enviar el progreso ya actualizado.
@@ -214,7 +240,7 @@ function Portal({ account, onLogout, onClassCreated }: PortalProps) {
       )
       exitGame()
     },
-    [record, membership, progress, exitGame],
+    [record, membership, progress, exitGame, route, startFromGuide],
   )
 
   const joined = useCallback((m: Membership) => {
@@ -297,7 +323,26 @@ function Portal({ account, onLogout, onClassCreated }: PortalProps) {
       </div>
 
       {/* --------------------------------------------------------- SUPERPUESTO */}
-      {route.name === 'play' && isLevelUnlocked(progress, route.gameId, route.levelId) && (
+      {route.name === 'play' && route.levelId === 0 && getGame(route.gameId) && getTutorial(route.gameId) && (
+        <TutorialFlow
+          key={route.gameId}
+          game={getGame(route.gameId)!}
+          tutorial={getTutorial(route.gameId)!}
+          onStart={() => startFromGuide(route.gameId)}
+          onExit={exitGame}
+          renderPractice={() => (
+            <GameHost
+              gameId={route.gameId}
+              levelId={1}
+              settings={{ ...progress.settings, practice: true }}
+              onResult={handleResult}
+              onExit={exitGame}
+            />
+          )}
+        />
+      )}
+
+      {route.name === 'play' && route.levelId >= 1 && isLevelUnlocked(progress, route.gameId, route.levelId) && (
         <GameHost
           gameId={route.gameId}
           levelId={route.levelId}
