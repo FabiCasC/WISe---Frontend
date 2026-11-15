@@ -268,6 +268,20 @@ export const GAMES: GameEntry[] = [
     isNew: true,
     size: 'wide',
   },
+  {
+    id: 'lro-search',
+    title: 'Seen from Orbit',
+    destination: 'moon',
+    icon: 'scope',
+    levels: 3,
+    concepts: [
+      { id: 'sombra-revela-altura', label: 'A low Sun makes tall things throw long shadows, which reveal landers from orbit' },
+      { id: 'sol-alto-revela-brillo', label: 'A high Sun shrinks shadows and shows brightness differences like footpaths' },
+      { id: 'cambio-o-iluminacion', label: 'Comparing photos: a changed shadow is the Sun moving, not a new object' },
+    ],
+    status: 'live',
+    isNew: true,
+  },
 
   // ------------------------------------------------------- COMING SOON
   soon('hubble-focus', 'Hubble Focus', 'orbit', 'scope', 7, ['Mirrors focus light', 'A blurry image has a cause', 'Telescopes can be repaired in orbit'], { size: 'big', isNew: true }),

@@ -12,6 +12,7 @@ export type ArcadeId =
   | 'sojourner-commands'
   | 'phoenix-ice'
   | 'ingenuity-flight'
+  | 'lro-search'
 
 /**
  * SALA ARCADE — minijuegos cortos.
@@ -309,6 +310,32 @@ export const ARCADE: ArcadeCard[] = [
       },
     ],
     sources: ['nasa-ingenuity', 'nasa-ingenuity-first-flight', 'nasa-ingenuity-ends', 'nasa-ingenuity-investigation', 'nasa-ingenuity-cold'],
+  },
+  {
+    gameId: 'lro-search',
+    title: 'Seen from Orbit',
+    kicker: 'Search orbital pictures · Lunar Reconnaissance Orbiter',
+    genre: 'Search and compare',
+    fact:
+      'Since 2009 NASA’s Lunar Reconnaissance Orbiter has photographed the Apollo landing sites. Its pictures show the lunar module descent stages, the ALSEP experiments and the astronauts’ footpaths: at Apollo 14 a well-worn path joins the lander to the ALSEP about 180 m away. When LRO passed over Apollo 11 again with the Sun 28° higher, shadows were smaller and faint brightness differences stood out. Compared with a 1967 photo, LRO’s image of Apollo 12 shows the lander, Surveyor 3 and the astronauts’ tracks.',
+    dramatization:
+      'The pictures are drawn by the game, not real LRO images: positions are invented and distances are shrunk to fit (the ALSEP trail and Surveyor 3 are closer than in reality). Sizes of the lander and boulders are realistic, and shadows follow the real rule: length = height ÷ tan(Sun angle). The 1967 Sun angle is a game choice.',
+    learning: 'From orbit, light is a tool: low Sun shows height, high Sun shows brightness, and comparing photos needs the same light.',
+    accent: '#C6A8FF',
+    durationMin: [1, 3],
+    levels: [
+      { id: 1, name: 'Long shadows', goal: 'Choose the right Sun and find the descent stage' },
+      { id: 2, name: 'Footpaths', goal: 'Follow the astronauts’ trail to the ALSEP' },
+      { id: 3, name: 'Before and after', goal: 'Find 3 new things; ignore shadows that moved' },
+    ],
+    evidence: [
+      {
+        id: 'ev-lro-apollo',
+        label: 'Apollo sites from orbit',
+        meaning: 'Decades later, an orbiter can still see the landers, experiments and footprints left on the Moon.',
+      },
+    ],
+    sources: ['nasa-lro', 'pia12889-lro-apollo14', 'pia12897-fra-mauro', 'pia12909-apollo11-second-look', 'nasa-lro-apollo12'],
   },
 ]
 

@@ -31,6 +31,7 @@ const LOADERS: Record<GameId, () => Promise<GameModule>> = {
   'sojourner-commands': () => import('../games/sojourner-commands'),
   'phoenix-ice': () => import('../games/phoenix-ice'),
   'ingenuity-flight': () => import('../games/ingenuity-flight'),
+  'lro-search': () => import('../games/lro-search'),
 }
 
 type Status = 'loading' | 'ready' | 'error'
