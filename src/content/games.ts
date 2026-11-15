@@ -211,6 +211,20 @@ export const GAMES: GameEntry[] = [
     status: 'live',
     isNew: true,
   },
+  {
+    id: 'pathfinder-bounce',
+    title: 'Pathfinder Bounce',
+    destination: 'mars',
+    icon: 'rocket',
+    levels: 3,
+    concepts: [
+      { id: 'escudo-termico-frena', label: 'The heat shield does most of the braking before a parachute can open' },
+      { id: 'aire-fino-cohetes', label: 'Mars air is too thin for a parachute alone: rockets brake the last part' },
+      { id: 'airbags-amortiguan', label: 'Airbags let a lander survive hitting the ground and bounce to a stop' },
+    ],
+    status: 'live',
+    isNew: true,
+  },
 
   // ------------------------------------------------------- COMING SOON
   soon('hubble-focus', 'Hubble Focus', 'orbit', 'scope', 7, ['Mirrors focus light', 'A blurry image has a cause', 'Telescopes can be repaired in orbit'], { size: 'big', isNew: true }),
@@ -231,7 +245,6 @@ export const GAMES: GameEntry[] = [
   soon('kepler-hunt', 'Kepler Planet Hunt', 'deep', 'scope', 6, ['A planet passing dims its star']),
   soon('insight-quake', 'InSight Marsquake', 'mars', 'wave', 5, ['Quakes map a planet’s core']),
   soon('viking-soil', 'Viking Soil Test', 'mars', 'rover', 3, ['Chemistry is not biology']),
-  soon('pathfinder-bounce', 'Pathfinder Bounce', 'mars', 'rocket', 3, ['Airbags absorb the landing']),
   soon('new-horizons', 'New Horizons Pluto', 'deep', 'sat', 5, ['A flyby gets one chance'], { size: 'big' }),
   soon('osiris-grab', 'OSIRIS-REx Grab', 'small', 'comet', 6, ['Touch-and-go sampling']),
   soon('landsat-watch', 'Landsat Earth Watch', 'earth', 'earth', 7, ['Colors from space reveal crops', 'Images over time show change'], { size: 'wide' }),

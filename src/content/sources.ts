@@ -149,6 +149,27 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://www.nasa.gov/history/50-years-ago-apollo-15-on-the-moon-at-hadley-apennine/',
     accessed: '2026-11-15',
   },
+  'nssdc-pathfinder': {
+    id: 'nssdc-pathfinder',
+    title: 'Mars Pathfinder (entry at 7300 m/s, heat shield, 12.5 m parachute, airbags, rockets at 98 m, tether cut at 21.5 m)',
+    publisher: 'NASA NSSDCA',
+    url: 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1996-068A',
+    accessed: '2026-11-15',
+  },
+  'nasa-pathfinder': {
+    id: 'nasa-pathfinder',
+    title: 'Mars Pathfinder mission page (airbag landing, about 15 bounces, Sojourner, APXS)',
+    publisher: 'NASA Science',
+    url: 'https://science.nasa.gov/mission/mars-pathfinder/',
+    accessed: '2026-11-15',
+  },
+  'nssdc-mars-facts': {
+    id: 'nssdc-mars-facts',
+    title: 'Mars Fact Sheet (gravity 3.73 m/s², surface air density ~0.016 kg/m³, scale height 11 km)',
+    publisher: 'NASA NSSDCA',
+    url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html',
+    accessed: '2026-11-15',
+  },
   'spaceapps': {
     id: 'spaceapps',
     title: 'NASA Space Apps Challenge 2026',

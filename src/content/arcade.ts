@@ -8,6 +8,7 @@ export type ArcadeId =
   | 'sun-shade'
   | 'apollo11-descent'
   | 'lunar-rover'
+  | 'pathfinder-bounce'
 
 /**
  * SALA ARCADE — minijuegos cortos.
@@ -201,6 +202,32 @@ export const ARCADE: ArcadeCard[] = [
       },
     ],
     sources: ['nssdc-lrv', 'nssdc-apollo15-alsep', 'nasa-apollo15-hadley'],
+  },
+  {
+    gameId: 'pathfinder-bounce',
+    title: 'Pathfinder Bounce',
+    kicker: 'Entry, descent and landing · Mars Pathfinder',
+    genre: 'Mission-control timing',
+    fact:
+      'On 4 July 1997 Mars Pathfinder hit the Martian air at about 7300 m/s. Its heat shield slowed it to 400 m/s, then a 12.5 m parachute slowed it to about 70 m/s. Airbags inflated about 10 s before landing, three rockets fired at 98 m and the tether was cut 21.5 m above the ground. Wrapped in airbags it hit at about 18 m/s and bounced at least 15 times. The lander is still in Ares Vallis.',
+    dramatization:
+      'The clock is sped up high in the sky and slowed down near the ground, and the falling physics is simplified. The tear limit of the parachute (600 m/s), the airbag limit (26 m/s) and the rocket push are game numbers. In 1997 the computer, not a person, triggered every step: nobody on Earth could react in time.',
+    learning: 'Landing on Mars needs teamwork between a heat shield, a parachute, rockets and airbags, because its air is thin.',
+    accent: '#E68A68',
+    durationMin: [1, 3],
+    levels: [
+      { id: 1, name: 'Let the heat shield work', goal: 'Open the parachute below 600 m/s' },
+      { id: 2, name: 'Thin air', goal: 'Fire the braking rockets at about 100 m' },
+      { id: 3, name: 'Bounce to a stop', goal: 'Parachute, airbags, rockets and cut the cord' },
+    ],
+    evidence: [
+      {
+        id: 'ev-pathfinder-airbags',
+        label: 'Airbag landing',
+        meaning: 'Pathfinder was the first spacecraft to land inside airbags. It bounced like a giant beach ball and then rolled to a stop.',
+      },
+    ],
+    sources: ['nssdc-pathfinder', 'nasa-pathfinder', 'nssdc-mars-facts'],
   },
 ]
 
