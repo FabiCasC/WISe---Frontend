@@ -56,14 +56,16 @@ export const INSTRUCTIONS: Record<number, string[]> = {
   2: [
     'GOAL: uncover 3 patches of hidden bright soil.',
     'Spirit\'s right front wheel is broken: it drives backward, dragging it.',
-    'The dragged wheel scrapes the ground and uncovers what is under the dust,',
-    'but only while Spirit is ON the ground. Jump only when a rock is close.',
+    'The dragged wheel only scrapes the ground while Spirit is ON it.',
+    'Most of the bright soil is buried right under a rock. Jump and you stay',
+    'whole but take no sample; stay down and the rock costs you power.',
     'You LOSE if you reach the end with fewer than 3 patches found.',
   ],
   3: [
     'GOAL: park Spirit for the winter before the season runs out.',
     'Gusev is south of the equator: in winter the Sun is low in the NORTH.',
-    'Watch SOLAR POWER: it changes with the ground under the rover.',
+    'The slopes are not labelled. Look at which way each face is tilted,',
+    'and watch the POWER bar: it rises on a slope that catches the Sun.',
     'Stop still for 3 seconds on the slope that gives the most power.',
     'You LOSE if winter arrives and Spirit is not parked well.',
   ],
@@ -82,9 +84,14 @@ export function buildLevel(level: number): LevelLayout {
     out.batteries.push(battery(800), battery(1280));
   } else if (level === 2) {
     out.time = 120;
-    out.silica.push({ x: 520, w: 70 }, { x: 960, w: 70 }, { x: 1380, w: 70 }, { x: 1760, w: 70 });
+    // The choice this level is about: a patch sitting UNDER a rock cannot be
+    // scraped and jumped over at the same time, because the jump arc clears the
+    // rock and the patch together. Taking the sample means taking the hit.
+    // Only the first patch is free and three are needed to pass, so the player
+    // has to accept damage twice. Locked by state.test.ts.
     out.rocks.push(rock(740), rock(1180), rock(1580));
-    out.batteries.push(battery(860), battery(1470));
+    out.silica.push({ x: 520, w: 70 }, { x: 742, w: 44 }, { x: 1182, w: 44 }, { x: 1582, w: 44 });
+    out.batteries.push(battery(880), battery(1470));
   } else {
     out.time = 80;
     out.slopes.push(

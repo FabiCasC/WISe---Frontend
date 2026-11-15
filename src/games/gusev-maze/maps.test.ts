@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MAZE_LEVELS, MAZE_MAPS } from './maps'
-import { canGo, DIRS, isWall, key, parseMaze, type Maze } from './rules'
+import { canGo, devilSpeed, DIRS, isWall, key, parseMaze, roverSpeed, type Maze } from './rules'
 
 /**
  * Un laberinto con una muestra inalcanzable es un nivel IMPOSIBLE: el jugador
@@ -82,11 +82,15 @@ describe('ajustes por nivel', () => {
     expect(l1.dustSecs).toBeGreaterThan(l3.dustSecs)
   })
 
-  it('mantiene al rover mas rapido que los remolinos', () => {
-    // Si un remolino corriese mas que el rover, huir seria imposible.
+  it('mantiene al rover mas rapido que los remolinos con los paneles sucios', () => {
+    // Comparar playerSpeed con ghostSpeed en crudo no probaba nada: el juego
+    // nunca usa esos numeros tal cual. Hay que comparar lo que de verdad
+    // calcula, y sobre todo con polvo encima, que es cuando importa.
     for (const lvl of [1, 2, 3] as const) {
       const t = MAZE_LEVELS[lvl]
-      expect(t.playerSpeed).toBeGreaterThan(t.ghostSpeed)
+      for (const dust of [0, 0.5, 1]) {
+        expect(roverSpeed(t, dust)).toBeGreaterThan(devilSpeed(t, dust))
+      }
     }
   })
 })

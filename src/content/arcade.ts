@@ -98,6 +98,7 @@ export const ARCADE: ArcadeCard[] = [
       { id: 2, name: 'Dust in the air', goal: '1000 m · high gusts arrive · τ 1 → 5' },
       { id: 3, name: 'Night at noon', goal: '1500 m · τ 3 → 10.8, the real storm' },
     ],
+    sources: ['mer-opportunity', 'pia22930-opportunity-tau', 'pia22737-tau'],
     evidence: [
       {
         id: 'ev-dust-storm',
@@ -124,6 +125,7 @@ export const ARCADE: ArcadeCard[] = [
       { id: 2, name: 'Dusty season', goal: 'Dust settles faster · 3 dust devils' },
       { id: 3, name: 'Last campaign', goal: 'Very fast dust · plan your route to the devils' },
     ],
+    sources: ['mer-spirit', 'mer-spirit-opportunity'],
     evidence: [
       {
         id: 'ev-dust-devil',
@@ -138,17 +140,18 @@ export const ARCADE: ArcadeCard[] = [
     kicker: 'Two-player co-op · two power sources',
     genre: 'Co-op platformer',
     fact:
-      'Spirit and Opportunity ran on solar panels: without light they stopped. Curiosity and Perseverance carry a nuclear generator (RTG) that turns the heat of decaying plutonium-238 into electricity, so they work at night, in winter and in the shade. Curiosity is also much heavier: 899 kg, about five times Spirit.',
+      'Spirit and Opportunity ran on solar panels: without light they stopped. Curiosity and Perseverance carry a nuclear generator (RTG) that turns the heat of decaying plutonium-238 into electricity, so they work at night, in winter and in the shade. Carrying one also makes the rover big: NASA gives Curiosity as 10 ft long and 7 ft tall without its arm (about 3 m by 2.1 m) and 899 kg, against 1.6 m, 1.5 m and 185 kg for Spirit, and a rover only goes where it fits.',
     dramatization:
-      'Rovers do not jump, and two never worked side by side. Jumping, soft-sand pits and hatches are game tricks to show how the two power sources differ.',
-    learning: 'Where a rover gets its power decides where it can go.',
+      'Rovers do not jump, and two never worked side by side. Jumping, the low gaps that stop the big rover, the plates and the hatches are game tricks to show how the two power sources differ. Getting bogged down is not one of them: the rover that really ended its mission trapped in soft soil was Spirit, the light solar one.',
+    learning: 'Where a rover gets its power, and how big that makes it, decide where it can go.',
     accent: '#F2A65A',
     durationMin: [3, 6],
     levels: [
       { id: 1, name: 'Each on its own side', goal: 'Bring both rovers to their hatch' },
-      { id: 2, name: 'Shadow shift', goal: 'The nuclear rover opens the solar rover\'s door' },
-      { id: 3, name: 'Relay', goal: 'Each opens the other\'s door' },
+      { id: 2, name: 'Shadow shift', goal: 'Each rover opens the other\'s door' },
+      { id: 3, name: 'Relay', goal: 'Climb your own tower, open the other\'s door' },
     ],
+    sources: ['nasa-rps', 'nasa-msl-curiosity', 'mer-spirit-opportunity'],
     evidence: [
       {
         id: 'ev-rtg',
@@ -175,6 +178,7 @@ export const ARCADE: ArcadeCard[] = [
       { id: 2, name: 'No blackouts', goal: '3 dishes · contact 100% of the day' },
       { id: 3, name: 'Pick real places', goal: '3 real sites · zero blackouts' },
     ],
+    sources: ['nasa-dsn'],
     evidence: [
       {
         id: 'ev-dsn',
@@ -372,9 +376,9 @@ export const ARCADE: ArcadeCard[] = [
     kicker: 'Planetary defence · Didymos',
     genre: 'Timing and momentum',
     fact:
-      'On 26 September 2022 NASA flew DART, a 570 kg spacecraft, into Dimorphos at 6.1 km/s. The moonlet was not pushed aside: it was slowed by a few millimetres per second, which dropped it into a tighter orbit and cut its 11.9-hour period by about 32 minutes. The debris thrown off the surface flew away and pushed back, multiplying the effect roughly 3.6 times.',
+      'On 26 September 2022 NASA flew DART, a 570 kg spacecraft, into the moonlet Dimorphos at about 22,500 km/h. The moonlet was not pushed aside: it was slowed by a few millimetres per second, which dropped it into a tighter orbit. NASA measured the period falling from 11 hours 55 minutes to 11 hours 23 minutes, a difference of 32 minutes. The debris blasted off the surface flew away and pushed back, which, in NASA’s words, "substantially enhanced DART’s push against Dimorphos".',
     dramatization:
-      'The timing is theatre. The real approach took ten months and the final hour was flown by the spacecraft on its own; here the orbit is sped up to a few seconds so one run fits in a minute. Levels 1 and 2 are rehearsals against a bigger, slower target and hand you spare impactors: the real mission had exactly one.',
+      'The timing is theatre. The real approach took ten months and the final hour was flown by the spacecraft on its own; here the orbit is sped up to a few seconds so one run fits in a minute. Levels 1 and 2 are rehearsals against a bigger, slower target and hand you spare impactors: the real mission had exactly one. Two numbers the game computes with — the 6.14 km/s closing speed and the ejecta factor of about 3.6 — come from the mission team’s published analysis, not from the NASA pages cited here, which give a rounded 22,500 km/h and no figure for the ejecta at all.',
     learning: 'A small, fast impact changes an asteroid’s speed — and only a head-on hit slows it down.',
     accent: '#C9A227',
     durationMin: [1, 3],
@@ -383,6 +387,7 @@ export const ARCADE: ArcadeCard[] = [
       { id: 2, name: 'Dress rehearsal', goal: 'Cut the orbit by 22 min · 2 impactors' },
       { id: 3, name: '26 September 2022', goal: 'Cut the orbit by 30 min · one shot only' },
     ],
+    sources: ['nasa-dart', 'nasa-dart-defense'],
     evidence: [
       {
         id: 'ev-dimorphos-32min',
@@ -394,7 +399,7 @@ export const ARCADE: ArcadeCard[] = [
         id: 'ev-ejecta-beta',
         label: 'The ejecta plume',
         meaning:
-          'Rock blasted off the surface carried momentum away from the asteroid, pushing it about 3.6 times harder than the spacecraft alone could have. How much a target throws off decides how well deflection works.',
+          'Rock blasted off the surface carried momentum away from the asteroid, pushing it several times harder than the spacecraft alone could have. How much a target throws off decides how well deflection works.',
       },
     ],
   },
@@ -404,7 +409,7 @@ export const ARCADE: ArcadeCard[] = [
     kicker: 'Powered descent · the Moon',
     genre: 'Fuel and nerve',
     fact:
-      'The Moon has no atmosphere, so a parachute does nothing: every lunar landing has to be flown down on engine thrust alone. Gravity there is 1.62 m/s², a sixth of Earth’s, but it never stops pulling, so hovering burns fuel while buying no descent at all. Apollo 11 touched down with about 25 seconds of fuel left after Neil Armstrong flew past a boulder field to reach smooth ground.',
+      'The Moon has no atmosphere, so a parachute does nothing: every lunar landing has to be flown down on engine thrust alone. Gravity there is 1.62 m/s², a sixth of Earth’s, but it never stops pulling, so hovering burns fuel while buying no descent at all. On Apollo 11 the low-fuel warning came on while Neil Armstrong was still flying past a boulder field looking for smooth ground, and he landed with the clock against him.',
     dramatization:
       'A real descent takes about twelve minutes and is flown mostly by computer, with the crew taking over near the end. Here it is one short fall, in two dimensions, with a single engine and side thrusters. The fuel loads are picked so each level is tight but landable, not copied from a flight plan.',
     learning: 'With no air to brake against, the engine is the only brake — and fuel is just time in disguise.',
@@ -413,8 +418,9 @@ export const ARCADE: ArcadeCard[] = [
     levels: [
       { id: 1, name: 'Equatorial practice', goal: 'Land under 3 m/s on a wide pad · 520 kg' },
       { id: 2, name: 'South pole approach', goal: 'Narrower pad, faster arrival · 430 kg' },
-      { id: 3, name: 'Twenty-five seconds', goal: 'Smallest pad, under 2.2 m/s · 420 kg' },
+      { id: 3, name: 'Low on fuel', goal: 'Smallest pad, under 2.2 m/s · 420 kg' },
     ],
+    sources: ['nasa-apollo11-landing', 'nssdc-apollo11-lm', 'nssdc-moon-facts'],
     evidence: [
       {
         id: 'ev-no-atmosphere-landing',
@@ -424,9 +430,9 @@ export const ARCADE: ArcadeCard[] = [
       },
       {
         id: 'ev-apollo11-fuel',
-        label: 'Twenty-five seconds left',
+        label: 'The low-fuel light',
         meaning:
-          'Apollo 11 landed with roughly 25 seconds of hovering fuel remaining. Fuel on a descent is not a reserve, it is a clock: every second spent deciding is a second you cannot spend landing.',
+          'Apollo 11’s low-fuel warning lit while Armstrong was still hunting for smooth ground. Fuel on a descent is not a reserve, it is a clock: every second spent deciding is a second you cannot spend landing.',
       },
     ],
   },

@@ -98,8 +98,19 @@ export function createStage(container: HTMLElement, opts: StageOptions): Stage {
   // --- Avisos flotantes ----------------------------------------------------
   const flashes = document.createElement('div')
   flashes.className = 'mg__flashes'
+  // La capa visual sigue oculta a los lectores: son textos que flotan y se
+  // solapan, y leerlos tal cual seria ruido.
   flashes.setAttribute('aria-hidden', 'true')
   frame.append(flashes)
+
+  // ...pero el MENSAJE si importa: "Evento de limpieza", "-28 de energia" y
+  // las explicaciones de muerte son momentos de ensenanza. Se anuncian por
+  // separado, una sola vez, en una region viva que solo oye el lector.
+  const announcer = document.createElement('p')
+  announcer.className = 'sr-only'
+  announcer.setAttribute('role', 'status')
+  announcer.setAttribute('aria-live', 'polite')
+  frame.append(announcer)
 
   // --- Pie: ayuda + tactil -------------------------------------------------
   const foot = document.createElement('div')
@@ -279,6 +290,18 @@ export function createStage(container: HTMLElement, opts: StageOptions): Stage {
     el.className = 'mg__flash is-' + tone
     el.textContent = text
     flashes.append(el)
+
+    // El anuncio se escribe en un tick aparte. Vaciar y reescribir en el
+    // mismo bloque no sirve: el DOM se procesa en lote y el lector solo ve
+    // el valor final, asi que dos avisos iguales seguidos no se oirian dos
+    // veces. Vaciando ahora y escribiendo despues, cada aviso suena.
+    announcer.textContent = ''
+    const say = window.setTimeout(() => {
+      announcer.textContent = text
+      timers.delete(say)
+    }, 60)
+    timers.add(say)
+
     const t = window.setTimeout(() => {
       el.remove()
       timers.delete(t)

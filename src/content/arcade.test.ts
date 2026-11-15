@@ -53,3 +53,35 @@ describe('abandoned-hardware games are wired into the catalog', () => {
     }
   })
 })
+
+/**
+ * The checks above only ran over the eight newest games, which is how six
+ * older cards came to ship with no source at all while the team's own rule
+ * in sources.ts says a card is not published without one. These run over
+ * EVERY card, so the gap cannot reopen as more games are added.
+ */
+describe('every arcade card, old and new', () => {
+  for (const card of ARCADE) {
+    describe(card.gameId, () => {
+      it('is a live game in the catalog', () => {
+        const game = getGame(card.gameId)
+        expect(game, card.gameId).toBeTruthy()
+        expect(game!.status).toBe('live')
+      })
+
+      it('cites at least one source, and every source resolves', () => {
+        expect(card.sources?.length ?? 0, card.gameId + ' cites no source').toBeGreaterThan(0)
+        for (const s of card.sources ?? []) expect(SOURCES[s], s).toBeTruthy()
+      })
+
+      it('declares what it invents', () => {
+        expect(card.dramatization.length).toBeGreaterThan(40)
+      })
+
+      it('describes one goal per level', () => {
+        expect(card.levels.length).toBeGreaterThan(0)
+        for (const l of card.levels) expect(l.goal.length).toBeGreaterThan(10)
+      })
+    })
+  }
+})

@@ -1,7 +1,7 @@
 import { COPY } from './copy'
 import { Glide, approach, el, fmt, sv, type Env, type LevelRun } from './dom'
 import {
-  candidates, circlesCross, correctRadius, judgeAnswer, judgeCircle,
+  candidates, circlesCross, correctRadius, judgeCircle, judgeMarks,
   radiusFromDelay, readings, type QuakeDef, type Vec,
 } from './rules'
 
@@ -28,7 +28,8 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
 
   const confirmed = new Map<string, number>() // station → exact radius
   let selected = order[0]
-  let pending: Vec | null = null
+  /** Level 3: every place the player claims the quake could be. */
+  let marks: Vec[] = []
   let answersOn = false
   let done = false
 
@@ -116,17 +117,20 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
 
   panel.append(tabsRow, graph, delayText, legend, slider, radiusText, check)
 
-  // Final answer (level 3 only).
-  const confirmPick = el('button', 'btn btn--primary', 'Confirm This Point')
-  confirmPick.type = 'button'
-  confirmPick.disabled = true
-  const notEnough = el('button', 'btn btn--ghost', 'These Stations Are Not Enough')
-  notEnough.type = 'button'
-  notEnough.disabled = true
+  // Final answer (level 3 only). There is no "not enough" button to press:
+  // the player states that two stations are not enough by MARKING every place
+  // the two circles still allow. One mark is an incomplete answer.
+  const submit = el('button', 'btn btn--primary', 'Submit Marks')
+  submit.type = 'button'
+  submit.disabled = true
+  const clear = el('button', 'btn btn--ghost', 'Clear Marks')
+  clear.type = 'button'
+  clear.disabled = true
+  const marksText = el('p', 'ls-readout')
   if (!guided) {
     const answer = el('div', 'ls-answer')
-    answer.append(confirmPick, notEnough)
-    panel.append(answer)
+    answer.append(submit, clear)
+    panel.append(marksText, answer)
   }
   panel.append(msg)
 
@@ -217,7 +221,7 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
 
   const drawPick = () => {
     pickLayer.replaceChildren()
-    if (pending) sv('circle', { cx: pending.x, cy: pending.y, r: 2, class: 'ls-pick' }, pickLayer)
+    for (const m of marks) sv('circle', { cx: m.x, cy: m.y, r: 2, class: 'ls-pick' }, pickLayer)
   }
 
   const refresh = () => {
@@ -234,8 +238,15 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
     radiusGlide.to(Number(slider.value))
     drawGraph(selected)
     drawCircles()
-    notEnough.disabled = !answersOn || done
-    confirmPick.disabled = !answersOn || done || pending === null
+    if (!guided) {
+      submit.disabled = !answersOn || done || marks.length === 0
+      clear.disabled = !answersOn || done || marks.length === 0
+      marksText.textContent = answersOn
+        ? marks.length === 0
+          ? COPY.l3.marksHint
+          : `Marks placed: ${marks.length}`
+        : ''
+    }
   }
 
   // ───────────────────────── Interaction ─────────────────────────
@@ -285,7 +296,7 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
     const val = Number(slider.value)
     const verdict = judgeCircle(q, selected, val)
     const ok = verdict === 'ok'
-    env.judge(ok)
+    const left = env.judge(ok)
     if (ok) {
       env.sfx.ok()
       confirmed.set(selected, correctRadius(q, selected))
@@ -295,64 +306,62 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
       afterConfirm()
       return
     }
+    if (left === 0) return // the scene has already ended the level as failed
     env.sfx.bad()
     if (!guided) {
-      say(COPY.l3.mismatch, 'bad')
+      say(`${COPY.l3.mismatch} ${COPY.attemptsLeft(left)}`, 'bad')
       return
     }
     const apart = [...confirmed].find(([id, r]) => !circlesCross(posOf(id), r, posOf(selected), val))
-    say(
-      apart
-        ? COPY.l2.noCross(apart[0])
-        : verdict === 'too-small'
-          ? COPY.l2.small
-          : COPY.l2.big,
-      'bad',
-    )
+    const why = apart
+      ? COPY.l2.noCross(apart[0])
+      : verdict === 'too-small'
+        ? COPY.l2.small
+        : COPY.l2.big
+    say(`${why} ${COPY.attemptsLeft(left)}`, 'bad')
   })
 
-  // Level 3: mark a point on the map or declare that it is not enough.
+  // Level 3: each tap adds one more place the quake could be.
   map.addEventListener('pointerdown', (e: PointerEvent) => {
     if (guided || !answersOn || done) return
     const r = map.getBoundingClientRect()
-    pending = {
+    marks = [...marks, {
       x: Math.min(100, Math.max(0, ((e.clientX - r.left) / r.width) * 100)),
       y: Math.min(100, Math.max(0, ((e.clientY - r.top) / r.height) * 100)),
-    }
+    }]
     env.sfx.select()
     drawPick()
     refresh()
   })
 
-  confirmPick.addEventListener('click', () => {
-    if (!pending || done) return
-    const verdict = judgeAnswer(q, { type: 'locate', point: pending })
-    env.judge(verdict === 'located')
-    if (verdict === 'located') {
-      done = true
-      refresh()
-      startWaves()
-      env.finish(COPY.l2.conclusion)
-    } else {
-      env.sfx.bad()
-      say(COPY.l3.wrongPlace, 'bad')
-    }
+  clear.addEventListener('click', () => {
+    if (done) return
+    marks = []
+    env.sfx.select()
+    drawPick()
+    refresh()
   })
 
-  notEnough.addEventListener('click', () => {
-    if (done) return
-    const verdict = judgeAnswer(q, { type: 'insufficient' })
-    env.judge(verdict === 'understood-insufficient')
-    if (verdict === 'understood-insufficient') {
+  submit.addEventListener('click', () => {
+    if (done || marks.length === 0) return
+    const verdict = judgeMarks(q, order, marks)
+    if (verdict === 'none') {
+      say(COPY.l3.needMarks, 'bad')
+      return
+    }
+    const left = env.judge(verdict === 'complete')
+    if (verdict === 'complete') {
       done = true
       pickLayer.replaceChildren()
       drawPoints(candidates(q, order).points, 'ls-dot is-ghost')
       refresh()
       env.finish(COPY.l3.conclusion)
-    } else {
-      env.sfx.bad()
-      say(COPY.l3.wrongPlace, 'bad')
+      return
     }
+    if (left === 0) return // the scene has already ended the level as failed
+    env.sfx.bad()
+    const why = verdict === 'incomplete' ? COPY.l3.incomplete : COPY.l3.wrongMarks
+    say(`${why} ${COPY.attemptsLeft(left)}`, 'bad')
   })
 
   refresh()

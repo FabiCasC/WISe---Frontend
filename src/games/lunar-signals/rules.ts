@@ -15,8 +15,13 @@
 export const C_KM_S = 299_792.458
 /** Semi-major axis of the Moon's orbit, about 384,400 km. ⚠️ Verify against an official source. */
 export const MOON_DISTANCE_KM = 384_400
-/** Accepted margin between the measured echo and the marker's echo. Adjustable. */
-export const ECHO_TOLERANCE_S = 0.1
+/**
+ * Accepted margin between the measured echo and the marker's echo.
+ * Kept deliberately tight (±0.02 s ≈ ±3,000 km, under 1% of the distance):
+ * with a wide margin the marker could be dropped roughly where the Moon looks
+ * to be and still pass, which rewards aiming instead of computing d = c·t/2.
+ */
+export const ECHO_TOLERANCE_S = 0.02
 
 /** Round-trip time of a pulse to a given distance. */
 export const echoSeconds = (km: number): number => (2 * km) / C_KM_S
@@ -134,6 +139,55 @@ export function candidates(q: QuakeDef, usedIds: string[]): Candidates {
   }
   if (pts.length === 0) return { kind: 'no-match', points: [] }
   return { kind: pts.length === 1 ? 'one-point' : 'two-points', points: pts }
+}
+
+export type MarksVerdict = 'none' | 'wrong-marks' | 'incomplete' | 'complete'
+
+/**
+ * Level 3 answer: instead of pressing a button that says "two stations are not
+ * enough", the player MARKS every place the data still allows. Marking one of
+ * the two crossings is an incomplete answer (the misconception we are after);
+ * marking both IS the statement that the data does not single one out.
+ */
+export function judgeMarks(q: QuakeDef, usedIds: string[], marks: Vec[]): MarksVerdict {
+  const target = candidates(q, usedIds).points
+  if (marks.length === 0 || target.length === 0) return 'none'
+  const hit = new Set<number>()
+  for (const m of marks) {
+    const i = target.findIndex((p) => dist(m, p) <= q.tolerance)
+    if (i < 0) return 'wrong-marks'
+    // Repeating a crossing is harmless but adds nothing: the same place twice
+    // is still one place, so it cannot complete the answer on its own.
+    hit.add(i)
+  }
+  return hit.size === target.length ? 'complete' : 'incomplete'
+}
+
+/**
+ * Wrong answers have to cost something. Without a limit the "too small / too
+ * big" and "too close / too far" hints turn every slider into a free binary
+ * search, so the level is solved by bisection instead of by reasoning.
+ */
+export const MAX_WRONG = 3
+export const attemptsLeft = (wrong: number, max = MAX_WRONG): number => Math.max(0, max - wrong)
+export const hasFailed = (wrong: number, max = MAX_WRONG): boolean => wrong >= max
+
+export interface AttemptLog {
+  /** Wrong answers so far in this level. */
+  wrong: number
+  /** The level is lost: it must report completed: false. */
+  failed: boolean
+  /** Wrong answers still allowed. */
+  left: number
+}
+
+/**
+ * The scene's attempt bookkeeping, kept pure so the fail state is testable
+ * without a DOM: scene.ts does nothing to it but render the result.
+ */
+export function recordJudgement(wrong: number, correct: boolean, max = MAX_WRONG): AttemptLog {
+  const next = correct ? wrong : wrong + 1
+  return { wrong: next, failed: hasFailed(next, max), left: attemptsLeft(next, max) }
 }
 
 /** Is what we have (working stations) enough to locate the quake without doubt? */

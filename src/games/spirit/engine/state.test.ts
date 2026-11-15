@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { FINISH } from './config'
-import { GameModel, POWER } from './state'
+import { FINISH, padZone } from './config'
+import { GameModel, POWER, SILICA_NEEDED } from './state'
 
 const idle = { right: false, left: false, jump: false }
 const right = { right: true, left: false, jump: false }
@@ -96,5 +96,67 @@ describe('Spirit level 1 is fair', () => {
       { concept: 'arena-gasta-energia', correct: true },
       { concept: 'arena-gasta-energia', correct: true },
     ])
+  })
+})
+
+describe('Spirit level 2 can be failed', () => {
+  /** Nose of the rover in world coordinates (PLAYER_X + 5 + ROVER_W). */
+  const nose = (g: GameModel) => g.scroll + 246
+
+  /** Plays level 2 jumping every rock at the last safe moment. */
+  function playJumpingEveryRock() {
+    const g = playing(2)
+    for (let i = 0; i < 8000 && g.phase === 'playing'; i++) {
+      const ahead = g.rocks.some((r) => r.x - nose(g) > 0 && r.x - nose(g) < 12)
+      g.update(1 / 60, { right: true, left: false, jump: ahead })
+    }
+    return g
+  }
+
+  it('jumping every rock skips the silica under it and loses the level', () => {
+    const g = playJumpingEveryRock()
+    expect(g.phase).toBe('lost')
+    expect(g.lossReason).toMatch(/bright patches/i)
+    expect(g.found.size).toBeLessThan(SILICA_NEEDED)
+    expect(g.energy).toBeGreaterThan(0) // lost on the science, not on power
+  })
+
+  it('a skipped patch is logged as a wrong decision, not silently ignored', () => {
+    const g = playJumpingEveryRock()
+    const missed = g.decisions.filter((d) => d.concept === 'silice-agua-caliente' && !d.correct)
+    expect(missed.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('staying on the ground gets the samples but pays for them in power', () => {
+    const g = playing(2)
+    const before = g.energy
+    driveUntil(g, () => g.scroll >= FINISH)
+    expect(g.phase).toBe('complete')
+    expect(g.found.size).toBe(4)
+    // Three rock hits (25 each, part of it refunded by the batteries): the
+    // samples are not free any more.
+    expect(g.energy).toBeLessThan(before - 40)
+  })
+
+  it('the level is still winnable: skip one rock, take the other two', () => {
+    const g = playing(2)
+    const skip = g.rocks[0].x
+    for (let i = 0; i < 8000 && g.phase === 'playing'; i++) {
+      const ahead = g.rocks.some((r) => r.x === skip && r.x - nose(g) > 0 && r.x - nose(g) < 12)
+      g.update(1 / 60, { right: true, left: false, jump: ahead })
+    }
+    expect(g.phase).toBe('complete')
+    expect(g.found.size).toBe(SILICA_NEEDED)
+  })
+})
+
+describe('Spirit is playable with a finger', () => {
+  it('the touch pad maps the screen to the same actions as the keyboard', () => {
+    expect(padZone(120, 600)).toBe('left')
+    expect(padZone(880, 600)).toBe('right')
+    expect(padZone(500, 200)).toBe('jump')
+    expect(padZone(950, 20)).toBe('pause')
+    // The pause chip must not swallow a jump tap next to it.
+    expect(padZone(700, 20)).toBe('jump')
   })
 })

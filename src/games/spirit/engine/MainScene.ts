@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { MAX_DT } from './config';
+import { MAX_DT, padZone, type PadZone } from './config';
 import { EventBus, type HudSnapshot } from './EventBus';
 import { Renderer } from './Renderer';
 import { GameModel, type Decision } from './state';
@@ -21,6 +21,8 @@ export class MainScene extends Phaser.Scene {
   private keys!: KeyMap;
   private lastHud = '';
   private finishSent = false;
+  /** Which zone each finger/mouse button is holding down (see padZone). */
+  private held = new Map<number, PadZone>();
 
   constructor(private readonly options: SceneOptions) {
     super('Main');
@@ -38,7 +40,49 @@ export class MainScene extends Phaser.Scene {
     kb.addCapture([K.UP, K.DOWN, K.LEFT, K.RIGHT, K.SPACE]);
     kb.on('keydown', this.onKeyDown, this);
 
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => kb.off('keydown', this.onKeyDown, this));
+    // Touch/mouse path. Without it the game is keyboard-only and unplayable on
+    // a tablet, while the rest of the arcade accepts both.
+    this.input.addPointer(2); // two extra fingers: move and jump at the same time
+    this.input.on('pointerdown', this.onPointerDown, this);
+    this.input.on('pointerup', this.onPointerUp, this);
+    this.input.on('pointerupoutside', this.onPointerUp, this);
+    this.input.on('gameout', this.releaseAll, this);
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      kb.off('keydown', this.onKeyDown, this);
+      this.input.off('pointerdown', this.onPointerDown, this);
+      this.input.off('pointerup', this.onPointerUp, this);
+      this.input.off('pointerupoutside', this.onPointerUp, this);
+      this.input.off('gameout', this.releaseAll, this);
+    });
+  }
+
+  private onPointerDown(p: Phaser.Input.Pointer): void {
+    const zone = padZone(p.x, p.y);
+    if (zone === 'pause') {
+      this.model.togglePause();
+      return;
+    }
+    // Outside a run (title, instructions, win, loss) a tap is ENTER, so a
+    // tablet can start the level and retry after losing.
+    if (this.model.phase === 'paused') {
+      this.model.togglePause();
+      return;
+    }
+    if (this.model.phase !== 'playing') {
+      this.model.handleEnter();
+      return;
+    }
+    this.held.set(p.id, zone);
+  }
+
+  private onPointerUp(p: Phaser.Input.Pointer): void {
+    this.held.delete(p.id);
+  }
+
+  /** The pointer left the canvas: nothing is being held any more. */
+  private releaseAll(): void {
+    this.held.clear();
   }
 
   /** Eventos discretos. Se ignora la repetición automática (pygame no la genera). */
@@ -57,11 +101,14 @@ export class MainScene extends Phaser.Scene {
     const k = this.keys;
 
     if (this.model.phase === 'playing') {
+      const touch = [...this.held.values()];
       this.model.update(dt, {
-        right: k.right.isDown || k.d.isDown,
-        left: k.left.isDown || k.a.isDown,
-        jump: k.space.isDown || k.up.isDown || k.w.isDown,
+        right: k.right.isDown || k.d.isDown || touch.includes('right'),
+        left: k.left.isDown || k.a.isDown || touch.includes('left'),
+        jump: k.space.isDown || k.up.isDown || k.w.isDown || touch.includes('jump'),
       });
+    } else {
+      this.held.clear(); // a tap that changed phase must not keep driving
     }
 
     this.sceneRenderer.render(this.model, this.options.reducedMotion);

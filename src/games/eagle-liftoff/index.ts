@@ -109,7 +109,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     if (spec.burns === 0) return
     if (s.burnsLeft <= 0) return stage.flash('No burns left', 'bad')
     const before = s.ring
-    record(burn(s, dir))
+    record(burn(s, dir, spec))
     if (s.ring !== before) sfx.tone(dir === 'down' ? 380 : 620, 120, 'triangle', 0.15)
   }
 

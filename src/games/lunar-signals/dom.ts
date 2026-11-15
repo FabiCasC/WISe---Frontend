@@ -75,8 +75,12 @@ export interface Env {
   reducedMotion: boolean
   /** Sound effects (silent when volume is 0). */
   sfx: Sfx
-  /** Register an evaluated attempt (success or failure). */
-  judge(correct: boolean): void
+  /**
+   * Register an evaluated attempt and get back how many wrong answers are still
+   * allowed. 0 means the scene has already ended the level as failed, so the
+   * caller must stop touching the UI.
+   */
+  judge(correct: boolean): number
   /** The level has been solved: shows the conclusion and the sealing button. */
   finish(conclusion: string): void
 }

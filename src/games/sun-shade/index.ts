@@ -11,6 +11,7 @@ import {
   overlapsCell,
   parseLevel,
   scoreSun,
+  STOP_REASON,
   stepBody,
   touchesLethal,
   type Body,
@@ -22,8 +23,10 @@ import {
  * SOL Y SOMBRA
  * -------------------------------------------------------------------------
  * Dos rovers con fuentes de energia opuestas. El SOLAR se apaga en la sombra;
- * el NUCLEAR no depende del Sol, pero es pesado y se hunde en arena blanda. Cada uno pasa por donde el otro no puede, asi que el nivel solo se
- * termina llevando a LOS DOS a su escotilla.
+ * el NUCLEAR no depende del Sol, pero su RTG lo hace grande y no cabe por los
+ * huecos bajos. Cada uno pasa por donde el otro no puede, y cada puerta se
+ * abre desde una placa del lado del OTRO, asi que el nivel solo se termina
+ * llevando a LOS DOS a su escotilla.
  *
  * Dos jugadores en el mismo teclado (WASD y flechas), o una sola persona
  * moviendo un rover y luego el otro: nada obliga a ser dos.
@@ -143,8 +146,11 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         (resets === 1 ? ' stop' : ' stops') +
         (practice ? '' : ' - ' + score + ' points'),
       text:
-        'Neither rover could have done it alone. Solar panels need sunlight; ' +
-        'a nuclear generator (RTG) makes power from heat, day or night.',
+        (level.gates.length
+          ? 'Neither rover could have done it alone: each door opened from a plate only the other one could reach. '
+          : 'Each rover crossed the ground the other one could not. ') +
+        'Solar panels need sunlight; a nuclear generator (RTG) makes power from ' +
+        'heat, day or night, but it makes the rover too big for a low gap.',
       fact: card?.fact,
       buttons: [{ label: 'Save and continue', onClick: () => complete(score) }],
     })
@@ -159,12 +165,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     dyingMs = 620
     sfx.sweep(380, 90, 420, 'sawtooth', 0.2)
     decisions.push({ concept: 'solar-vs-nuclear', correct: false })
-    stage.flash(
-      who === 'solar'
-        ? 'Shade: no sunlight, so the solar panels make no power'
-        : 'Soft sand: the heavy nuclear rover sank (899 kg vs 185 kg)',
-      'bad'
-    )
+    // Texto en rules.ts: la explicacion es ciencia, y alli la vigilan los tests.
+    stage.flash(STOP_REASON[who], 'bad')
 
     if (!reduced) {
       const hue = who === 'solar' ? '#ffd27a' : '#c6a8ff'
@@ -409,16 +411,32 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         }
 
         if (t === 'L') {
-          // Arena blanda: aguanta al solar ligero, hunde al nuclear.
-          const g = c.createLinearGradient(0, y, 0, y + CELL)
-          g.addColorStop(0, 'rgba(236,190,128,0.95)')
-          g.addColorStop(1, 'rgba(196,132,78,0.9)')
+          // Hueco bajo: una visera de roca deja pasar al solar (plano) y
+          // detiene al nuclear, que es mas alto. Se dibuja ARRIBA de la celda
+          // para que se lea como techo, no como suelo blando.
+          // El techo mide 7 px: el panel plano del solar empieza en +9 y pasa
+          // justo por debajo; el nucleo del nuclear sobresale y choca.
+          const g = c.createLinearGradient(0, y, 0, y + 7)
+          g.addColorStop(0, '#4a3d63')
+          g.addColorStop(1, 'rgba(58,47,78,0.7)')
           c.fillStyle = g
-          c.fillRect(x, y + 6, CELL, CELL - 6)
-          c.fillStyle = 'rgba(255,232,190,0.85)'
-          c.fillRect(x, y + 5 + wob * 1.5, CELL, 3)
-          c.fillStyle = 'rgba(120,72,40,0.35)'
-          for (let k = 4; k < CELL; k += 8) c.fillRect(x + k, y + 14 + ((k / 8) % 2) * 6, 3, 2)
+          c.fillRect(x, y, CELL, 7)
+          c.fillStyle = 'rgba(28,22,42,0.55)'
+          for (let k = 2; k < CELL; k += 7) {
+            c.beginPath()
+            c.moveTo(x + k, y + 7)
+            c.lineTo(x + k + 3.5, y + 7)
+            c.lineTo(x + k + 1.75, y + 9)
+            c.closePath()
+            c.fill()
+          }
+          // Marcas del hueco libre, para que se vea por donde si se pasa.
+          c.strokeStyle = 'rgba(242,166,90,0.5)'
+          c.lineWidth = 1
+          c.beginPath()
+          c.moveTo(x, y + 15 + wob * 0.8)
+          c.lineTo(x + CELL, y + 15 + wob * 0.8)
+          c.stroke()
           continue
         }
 

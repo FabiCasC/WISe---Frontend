@@ -27,7 +27,10 @@ export interface NivelConfig {
 export const CONFIG_NIVELES: Record<number, NivelConfig> = {
   1: {
     id: 1,
-    movimientos: 12,
+    // Budgets measured with scripted players over 400 seeds per level (see reglasLocal.test.ts):
+    // only the match the player aims at counts toward the goal, so these budgets leave a
+    // competent player ~2 spare moves while a random tapper runs out well before the goal.
+    movimientos: 4,
     metas: { camara: 6 },
     objetivoEs: 'Observar: reúne 6 cámaras para revelar la roca marciana',
     objetivoEn: 'Observe: collect 6 cameras to uncover the rock photo',
@@ -45,7 +48,7 @@ export const CONFIG_NIVELES: Record<number, NivelConfig> = {
   },
   2: {
     id: 2,
-    movimientos: 16,
+    movimientos: 8,
     metas: { rat: 6, espectrometro: 6 },
     objetivoEs: 'Investigar: reúne primero 6 RAT para pulir la roca, y luego 6 espectrómetros',
     objetivoEn: 'Investigate: collect 6 RAT first to grind the rock, then 6 spectrometers',
@@ -66,7 +69,7 @@ export const CONFIG_NIVELES: Record<number, NivelConfig> = {
   },
   3: {
     id: 3,
-    movimientos: 18,
+    movimientos: 7,
     metas: { camara: 6, espectrometro: 6, energia: 6 },
     objetivoEs: 'Interpretar: reúne 6 cámaras, 6 espectrómetros y 6 de energía',
     objetivoEn: 'Interpret: collect 6 cameras, 6 spectrometers, and 6 energy',

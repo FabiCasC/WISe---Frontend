@@ -209,7 +209,7 @@ export const LEVELS: LevelConfig[] = [
   },
   {
     id: 3,
-    name: 'Twenty-five seconds',
+    name: 'Low on fuel',
     dryMassKg: 7000,
     // Tuned against the autopilot in the tests: a careful descent lands with
     // roughly a tenth of the tank left. Less than this and only a very

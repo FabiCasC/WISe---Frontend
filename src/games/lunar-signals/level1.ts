@@ -1,16 +1,17 @@
 import { COPY } from './copy'
-import { Glide, el, fmt, type Env, type LevelRun } from './dom'
+import { el, fmt, type Env, type LevelRun } from './dom'
 import { LEVEL1_MEASURED_ECHO_S } from './levels'
-import { distanceFromEcho, echoSeconds, judgeEcho } from './rules'
+import { C_KM_S, distanceFromEcho, judgeEcho } from './rules'
 
-/** The bar represents from 0 to 500,000 km. */
-const BAR_MAX_KM = 500_000
+/** The distance dial runs from 0 to 500,000 km. */
+const DIAL_MAX_KM = 500_000
 /** The journey appears 4 times slower than real time. */
 const SLOWMO = 4
 
+const km = (v: number): string => Math.round(v).toLocaleString('en')
+
 export function buildLevel1(env: Env): LevelRun {
   const measured = LEVEL1_MEASURED_ECHO_S
-  const moonFrac = distanceFromEcho(measured) / BAR_MAX_KM
   const tripMs = measured * 1000 * SLOWMO
 
   let phase: 'idle' | 'flying' | 'measured' | 'done' = 'idle'
@@ -19,21 +20,22 @@ export function buildLevel1(env: Env): LevelRun {
 
   const root = el('div', 'ls-l1')
 
-  // ── Track: Earth · bar · Moon ──
+  // ── Flight track: Earth · rail · Moon ──
+  // The Moon sits at a FIXED end of the rail and the pulse crosses the whole
+  // rail. The track is an animation of the round trip, not a distance scale:
+  // nothing on it can be measured with a ruler or lined up with an answer.
   const track = el('div', 'ls-track')
   const rail = el('div', 'ls-rail')
   const earth = el('span', 'ls-earth')
   earth.setAttribute('aria-label', 'Earth')
   const moon = el('span', 'ls-moon')
-  moon.setAttribute('aria-label', 'Moon')
-  moon.style.left = `${moonFrac * 100}%`
+  moon.setAttribute('aria-label', 'Moon (distance unknown)')
   const beam = el('span', 'ls-beam')
   const pulse = el('span', 'ls-pulse')
   pulse.hidden = true
-  const marker = el('span', 'ls-marker')
-  marker.hidden = true
-  rail.append(el('span', 'ls-line'), beam, earth, moon, pulse, marker)
+  rail.append(el('span', 'ls-line'), beam, earth, moon, pulse)
   track.append(rail)
+  track.append(el('p', 'ls-note', 'Not to scale: how far away the Moon is, is exactly what you have to find out.'))
 
   // ── Stopwatch ──
   const watchWrap = el('div', 'ls-watch')
@@ -48,24 +50,21 @@ export function buildLevel1(env: Env): LevelRun {
   const slider = el('input', 'ls-slider')
   slider.type = 'range'
   slider.min = '0'
-  slider.max = String(BAR_MAX_KM)
+  slider.max = String(DIAL_MAX_KM)
   slider.step = '500'
   slider.value = '100000'
-  slider.setAttribute('aria-label', 'Distance marker')
+  slider.setAttribute('aria-label', 'Distance to the Moon, in kilometres')
 
-  const markerEcho = el('p', 'ls-readout')
-  const echoGlide = new Glide(
-    (v) => { markerEcho.textContent = `Marker echo: ${fmt(v)} s` },
-    90,
-    env.reducedMotion,
-    echoSeconds(Number(slider.value)),
-  )
+  // The dial reads back only the number the player dialled in. It never shows
+  // the echo that distance would produce, which would let them turn the slider
+  // until the two times met instead of computing d = c · t / 2.
+  const dial = el('p', 'ls-readout')
   const check = el('button', 'btn btn--primary', 'Mark Distance')
   check.type = 'button'
 
   const tools = el('div', 'ls-tools')
   tools.hidden = true
-  tools.append(slider, markerEcho, check)
+  tools.append(el('p', 'ls-note', COPY.l1.hint(km(C_KM_S))), slider, dial, check)
 
   const msg = el('p', 'ls-msg', COPY.l1.idle)
   msg.setAttribute('role', 'status')
@@ -80,8 +79,8 @@ export function buildLevel1(env: Env): LevelRun {
 
   const show = (p: number) => {
     const out = p < 0.5 ? p * 2 : (1 - p) * 2 // 0 → 1 → 0
-    pulse.style.left = `${out * moonFrac * 100}%`
-    beam.style.width = `${out * moonFrac * 100}%`
+    pulse.style.left = `${out * 100}%`
+    beam.style.width = `${out * 100}%`
     pulse.classList.toggle('is-back', p > 0.5)
     if (p >= 0.5 && !hitDone) {
       hitDone = true
@@ -91,22 +90,22 @@ export function buildLevel1(env: Env): LevelRun {
     watch.textContent = `${fmt(Math.min(p, 1) * measured)} s`
   }
 
-  const updateMarker = (snap = false) => {
-    const v = Number(slider.value)
-    marker.style.left = `${(v / BAR_MAX_KM) * 100}%`
-    echoGlide.to(echoSeconds(v), snap)
+  const updateDial = () => {
+    dial.textContent = `Marker set at ${km(Number(slider.value))} km`
   }
 
   const land = () => {
     phase = 'measured'
     pulse.hidden = true
     beam.hidden = true
+    // The Moon goes dark: from here on the only thing the player has is the
+    // stopwatch reading, so the answer cannot be found by looking at a sprite.
+    moon.hidden = true
     env.sfx.echo()
     watch.textContent = `${fmt(measured)} s`
     tools.hidden = false
-    marker.hidden = false
-    updateMarker(true)
-    say(COPY.l1.measured(fmt(measured)))
+    updateDial()
+    say(COPY.l1.measured(fmt(measured), km(C_KM_S)))
   }
 
   fire.addEventListener('click', () => {
@@ -125,37 +124,32 @@ export function buildLevel1(env: Env): LevelRun {
     say(COPY.l1.flying)
   })
 
-  slider.addEventListener('input', () => updateMarker())
+  slider.addEventListener('input', updateDial)
 
   check.addEventListener('click', () => {
     if (phase !== 'measured') return
     const v = Number(slider.value)
     const r = judgeEcho(v, measured)
-    env.judge(r.verdict === 'match')
+    const left = env.judge(r.verdict === 'match')
     if (r.verdict === 'match') {
       env.sfx.ok()
-      marker.classList.add('is-locked')
       phase = 'done'
       slider.disabled = true
       check.disabled = true
       fire.disabled = true
       say(COPY.l1.ok, 'ok')
-      const km = (Math.round(distanceFromEcho(measured) / 1000) * 1000).toLocaleString('en')
-      env.finish(COPY.l1.conclusion(km))
+      env.finish(COPY.l1.conclusion(km(Math.round(distanceFromEcho(measured) / 1000) * 1000)))
       return
     }
+    if (left === 0) return // the scene has already ended the level as failed
     env.sfx.bad()
-    const mine = fmt(r.markerEchoSeconds)
     const real = fmt(measured)
-    say(
-      r.verdict === 'too-short' ? COPY.l1.tooShort(mine, real) : COPY.l1.tooLong(mine, real),
-      'bad',
-    )
+    const dir = r.verdict === 'too-short' ? COPY.l1.tooShort(real) : COPY.l1.tooLong(real)
+    say(`${dir} ${COPY.attemptsLeft(left)}`, 'bad')
   })
 
   return {
     tick(dt) {
-      echoGlide.tick(dt)
       if (phase !== 'flying') return
       t += dt
       const p = t / tripMs
