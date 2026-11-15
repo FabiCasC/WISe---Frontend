@@ -15,7 +15,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     levelId: ctx.levelId,
     practice: ctx.settings.practice,
     reducedMotion: ctx.settings.reducedMotion,
-    onFinish: (completed, score, firstAnswerCorrect) => {
+    onFinish: (completed, score, decisions) => {
       if (settled) return
       settled = true
       const result: GameResult = {
@@ -25,7 +25,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         durationMs: Math.max(0, Math.round(performance.now() - startedAt - pausedMs)),
         completed,
         evidenceIds: completed ? (mission?.evidence.map((item) => item.id) ?? []) : [],
-        firstAnswerCorrect: completed && firstAnswerCorrect,
+        firstAnswerCorrect: completed && decisions.every((d) => d.correct),
+        decisions: ctx.settings.practice ? [] : decisions,
       }
       ctx.onComplete(result)
     },

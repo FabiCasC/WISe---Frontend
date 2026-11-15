@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { C, FINISH, H, W, hex } from './config';
+import { C, H, PLAYER_X, W, hex } from './config';
 import { INSTRUCTIONS } from './data/levels';
-import type { GameModel } from './state';
+import { SILICA_NEEDED, type GameModel } from './state';
 
 type FontKey = 'small' | 'font' | 'medium' | 'big' | 'huge';
 
@@ -153,140 +153,140 @@ export class Renderer {
   }
 
   private objects(m: GameModel) {
+    const sx = (x: number) => Math.trunc(x - m.scroll);
+
+    // Level 1: soft sand, pale and rippled.
+    for (const z of m.sand) {
+      const x = sx(z.x);
+      if (x > W || x + z.w < 0) continue;
+      this.bar(0xf2c79a, x, 486, z.w, 18, 6);
+      for (let k = 8; k < z.w - 8; k += 22) this.line(0xc98f62, 2, x + k, 494, x + k + 12, 497);
+    }
+
+    // Level 2: bright silica, hidden until the dragged wheel scrapes it.
+    for (const z of m.silica) {
+      const x = sx(z.x);
+      if (x > W || x + z.w < 0) continue;
+      if (m.found.has(z)) {
+        this.bar(0xfdfaf2, x, 488, z.w, 12, 4);
+        this.t('SILICA', 'small', C.CREAM, x + z.w / 2, 516, true);
+      } else {
+        // A faint hint: slightly paler dust.
+        this.bar(0xc98a6e, x, 489, z.w, 6, 3);
+      }
+    }
+
+    // Level 3: slopes. A north-facing slope tilts toward the Sun (right).
+    for (const z of m.slopes) {
+      const x = sx(z.x);
+      if (x > W + 40 || x + z.w < -40) continue;
+      const north = z.facing === 'north';
+      this.poly(north ? 0xa75f49 : 0x7d4639, north
+        ? [[x, 490], [x + z.w, 430], [x + z.w, 490]]
+        : [[x, 430], [x + z.w, 490], [x, 490]]);
+      this.t(north ? 'faces NORTH' : 'faces SOUTH', 'small', C.CREAM, x + z.w / 2, 516, true);
+    }
+
     for (const o of m.rocks) {
-      const x = Math.trunc(o.x - m.scroll);
+      const x = sx(o.x);
       if (x > -60 && x < W + 60) {
         this.poly(C.ROCK, [[x, 490], [x + 7, 465], [x + 25, 452], [x + 43, 474], [x + 48, 490]]);
       }
     }
     for (const o of m.batteries) {
-      const x = Math.trunc(o.x - m.scroll);
+      const x = sx(o.x);
       if (x > -40 && x < W + 40) {
         this.bar(C.YELLOW, x, o.y, 28, 32, 4);
         this.bar(C.CREAM, x + 9, o.y - 5, 10, 5);
         this.t('+', 'small', C.NAVY, x + 8, o.y + 3);
       }
     }
-    for (const o of m.samples) {
-      const x = Math.trunc(o.x - m.scroll);
-      if (x > -50 && x < W + 50) {
-        this.circle(C.YELLOW, x + 16, o.y + 16, 17);
-        this.circle(C.CREAM, x + 10, o.y + 10, 5);
-        this.t('MUESTRA', 'small', C.CREAM, x - 23, o.y - 28);
-      }
+    if (m.level === 2) {
+      // The trench left by the dragged wheel.
+      this.line(0x6b3a31, 4, 0, 494, PLAYER_X + 17, 494);
+    }
+    if (m.level === 3) {
+      // Low winter Sun in the north (to the right) and a compass.
+      this.circle(C.YELLOW, 930, 300, 26);
+      this.t('SUN (north, low)', 'small', C.YELLOW, 930, 345, true);
+      this.t('S  ←   → N', 'small', C.CREAM, 120, 115, true);
     }
   }
 
-  private   hud(m: GameModel) {
+  private hud(m: GameModel) {
     this.bar(C.NAVY, 0, 0, W, 88);
-    this.t(`NIVEL ${m.level}: ${m.levelName}`, 'font', C.CREAM, 22, 12);
-    this.t(`PUNTOS: ${m.score}`, 'small', C.WHITE, 22, 51);
-    this.t('ENERGÍA', 'small', C.WHITE, 390, 12);
+    this.t(`LEVEL ${m.level}: ${m.levelName}`, 'font', C.CREAM, 22, 12);
+    this.t(`POINTS: ${m.score}`, 'small', C.WHITE, 22, 51);
+    this.t('POWER', 'small', C.WHITE, 390, 12);
     this.bar(C.GRAY, 390, 39, 190, 18, 8);
     this.bar(m.energy > 30 ? C.GREEN : C.RED, 390, 39, (190 * Math.max(0, m.energy)) / 100, 18, 8);
     this.t(`${Math.max(0, Math.trunc(m.energy))}%`, 'small', C.WHITE, 590, 35);
-    this.t(
-      m.practice ? 'TIEMPO: ∞' : `TIEMPO: ${Math.max(0, Math.trunc(m.timeLeft))} s`,
-      'small',
-      C.WHITE,
-      790,
-      20,
-    );
-    if (m.level === 3) this.t(`MUESTRAS: ${m.samplesDone}/3`, 'small', C.YELLOW, 790, 51);
+    const clock = m.level === 3 ? 'WINTER IN' : 'TIME';
+    this.t(m.practice ? `${clock}: ∞` : `${clock}: ${Math.max(0, Math.trunc(m.timeLeft))} s`, 'small', C.WHITE, 760, 14);
+    if (m.level === 2) this.t(`BRIGHT SOIL: ${m.found.size}/${SILICA_NEEDED}`, 'small', C.YELLOW, 760, 51);
+    if (m.level === 3) {
+      const p = Math.round(m.solarPower * 100);
+      this.t(`SOLAR POWER: ${p}%`, 'small', p >= 100 ? C.GREEN : p < 50 ? C.RED : C.YELLOW, 760, 51);
+    }
   }
 
-  private race(m: GameModel) {
-    this.bar(C.NAVY2, 45, 105, 910, 120, 14);
-    this.t('RIVAL VIRTUAL AZUL', 'small', C.CREAM, 60, 112);
-    this.line(C.TRACK, 2, 65, 205, 925, 205);
-    const rx = 75 + Math.trunc(Math.min(1, m.rivalProgress / FINISH) * 790);
-    this.rover(rx, 151, C.CYAN, 0.68);
-    this.line(C.YELLOW, 4, 900, 125, 900, 215);
-    this.t('META', 'small', C.YELLOW, 870, 108);
-    this.bar(C.NAVY2, 45, 235, 910, 48, 10);
-    this.t('SPIRIT', 'small', C.CREAM, 60, 246);
-    this.bar(C.GRAY, 145, 266, 760, 7, 4);
-    this.bar(C.GREEN, 145, 266, Math.min(1, m.scroll / FINISH) * 760, 7, 4);
-    this.line(C.YELLOW, 4, 905, 238, 905, 280);
-  }
-
-  // ---------- pantallas ----------
+  // ---------- screens ----------
   private game(m: GameModel, reducedMotion: boolean) {
     this.background(m.scroll);
-    if (m.level === 2) this.race(m);
     this.objects(m);
     if (reducedMotion || m.cooldown <= 0 || Math.trunc(m.cooldown * 10) % 2 === 0) {
       this.rover(175, Math.trunc(m.playerY));
     }
     this.hud(m);
-    if (m.level === 1) this.t('Esquiva las rocas y llega a la meta >>>', 'small', C.CREAM, 530, 115);
-    else if (m.level === 2) this.t('¡No dejes que el rival virtual llegue primero!', 'small', C.CREAM, 500, 300);
-    else this.t('Busca las tres muestras brillantes', 'small', C.CREAM, 430, 115);
+    if (m.toastTime > 0 && m.toast) {
+      this.bar(C.NAVY2, 60, 108, 880, 46, 12);
+      this.t(m.toast, 'small', C.CREAM, W / 2, 131, true);
+    } else if (m.level === 1) this.t('Jump over the soft sand and the rocks >>>', 'small', C.CREAM, 530, 115);
+    else if (m.level === 2) this.t('Stay on the ground to scrape the soil. Jump only over rocks.', 'small', C.CREAM, 400, 115);
+    else this.t('Stand still 3 s to park. Watch SOLAR POWER.', 'small', C.CREAM, 470, 115);
   }
 
   private start() {
     this.background(0);
-    this.t('LA RUTA DE SPIRIT', 'big', C.CREAM, W / 2, 125, true);
-    this.t('MISIÓN DE EXPLORACIÓN EN MARTE', 'font', C.YELLOW, W / 2, 183, true);
+    this.t("SPIRIT'S ROUTE", 'big', C.CREAM, W / 2, 125, true);
+    this.t('A MARS EXPLORATION MISSION', 'font', C.YELLOW, W / 2, 183, true);
     this.rover(455, 315, C.YELLOW, 1.25);
-    this.t('Tres misiones. Un rover. Tú decides el camino.', 'font', C.WHITE, W / 2, 430, true);
-    this.t('Presiona ENTER para comenzar', 'medium', C.GREEN, W / 2, 510, true);
-    this.t('Mover: flechas o A/D | Saltar: ESPACIO o ARRIBA | Pausa: P', 'small', C.CREAM, W / 2, 565, true);
+    this.t('Three real moments from Spirit\'s six years on Mars.', 'font', C.WHITE, W / 2, 430, true);
+    this.t('Press ENTER to start', 'medium', C.GREEN, W / 2, 510, true);
+    this.t('Move: arrows or A/D | Jump: SPACE or UP | Pause: P', 'small', C.CREAM, W / 2, 565, true);
   }
 
   private instructions(m: GameModel) {
     this.background(0);
-    this.bar(C.CREAM, 90, 85, 820, 485, 20);
-    this.t(`NIVEL ${m.level}: ${m.levelName}`, 'big', C.NAVY, W / 2, 135, true);
-    this.t('LEE LAS INSTRUCCIONES ANTES DE JUGAR', 'small', C.TEAL, W / 2, 190, true);
+    this.bar(C.CREAM, 70, 85, 860, 485, 20);
+    this.t(`LEVEL ${m.level}: ${m.levelName}`, 'big', C.NAVY, W / 2, 135, true);
+    this.t('READ THIS BEFORE YOU DRIVE', 'small', C.TEAL, W / 2, 190, true);
     INSTRUCTIONS[m.level].forEach((line, i) =>
-      this.t(line, 'font', line.startsWith('PIERDES') ? C.RED : C.NAVY, 145, 245 + i * 48),
+      this.t(line, 'small', line.startsWith('You LOSE') ? C.RED : C.NAVY, 110, 240 + i * 46),
     );
-    this.t('CONTROLES: flechas mover | ARRIBA o ESPACIO saltar | P pausar', 'small', C.TEAL, W / 2, 500, true);
-    this.t('Presiona ENTER para iniciar la misión', 'medium', C.GREEN, W / 2, 545, true);
-  }
-
-  private questionScreen(m: GameModel) {
-    this.background(0);
-    this.rover(100, 450);
-    this.bar(C.CREAM, 100, 105, 800, 420, 20);
-    const q = m.question;
-    this.t(`ANÁLISIS DE MUESTRA ${m.samplesDone + 1}/3`, 'small', C.TEAL, W / 2, 150, true);
-    this.t(q.prompt, 'medium', C.NAVY, W / 2, 220, true);
-    q.options.forEach((opt, i) => this.t(opt, 'font', C.NAVY, 190, 290 + i * 48));
-    this.t('Presiona 1, 2 o 3 para responder', 'small', C.TEAL, W / 2, 470, true);
+    this.t('CONTROLS: arrows to move | UP or SPACE to jump | P to pause', 'small', C.TEAL, W / 2, 500, true);
+    this.t('Press ENTER to start the mission', 'medium', C.GREEN, W / 2, 545, true);
   }
 
   private complete(m: GameModel) {
     this.background(0);
-    this.t('¡NIVEL COMPLETADO!', 'big', C.GREEN, W / 2, 220, true);
+    this.t('LEVEL COMPLETE!', 'big', C.GREEN, W / 2, 220, true);
     this.rover(455, 310);
-    this.t(`Has superado la misión ${m.level}.`, 'font', C.CREAM, W / 2, 420, true);
-    this.t('Presiona ENTER para continuar', 'medium', C.YELLOW, W / 2, 500, true);
+    this.t(`You finished mission ${m.level}.`, 'font', C.CREAM, W / 2, 420, true);
   }
 
   private lost(m: GameModel) {
     this.background(0);
-    this.t('¡HAS PERDIDO!', 'huge', C.RED, W / 2, 205, true);
-    this.t(m.lossReason, 'font', C.CREAM, W / 2, 300, true);
+    this.t('MISSION LOST', 'huge', C.RED, W / 2, 205, true);
+    this.t(m.lossReason, 'small', C.CREAM, W / 2, 300, true);
     this.rover(455, 365, C.RED);
-    this.t(`Puntuación obtenida: ${m.score}`, 'font', C.YELLOW, W / 2, 465, true);
-    this.t('ENTER: reintentar desde el nivel 1', 'medium', C.WHITE, W / 2, 530, true);
-  }
-
-  private won(m: GameModel) {
-    this.background(0);
-    this.t('¡FELICITACIONES!', 'big', C.GREEN, W / 2, 190, true);
-    this.t('COMPLETASTE LAS TRES MISIONES', 'medium', C.CREAM, W / 2, 260, true);
-    this.rover(455, 340, C.YELLOW, 1.2);
-    this.t(`PUNTUACIÓN FINAL: ${m.score}`, 'font', C.YELLOW, W / 2, 450, true);
-    this.t('ENTER: jugar nuevamente', 'medium', C.WHITE, W / 2, 520, true);
+    this.t(`Points: ${m.score}`, 'font', C.YELLOW, W / 2, 465, true);
   }
 
   private paused(m: GameModel) {
     this.background(m.scroll);
-    this.t('JUEGO EN PAUSA', 'big', C.CREAM, W / 2, 260, true);
-    this.t('Presiona P para continuar', 'font', C.YELLOW, W / 2, 330, true);
+    this.t('PAUSED', 'big', C.CREAM, W / 2, 260, true);
+    this.t('Press P to continue', 'font', C.YELLOW, W / 2, 330, true);
   }
 
   render(m: GameModel, reducedMotion = false): void {
@@ -296,10 +296,8 @@ export class Renderer {
       case 'start': this.start(); break;
       case 'instructions': this.instructions(m); break;
       case 'playing': this.game(m, reducedMotion); break;
-      case 'question': this.questionScreen(m); break;
       case 'complete': this.complete(m); break;
       case 'lost': this.lost(m); break;
-      case 'won': this.won(m); break;
       case 'paused': this.paused(m); break;
     }
     this.tp.end();

@@ -124,9 +124,9 @@ export const GAMES: GameEntry[] = [
     icon: 'rover',
     levels: 3,
     concepts: [
-      { id: 'arena-gasta-energia', label: 'Soft sand drains a rover’s energy' },
-      { id: 'ruta-corta-no-segura', label: 'The shortest route is not always the safest' },
-      { id: 'silice-agua-caliente', label: 'Silica is a clue of hot water, not of life' },
+      { id: 'arena-gasta-energia', label: 'Soft sand drains power and can trap a rover (Spirit, 2009)' },
+      { id: 'silice-agua-caliente', label: 'Bright silica soil is a clue that hot water once flowed there' },
+      { id: 'inclinar-paneles-al-sol', label: 'In winter, tilting solar panels toward the low Sun gives more power' },
     ],
     status: 'live',
     art: 'assets/missions/spirit.webp',

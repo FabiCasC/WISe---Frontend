@@ -188,34 +188,34 @@ export const MISSIONS: MissionCard[] = [
   {
     gameId: 'spirit',
     title: 'Spirit’s Last Route',
-    kicker: 'Race against the clock · Gusev crater',
+    kicker: 'Three real moments · Gusev crater',
     body: 'marte',
     bodyLabel: 'Mars',
     hardware: 'Spirit rover (MER-A)',
     genre: 'Exploration and energy',
     voice: 'One wheel stopped turning. Dragging it, I found something I was not looking for.',
-    learning: 'Pick a safe route and read clues from the past in the ground.',
+    learning: 'Avoid soft sand, read clues of hot water in the ground, and tilt the panels toward the winter Sun.',
     crew: 'Kevin · Statistical Engineering',
     durationMin: [2, 4],
     accent: '#F2A65A',
     levels: [
       {
         id: 1,
-        name: 'Choose a path',
-        goal: 'Reach the archive · 1 observation · 90 s',
-        idea: 'The shortest route can have the hardest ground.',
+        name: 'Soft sand',
+        goal: 'Reach the finish without getting stuck · 90 s',
+        idea: 'Soft sand drains power and can trap a rover: it ended Spirit\'s driving in 2009.',
       },
       {
         id: 2,
-        name: 'Look at the ground',
-        goal: '2 observations · 120 s · bright soil area',
-        idea: 'A broken wheel uncovered material worth investigating.',
+        name: 'The broken wheel',
+        goal: 'Uncover 3 patches of bright soil · 120 s',
+        idea: 'Dragging the broken wheel uncovered silica: a clue to hot springs or steam vents.',
       },
       {
         id: 3,
-        name: 'Prioritize evidence',
-        goal: '3 observations · safe detour · 150 s',
-        idea: 'The silica was a clue to processes with water, not proof of life.',
+        name: 'Winter on a slope',
+        goal: 'Park on the slope that gives the most power · 80 s',
+        idea: 'South of the equator the winter Sun is low in the north: a north-facing slope tilts the panels toward it.',
       },
     ],
     evidence: [
@@ -239,10 +239,10 @@ export const MISSIONS: MissionCard[] = [
       finding:
         'Dragging its broken wheel, it uncovered soil very rich in silica, a clue to hot water.',
       dramatization:
-        'The race, the timer and the energy units are game conventions. They do not reproduce its real speed or a historical route.',
+        'The jumps, the timer and the energy units are game conventions. They do not reproduce its real speed or a historical route.',
       notTrue: [
         'No one is going to reactivate it, clean it or bring it back.',
-        'The rival in the race is a scripted path, not another real vehicle.',
+        'Spirit could not jump: it drove around obstacles, very slowly.',
         'Silica is not proof of life.',
       ],
     },
