@@ -602,7 +602,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
   stage.setStats([
     { key: 'dist', label: 'Distance', value: '0 / ' + tuning.targetDistance + ' m', meter: 0 },
-    { key: 'energy', label: 'Energia', value: '100%', meter: 1, tone: 'ok' },
+    { key: 'energy', label: 'Energy', value: '100%', meter: 1, tone: 'ok' },
     { key: 'tau', label: 'Dust τ · sunlight', value: tauAt(levelKey, 0).toFixed(1) + ' · ' + pctSun(tauAt(levelKey, 0)), meter: directSunlight(tauAt(levelKey, 0)) },
     { key: 'light', label: 'Sun breaks', value: '0' },
   ])
@@ -610,11 +610,11 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   stage.showOverlay({
     title: card?.title ?? 'Storm over Meridiani',
     text:
-      'Avanza ' +
+      'Drive ' +
       tuning.targetDistance +
       ' m before you run out of power. Watch the τ meter: it measures how much dust blocks the Sun. The higher τ goes, the less sunlight reaches your panels. Grab the sun breaks to recharge.' +
       (tuning.gusts ? ' Duck under the high gusts.' : ''),
-    buttons: [{ label: 'Empezar', onClick: begin }],
+    buttons: [{ label: 'Start', onClick: begin }],
   })
 
   render()

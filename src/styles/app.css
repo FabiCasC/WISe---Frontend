@@ -1967,20 +1967,26 @@ a {
    fondo oscuro. Dentro del juego se fijan los tokens de la paleta oscura. */
 .mg,
 .arena {
-  --text: var(--c-alice);
-  --text-dim: #c3d4ef;
-  --text-faint: #a9bce0;
-  --surface-rgb: 26 32 98;
-  --panel: #1a2062;
-  --hairline: rgb(var(--dusk-rgb) / 0.7);
-  --hairline-soft: rgb(218 232 251 / 0.12);
-  --accent-rgb: 117 203 209;
-  --action: var(--c-aqua);
-  --action-hi: #a9e6ea;
-  --action-deep: #4fb3ba;
-  --on-accent: var(--c-navy);
-  --secondary: var(--c-dusk);
-  --on-secondary: var(--c-alice);
+  /* Interstellar dark palette, fixed: the game room is always night. */
+  color-scheme: dark;
+  --text: var(--c-starlight);
+  --text-dim: #c4bdad;
+  --text-faint: #a39d8e;
+  --bg-rgb: 5 6 10;
+  --surface-rgb: 13 16 23;
+  --panel: #0d1017;
+  --panel-2: #141925;
+  --panel-soft: #0d1017;
+  --hairline: #2a3142;
+  --hairline-soft: #1a2030;
+  --accent-rgb: 243 181 74;
+  --action: var(--c-gold);
+  --action-hi: var(--c-gold);
+  --action-deep: var(--c-gold-deep);
+  --on-accent: var(--c-ink);
+  --secondary: #141925;
+  --on-secondary: var(--c-starlight);
+  --link: #ffc96b;
   color: var(--text);
 }
 

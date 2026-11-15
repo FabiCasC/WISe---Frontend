@@ -59,6 +59,6 @@ describe('coverage over one day', () => {
   })
 
   it('three sites in the Americas fail', () => {
-    expect(passed(['goldstone', 'houston', 'florida'].map(lonOf), LEVELS[3])).toBe(false)
+    expect(passed(['goldstone', 'florida', 'buenos-aires'].map(lonOf), LEVELS[3])).toBe(false)
   })
 })

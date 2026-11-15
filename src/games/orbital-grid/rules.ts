@@ -80,13 +80,13 @@ export interface Site {
  */
 export const SITES: Site[] = [
   { id: 'goldstone', name: 'Goldstone, USA', lon: -116.9 },
-  { id: 'houston', name: 'Houston, USA', lon: -95.4 },
   { id: 'florida', name: 'Florida, USA', lon: -80.6 },
+  { id: 'buenos-aires', name: 'Buenos Aires, Argentina', lon: -58.4 },
   { id: 'madrid', name: 'Madrid, Spain', lon: -4.2 },
-  { id: 'paris', name: 'Paris, France', lon: 2.4 },
   { id: 'nairobi', name: 'Nairobi, Kenya', lon: 36.8 },
-  { id: 'tokyo', name: 'Tokyo, Japan', lon: 139.7 },
+  { id: 'delhi', name: 'New Delhi, India', lon: 77.2 },
   { id: 'canberra', name: 'Canberra, Australia', lon: 149.0 },
+  { id: 'hawaii', name: 'Hawaii, USA', lon: -155.6 },
 ]
 
 export const DSN_IDS = ['goldstone', 'madrid', 'canberra']
