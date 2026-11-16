@@ -4,6 +4,7 @@ import { createSfx } from '../shared/audio'
 import { FONT, inBox, roundRect, toLogical, type Box } from '../shared/canvasui'
 import { createInput, createLoop } from '../shared/loop'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import {
   IMG,
   LEVELS,
@@ -142,6 +143,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   }
 
   const stage = createStage(container, { width: W, height: H, accent: card?.accent ?? '#c6a8ff' })
+  stage.setGlossary(TERMS)
   const input = createInput(stage.root)
   const c = stage.ctx
   const startedAt = performance.now()
@@ -163,6 +165,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let mistakes = 0
   let tutorialMisses = 0
   let found: TargetId[] = []
+  /** What was found, with the Sun angle of the pass it was found in. */
+  let foundLog: { id: TargetId; sun: number }[] = []
+  let falseAlarms = 0
   let marks: Mark[] = []
   let foundMarks: Mark[] = []
   let sparks: Spark[] = []
@@ -203,6 +208,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     mistakes = 0
     tutorialMisses = 0
     found = []
+    foundLog = []
+    falseAlarms = 0
     marks = []
     foundMarks = []
     sparks = []
@@ -259,6 +266,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
     if (r.kind === 'target') {
       found = [...found, r.id]
+      foundLog.push({ id: r.id, sun: pass.sun })
       foundMarks.push({ x: px, y: py, kind: r.id, at: now })
       burst(px, py)
       sfx.tone(880, 90, 'sine', 0.16)
@@ -284,6 +292,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     sfx.tone(300, 110, 'triangle', 0.09)
 
     if (r.kind === 'lighting') {
+      falseAlarms++
       if (!practice) decisions.push({ concept, correct: false })
       say(tr('Only the shadow moved. It was there in 1967!', 'Solo se movió la sombra. ¡Ya estaba en 1967!'))
     } else if (seen === 'ground') {
@@ -321,32 +330,34 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   function showResult(won: boolean, score: number) {
     const starCount = mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1
     const stars = '⭐'.repeat(starCount)
-    if (won) {
-      stage.showOverlay({
-        title: tr('🌟 You found it!', '🌟 ¡Lo encontraste!'),
-        tone: 'win',
-        score: practice ? stars : stars + (score ? ' · ' + score + tr(' points', ' puntos') : ''),
-        text: TEXT.lesson,
-        fact: TEXT.fact,
-        buttons: [
-          {
-            label: tutorial ? tr('Let’s play! 🚀', '¡A jugar! 🚀') : tr('Continue', 'Continuar'),
-            onClick: () => complete(true, score),
-          },
-        ],
-      })
+    const lines: string[] = []
+    if (foundLog.length) {
+      lines.push(
+        `You found ${foundLog.map((f) => `the ${NAME[f.id].toLowerCase()} (Sun at ${f.sun}°)`).join(', ')}, using ${Math.max(1, usedPasses.length)} pass${usedPasses.length > 1 ? 'es' : ''} and ${mistakes} wrong tap${mistakes === 1 ? '' : 's'}.`,
+      )
     } else {
-      stage.showOverlay({
-        title: tr('🛰️ Not this time!', '🛰️ ¡Esta vez no!'),
-        tone: 'lose',
-        score: tr('Found ', 'Encontraste ') + found.length + ' / ' + spec.targets.length,
-        text: TEXT.lesson,
-        buttons: [
-          { label: tr('Try again', 'Intentar otra vez'), onClick: begin },
-          { label: tr('Back to the arcade', 'Volver al arcade'), variant: 'quiet', onClick: () => complete(false, 0) },
-        ],
-      })
+      lines.push(`You found 0 of ${spec.targets.length} after ${mistakes} wrong tap${mistakes === 1 ? '' : 's'}.`)
     }
+    if (falseAlarms) lines.push(`${falseAlarms} of your taps were a false alarm: a shadow that only moved because the Sun moved. It was already there in the old photo.`)
+    lines.push(TEXT.lesson)
+    lines.push(`Stars: ${won ? '★' : '☆'} found it ${won && mistakes <= 2 ? '★' : '☆'} few wrong taps ${won && falseAlarms === 0 ? '★' : '☆'} no false alarms`)
+    stage.showOverlay({
+      title: won ? tr('🌟 You found it!', '🌟 ¡Lo encontraste!') : tr('🛰️ Not this time!', '🛰️ ¡Esta vez no!'),
+      tone: won ? 'win' : 'lose',
+      score: won ? (practice ? stars : stars + (score ? ' · ' + score + tr(' points', ' puntos') : '')) : undefined,
+      lines: lines.slice(0, 4),
+      buttons: won
+        ? [
+            {
+              label: tutorial ? tr('Let’s play! 🚀', '¡A jugar! 🚀') : tr('Continue', 'Continuar'),
+              onClick: () => complete(true, score),
+            },
+          ]
+        : [
+            { label: tr('Try again', 'Intentar otra vez'), onClick: begin },
+            { label: tr('Back to the arcade', 'Volver al arcade'), variant: 'quiet', onClick: () => complete(false, 0) },
+          ],
+    })
   }
 
   function complete(won: boolean, score: number) {
