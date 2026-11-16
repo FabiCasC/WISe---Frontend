@@ -101,6 +101,25 @@ export const LEVELS: Record<1 | 2 | 3, LevelSpec> = {
   },
 }
 
+/**
+ * LEVEL 0 - the guided tutorial. It is not part of LEVELS (which the portal
+ * and the tests treat as exactly 1..3). It uses the same physics, but with
+ * spare burns, no clock pressure and a short wait on the pad, because the
+ * point is to learn the three ideas, not to survive.
+ *   csmStart 20 puts Columbia ~6 s before the launch window opens.
+ */
+export const TUTORIAL: LevelSpec = {
+  name: 'Tutorial',
+  fromPad: true,
+  startGap: 0,
+  csmStart: 20,
+  burns: 6,
+  timeLimit: 999,
+  window: [8, 70],
+  autoCatchUp: false,
+  intro: 'Learn the three ideas: launch window, lower is faster, and climb back to dock.',
+}
+
 export type Phase = 'pad' | 'ascent' | 'orbit' | 'docked' | 'failed'
 
 export interface State {
@@ -128,7 +147,21 @@ export function gap(s: State): number {
   return norm180(s.csm - s.lm)
 }
 
-export type Verdict = { concept: string; correct: boolean; message: string } | null
+/**
+ * `code` lets the screen show a short, translated message while `message`
+ * (English, detailed) stays for tests and the teacher's logs.
+ */
+export type VerdictCode =
+  | 'good-launch'
+  | 'behind'
+  | 'too-far'
+  | 'stranded'
+  | 'climbed-above'
+  | 'back-far'
+  | 'went-lower'
+  | 'ready-dock'
+
+export type Verdict = { concept: string; correct: boolean; message: string; code?: VerdictCode } | null
 
 /** Lift off from the pad. Returns the launch decision. */
 export function launch(s: State): Verdict {
@@ -161,11 +194,13 @@ export function judgeInsertion(s: State, spec: LevelSpec): Verdict {
       concept: 'ventana-de-lanzamiento',
       correct: true,
       message: `Good launch: Columbia is ${Math.round(g)}° ahead and you are lower, so you are faster.`,
+      code: 'good-launch',
     }
   }
   return {
     concept: 'ventana-de-lanzamiento',
     correct: false,
+    code: g < lo ? 'behind' : 'too-far',
     message:
       g < lo
         ? 'Columbia is behind you. In your lower, faster orbit you would only pull further away.'
@@ -220,10 +255,10 @@ export function burn(s: State, dir: 'up' | 'down', spec?: LevelSpec): Verdict {
   if (stuck) {
     s.phase = 'failed'
     s.reason = stuck
-    return { concept, correct: false, message: stuck }
+    return { concept, correct: false, message: stuck, code: 'stranded' }
   }
   if (dir === 'up' && next > CSM_RING && g > DOCK_GAP * 2) {
-    return { concept, correct: false, message: 'You climbed ABOVE Columbia: a higher orbit is slower, so it pulls away.' }
+    return { concept, correct: false, code: 'climbed-above', message: 'You climbed ABOVE Columbia: a higher orbit is slower, so it pulls away.' }
   }
   // Docking needs DOCK_GAP, so that is the only band worth praising. The old
   // hard-coded 12° band congratulated the player for a move that froze the
@@ -232,6 +267,7 @@ export function burn(s: State, dir: 'up' | 'down', spec?: LevelSpec): Verdict {
     return {
       concept,
       correct: false,
+      code: 'back-far',
       message: `Back in Columbia's orbit ${Math.round(Math.abs(g))}° away, outside the ${DOCK_GAP}° docking range: you now match its speed, so the gap stops closing. Drop lower again to keep gaining.`,
     }
   }
@@ -242,16 +278,18 @@ export function burn(s: State, dir: 'up' | 'down', spec?: LevelSpec): Verdict {
     return {
       concept,
       correct: false,
+      code: 'back-far',
       message: `Back in Columbia's orbit ${Math.round(Math.abs(g))}° away: the same orbit means the same speed, so the gap holds. Drop one more orbit to actually gain on it.`,
     }
   }
   if (dir === 'down' && next < CSM_RING && g > DOCK_GAP) {
-    return { concept, correct: true, message: 'Lower orbit: you are now faster than Columbia and closing in.' }
+    return { concept, correct: true, code: 'went-lower', message: 'Lower orbit: you are now faster than Columbia and closing in.' }
   }
   if (dir === 'up' && next === CSM_RING && Math.abs(g) <= DOCK_GAP) {
     return {
       concept,
       correct: true,
+      code: 'ready-dock',
       message: `Columbia's orbit with ${Math.round(Math.abs(g))}° to go, inside the ${DOCK_GAP}° docking range: your speeds match and the hatches meet.`,
     }
   }
@@ -297,7 +335,7 @@ export function step(s: State, spec: LevelSpec, dt: number): Verdict {
   if (stuck) {
     s.phase = 'failed'
     s.reason = stuck
-    return { concept: ORBIT_CONCEPT, correct: false, message: stuck }
+    return { concept: ORBIT_CONCEPT, correct: false, message: stuck, code: 'stranded' }
   }
   if (s.t >= spec.timeLimit) {
     s.phase = 'failed'

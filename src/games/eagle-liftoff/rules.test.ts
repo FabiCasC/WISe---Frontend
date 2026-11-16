@@ -5,6 +5,7 @@ import {
   INSERTION_RING,
   LEVELS,
   RINGS,
+  TUTORIAL,
   burn,
   gap,
   initialState,
@@ -267,5 +268,46 @@ describe('being stranded is said out loud, not timed out', () => {
     expect(strandedReason(s, spec)).toBe(null)
     run(s, spec, spec.timeLimit)
     expect(s.phase).toBe('docked')
+  })
+})
+
+describe('level 0: the guided tutorial can always be finished', () => {
+  it('follows the coach (launch in the window, drop once, climb when close) and docks', () => {
+    const spec = TUTORIAL
+    const s = initialState(spec)
+    let dropped = false
+    let launched = false
+    let t = 0
+    for (let i = 0; i < 90 / DT && s.phase !== 'docked' && s.phase !== 'failed'; i++, t += DT) {
+      if (s.phase === 'pad' && !launched) {
+        const g = gap(s)
+        if (g >= spec.window[0] && g <= spec.window[1]) {
+          launch(s)
+          launched = true
+        }
+      } else if (s.phase === 'orbit') {
+        const ag = Math.abs(gap(s))
+        if (!dropped && s.ring === INSERTION_RING) {
+          burn(s, 'down', spec)
+          dropped = true
+        } else if (dropped && s.ring < INSERTION_RING && ag <= 12) burn(s, 'up', spec)
+        else if (dropped && s.ring === INSERTION_RING && ag <= DOCK_GAP) burn(s, 'up', spec)
+      }
+      step(s, spec, DT)
+    }
+    expect(launched).toBe(true)
+    expect(s.phase).toBe('docked')
+    // Short enough to keep a 9-year-old's attention.
+    expect(t).toBeLessThan(60)
+  })
+
+  it('Columbia reaches the launch window within a few seconds of the start', () => {
+    const s = initialState(TUTORIAL)
+    let wait = 0
+    while (gap(s) < TUTORIAL.window[0] && wait < 30) {
+      step(s, TUTORIAL, DT)
+      wait += DT
+    }
+    expect(wait).toBeLessThan(10)
   })
 })
