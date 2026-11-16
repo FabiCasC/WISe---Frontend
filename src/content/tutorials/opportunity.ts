@@ -5,8 +5,8 @@ export default {
   story:
     'Opportunity was a solar-powered robot rover that explored the flat plains of Meridiani Planum on Mars for more than 14 years. Its scientists worked in a careful order: take a photo of a rock first, grind off its dusty surface, and only then measure what it is made of. In this game you match tiles to do the same on a rock with three spots.',
   controls: [
-    { keys: ['Tap a spot'], does: 'Choose spot A, B or C on the rock. Every tool you match acts on the chosen spot', touch: 'Same on a phone' },
-    { keys: ['Tap', 'Drag'], does: 'Swap two neighbouring tiles. Line up 3 or more of the same tile in a row or column', touch: 'Same on a phone' },
+    { keys: ['Tap a spot'], does: 'Choose spot A, B or C on the rock. Every tool you match acts on the chosen spot' },
+    { keys: ['Tap', 'Drag'], does: 'Swap two neighbouring tiles. Line up 3 or more of the same tile in a row or column' },
     { keys: ['Shuffle'], does: 'Mixes the tiles when none of the matches you can make is the one you want. It costs 1 move' },
   ],
   parts: [
@@ -16,13 +16,16 @@ export default {
     { name: 'Chemistry reader (spectrometer)', meaning: 'Measures what a spot is made of. If the spot still has dust on it, it measures the dust, which is the same on every rock and tells you nothing about it.' },
     { name: 'Battery', meaning: 'Every tool uses 1 power. When the battery bar is empty the tools do nothing, so match battery tiles to recharge.' },
     { name: 'Moves', meaning: 'How many swaps you have left. Tiles that fall in and match by themselves give points but do not act on the rock, so aim your swaps.' },
+    { name: 'Send report', meaning: 'Only in level 3. A report needs three clues that agree: a clean photo of a spot, a water reading, and a second spot that also points to water. Sending it too early does not end the level, but it counts against you.' },
     { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button at the top shows all of them.' },
   ],
   steps: [
-    { text: 'Tap spot A on the rock to choose it. Everything you match next acts on the chosen spot.', pointer: true },
-    { text: 'Match 3 cameras to photograph the chosen spot. Look at what the photo shows before you touch anything.', pointer: true },
-    { text: 'Now match 3 grinder tiles (RAT) to scrape the dust off the same spot. The spot turns dark: fresh rock.', pointer: true },
-    { text: 'Match 3 chemistry reader tiles. Because you ground first, the reader measures the rock itself. Try it on a dusty spot too and see the difference.', pointer: true },
-    { text: 'Watch the battery bar: match battery tiles to recharge. In the real levels the moves run out, so plan each swap. Ready?', pointer: true },
+    { text: 'Tap spot A on the rock to choose it. Everything you match next acts on the chosen spot.', keys: ['OpportunitySpot'] },
+    { text: 'Match 3 cameras to photograph the chosen spot. Look at what the photo shows before you touch anything.', keys: ['OpportunityCamera'] },
+    { text: 'Now match 3 grinder tiles (RAT) to scrape the dust off the same spot. The spot turns dark: fresh rock.', keys: ['OpportunityGrind'] },
+    { text: 'Match 3 chemistry reader tiles. Because you ground first, the reader measures the rock itself. Try it on a dusty spot too and see the difference.', keys: ['OpportunityRead'] },
+    { text: 'Every tool used battery. Match 3 battery tiles to recharge it. In the real levels the moves run out, so plan each swap.', keys: ['OpportunityBattery'] },
+    { text: 'Press "Shuffle tiles" when no match on the board is the one you want. Here it is free; in the real levels it costs 1 move.', keys: ['OpportunityShuffle'] },
+    { text: 'You know the order now: photo, grind, read, and several clues before a report. Ready?' },
   ],
 } satisfies Tutorial

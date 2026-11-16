@@ -117,6 +117,7 @@ export class OpportunityScene extends Phaser.Scene {
         elegir: (p) => {
           if (this.terminado) return
           this.panel.render(reglas.elegirPunto(p))
+          if (ajustes.practice) this.emitirPaso('OpportunitySpot')
         },
         barajar: () => this.accionDelPanel(() => reglas.barajar()),
         enviarInforme: () => this.accionDelPanel(() => reglas.enviarInforme()),
@@ -504,6 +505,30 @@ export class OpportunityScene extends Phaser.Scene {
     this.procesar(eventos).finally(() => this.liberar())
   }
 
+  /**
+   * En el Nivel 0 el coach del portal sigue las teclas. Aquí no hay teclas: cuando el jugador
+   * hace de verdad un paso (elige un punto, usa una herramienta, baraja) se emite el código
+   * de ese paso, así cada paso se marca solo cuando se cumple.
+   */
+  private avisarGuia(eventos: Evento[]) {
+    if (!this.cfg.ajustes.practice) return
+    const codigo: Record<Ficha, string> = {
+      camara: 'OpportunityCamera',
+      rat: 'OpportunityGrind',
+      espectrometro: 'OpportunityRead',
+      energia: 'OpportunityBattery',
+    }
+    for (const e of eventos) {
+      if (e.tipo === 'roca' || e.tipo === 'caida') break
+      if (e.tipo === 'match') this.emitirPaso(codigo[e.ficha])
+      if (e.tipo === 'mezcla') this.emitirPaso('OpportunityShuffle')
+    }
+  }
+
+  private emitirPaso(code: string) {
+    document.dispatchEvent(new KeyboardEvent('keydown', { code, bubbles: true }))
+  }
+
   /** Barajar y enviar el informe: si aún cae una cascada, esperan su turno en vez de perderse. */
   private accionDelPanel(accion: () => Evento[]) {
     if (this.terminado) return
@@ -524,6 +549,7 @@ export class OpportunityScene extends Phaser.Scene {
 
   // ---------- animación de eventos ----------
   procesar(eventos: Evento[]): Promise<void> {
+    this.avisarGuia(eventos)
     this.cola = this.cola.then(async () => {
       for (const e of eventos) await this.animar(e)
     })

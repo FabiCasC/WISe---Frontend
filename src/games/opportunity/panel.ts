@@ -171,8 +171,8 @@ export class PanelRoca {
     }
 
     this.info.append(this.msg)
-    if (!cfg.practica) {
-      const bar = el('button', 'opp-btn', 'Shuffle tiles (1 move)')
+    {
+      const bar = el('button', 'opp-btn', cfg.practica ? 'Shuffle tiles (free here)' : 'Shuffle tiles (1 move)')
       bar.type = 'button'
       bar.title = 'Use it when no match on the board is the one you want, so you do not touch the rock by accident.'
       bar.addEventListener('click', () => this.h.barajar())
