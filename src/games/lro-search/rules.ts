@@ -284,7 +284,7 @@ export function identify(scene: Scene, p: { x: number; y: number }, sunDeg: numb
 
 /** The lighting choice each search level teaches. */
 export function goodLight(level: Lvl, sunDeg: number): boolean {
-  if (level === 1) return sunDeg <= 30
+  if (level === 0 || level === 1) return sunDeg <= 30
   if (level === 2) return sunDeg >= 50
   return true
 }
