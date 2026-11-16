@@ -154,6 +154,30 @@ export class GameModel {
     this.phase = 'lost';
   }
 
+  /** Lines of the recap, from what the player did on this run (2 to 4 lines). */
+  recap(): string[] {
+    const lines: string[] = [];
+    const star = (ok: boolean) => (ok ? '★' : '☆');
+    if (this.level === 1) {
+      const times = [...this.sandTime.values()];
+      const touched = times.filter((t) => t > 0.2).length;
+      const total = times.reduce((a, b) => a + b, 0);
+      lines.push(`Sand patches: ${this.sand.length}, wheels in the sand on ${touched} (${total.toFixed(1)} s in total).`);
+      lines.push(touched === 0 ? 'You jumped them all: no power wasted.' : 'Sand drains the batteries and can trap the rover for good.');
+      lines.push(`Stars: ${star(true)} finished ${star(touched === 0)} no sand ${star(this.energy >= 50)} power left`);
+    } else if (this.level === 2) {
+      lines.push(`Bright patches uncovered: ${this.found.size} of ${this.silica.length} (${SILICA_NEEDED} needed).`);
+      lines.push('Bright soil only shows when the broken wheel drags on the ground.');
+      lines.push(`Stars: ${star(true)} enough patches ${star(this.found.size === this.silica.length)} all patches ${star(this.energy >= 50)} power left`);
+    } else {
+      const pct = Math.round(this.solarPower * 100);
+      lines.push(`Parked facing north: ${pct}% solar power, ${this.judgedPark.size} spot${this.judgedPark.size === 1 ? '' : 's'} rejected first.`);
+      lines.push('In winter the Sun is low in the north: panels tilted to it get most light.');
+      lines.push(`Stars: ${star(true)} parked ${star(this.judgedPark.size === 0)} first try ${star(this.timeLeft > 20)} time left`);
+    }
+    return lines;
+  }
+
   private completeLevel(): void {
     if (!this.practice) this.score += LEVEL_SCORE + Math.max(0, Math.trunc(this.energy));
     this.phase = 'complete';

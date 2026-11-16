@@ -4,6 +4,7 @@ import { createSfx } from '../shared/audio'
 import { COLORS, drawButton, inBox, roundRect, text, toLogical, type Box } from '../shared/canvasui'
 import { createInput, createLoop } from '../shared/loop'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import {
   DX,
   DY,
@@ -50,6 +51,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   const sfx = createSfx(ctx.settings.volume)
 
   const stage = createStage(container, { width: W, height: H, accent: card?.accent ?? '#F2A65A' })
+  stage.setGlossary(TERMS)
   const input = createInput(stage.root)
   const c = stage.ctx
   const startedAt = performance.now()
@@ -61,6 +63,12 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let sol = 1
   let sent = 0
   let commandsSent = 0
+  /** What the rover really did with the plans, for the recap. */
+  let stepsRun = 0
+  let stepsOk = 0
+  let hazardStops = 0
+  let apxsMeasured = 0
+  let apxsMissed = 0
   let phaseT = 0
   let run: RunResult | null = null
   let stepIdx = 0
@@ -89,6 +97,11 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     sol = 1
     sent = 0
     commandsSent = 0
+    stepsRun = 0
+    stepsOk = 0
+    hazardStops = 0
+    apxsMeasured = 0
+    apxsMissed = 0
     run = null
     seen = new Set()
     lastNote = ''
@@ -139,6 +152,13 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     if (!run) return
     run.seen.forEach((s) => seen.add(s))
     pose = run.end
+    for (const st of run.steps) {
+      stepsRun++
+      if (st.result === 'moved' || st.result === 'turned' || st.result === 'measured') stepsOk++
+      if (st.result === 'hazard') hazardStops++
+      if (st.result === 'measured') apxsMeasured++
+      if (st.result === 'missed') apxsMissed++
+    }
     // APXS attempts are the level 2 decisions.
     if (levelKey === 2 && !practice) {
       for (const s of run.steps) if (s.cmd === 'A') decisions.push({ concept, correct: s.result === 'measured' })
@@ -171,31 +191,33 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
     const lesson =
       levelKey === 1
-        ? 'Radio signals took 10 to 15 minutes to reach Mars, and the pictures took as long to come back. Nobody could steer Sojourner live: drivers planned the moves and sent them.'
+        ? 'You could not steer live: the radio signal takes minutes to reach Mars, so you plan the moves and send them.'
         : levelKey === 2
-          ? 'Sojourner’s APXS sat on an arm at the back of the rover. To measure a rock like Yogi, the rover had to back up to it.'
-          : 'Because orders took so long to arrive, Sojourner had a hazard-avoidance system: it stopped by itself in front of rocks and waited for the next plan.'
-    if (won) {
-      stage.showOverlay({
-        title: spec.goal.kind === 'measure' ? ROCK_NAMES[spec.goal.rock] + ' measured!' : 'Sojourner made it',
-        tone: 'win',
-        score: sol + (sol === 1 ? ' sol · ' : ' sols · ') + commandsSent + ' commands sent' + (practice ? '' : ' · ' + score + ' points'),
-        text: lesson + ' Sojourner and the Pathfinder lander are still in Ares Vallis.',
-        fact: card?.fact,
-        buttons: [{ label: 'Save and continue', onClick: () => complete(true, score) }],
-      })
-    } else {
-      stage.showOverlay({
-        title: 'Out of sols',
-        tone: 'lose',
-        score: 'The goal was not reached in ' + spec.sols + ' sols',
-        text: (lastNote ? lastNote + ' ' : '') + lesson,
-        buttons: [
-          { label: 'Try again', onClick: begin },
-          { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
-        ],
-      })
-    }
+          ? 'The APXS is on the back of the rover, so to measure a rock the rover has to back up to it.'
+          : 'Orders arrive late, so the rover has to stop by itself in front of hazards and wait for the next plan.'
+    const star = (v: boolean) => (v ? '★' : '☆')
+    const lines = [
+      `You used ${sol} sol${sol === 1 ? '' : 's'} and sent ${commandsSent} commands; ${stepsOk} of ${stepsRun} steps did what you planned.`,
+      levelKey === 2
+        ? `APXS tries: ${apxsMeasured} measured, ${apxsMissed} found nothing.`
+        : hazardStops
+          ? `The rover stopped by itself ${hazardStops} time${hazardStops === 1 ? '' : 's'} in front of a hazard it was never warned about: it saved itself, not your plan.`
+          : 'No hazard stopped the rover: your plan got around every rock.',
+      lesson,
+      `Stars: ${star(won)} goal ${star(won && sol <= Math.max(1, spec.sols - 1))} few sols ${star(won && hazardStops === 0)} nothing left to autonomy`,
+    ]
+    stage.showOverlay({
+      title: won ? (spec.goal.kind === 'measure' ? ROCK_NAMES[spec.goal.rock] + ' measured!' : 'Sojourner made it') : 'Out of sols',
+      tone: won ? 'win' : 'lose',
+      score: won && !practice ? score + ' points' : undefined,
+      lines,
+      buttons: won
+        ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
+        : [
+            { label: 'Try again', onClick: begin },
+            { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
+          ],
+    })
   }
 
   function complete(won: boolean, score: number) {

@@ -1,115 +1,195 @@
 /**
- * GAME 4 · NASA Number Mission · Pure rules (no DOM, no Phaser).
- * Tested with Vitest. The scene only draws what these functions decide.
+ * Find the Beacon (id nasa-numbers) · pure rules, no DOM.
  *
- * RULES
- *  - Each level has 5 questions. Each question has ONE numeric answer.
- *  - The player guesses; the game says "higher" or "lower".
- *  - Attempts are limited, but always enough to win by halving the range.
- *  - Some questions accept a margin (tolerance), e.g. rounded measurements.
- *  - Practice mode: unlimited attempts, no score.
+ * Level 1  Halving: a silent beacon hides at a whole number. Each probe says
+ *          higher or lower and the range bar shrinks. Probes are limited.
+ * Level 2  Margin of error: every sounding reads the true spot plus or minus
+ *          a noise. The player marks an interval that must contain the truth.
+ * Level 3  Echo to distance: a laser echo time becomes a distance, against a
+ *          countdown. Distance = speed of light x time / 2 (there and back).
+ *
+ * What the game invents (not NASA data): the beacon positions, the noise and
+ * the echo times of each round. The speed of light and the Moon are real.
  */
+import { createRng, type Rng } from '../shared/rng'
 
-export interface Source {
-  label: string
-  url: string
-}
-
-export interface Question {
-  id: string
-  clue: string
-  /** Shown automatically after HINT_AFTER wrong guesses. */
-  hint: string
-  answer: number
-  min: number
-  max: number
-  /** A guess within ±tolerance of the answer counts as correct. */
-  tolerance: number
-  /** How the answer is shown to the player, e.g. "Apollo 15". */
-  answerText: string
-  /** "Mission log": what is true, in our own words. */
-  fact: string
-  source: Source
-}
-
-export const HINT_AFTER = 2
-export const DIRECT_HIT_BONUS = 50
-export const BASE_POINTS = 100
-export const MIN_POINTS = 20
-/** Correct answers needed to seal a level's memory. Adjustable data. */
+export const LIGHT_KM_S = 299_792
+export const ROUNDS = 5
 export const PASS_MARK = 3
 
-/**
- * Attempts allowed. Halving the range each time always wins within this
- * number, so a player who reasons is never punished by the limit.
- */
-export function attemptsFor(q: Pick<Question, 'min' | 'max' | 'tolerance'>): number {
-  const options = (q.max - q.min + 1) / (2 * q.tolerance + 1)
-  return Math.ceil(Math.log2(Math.max(options, 1))) + 1
+export type Level = 1 | 2 | 3
+
+// ── Level 1 ──────────────────────────────────────────────────────────────
+export interface HuntRound {
+  min: number
+  max: number
+  secret: number
+  /** Probes allowed: what halving needs, plus one spare. */
+  allowed: number
 }
 
-export type Verdict = 'correct' | 'too-low' | 'too-high' | 'invalid'
-export type Closeness = 'very-close' | 'warm' | 'far'
+const HUNT_SIZES = [64, 100, 200, 500, 1000]
 
-export interface GuessResult {
-  verdict: Verdict
-  /** Only meaningful when verdict is 'correct': was it the exact value? */
-  exact: boolean
-  /** Only meaningful when the guess was wrong. */
-  closeness: Closeness | null
+/** Most probes halving can ever need for n numbers. */
+export function halvingProbes(n: number): number {
+  return Math.ceil(Math.log2(n + 1))
 }
 
-export function judgeGuess(q: Question, guess: number): GuessResult {
-  if (!Number.isInteger(guess) || guess < q.min || guess > q.max) {
-    return { verdict: 'invalid', exact: false, closeness: null }
+export function huntRounds(seed: string): HuntRound[] {
+  const rng = createRng(seed)
+  return HUNT_SIZES.map((n) => ({
+    min: 1,
+    max: n,
+    secret: rng.int(1, n),
+    allowed: halvingProbes(n) + 1,
+  }))
+}
+
+export interface HuntState {
+  lo: number
+  hi: number
+  probes: number
+  found: boolean
+}
+
+export function newHunt(r: HuntRound): HuntState {
+  return { lo: r.min, hi: r.max, probes: 0, found: false }
+}
+
+export interface ProbeResult {
+  verdict: 'found' | 'higher' | 'lower' | 'invalid'
+  /** The probe cut the remaining range so that at most 70% was left. */
+  goodSplit: boolean
+}
+
+/** One probe. Mutates the state; the range only ever shrinks. */
+export function probe(r: HuntRound, s: HuntState, guess: number): ProbeResult {
+  if (!Number.isInteger(guess) || guess < s.lo || guess > s.hi) return { verdict: 'invalid', goodSplit: false }
+  const size = s.hi - s.lo + 1
+  s.probes += 1
+  if (guess === r.secret) {
+    s.found = true
+    s.lo = s.hi = guess
+    return { verdict: 'found', goodSplit: true }
   }
-  const diff = guess - q.answer
-  if (Math.abs(diff) <= q.tolerance) {
-    return { verdict: 'correct', exact: diff === 0, closeness: null }
+  const left = guess - s.lo
+  const right = s.hi - guess
+  const goodSplit = size <= 3 || Math.max(left, right) <= 0.7 * size
+  if (guess < r.secret) {
+    s.lo = guess + 1
+    return { verdict: 'higher', goodSplit }
   }
-  const ratio = Math.abs(diff) / (q.max - q.min)
-  const closeness: Closeness = ratio <= 0.05 ? 'very-close' : ratio <= 0.15 ? 'warm' : 'far'
-  return { verdict: diff > 0 ? 'too-high' : 'too-low', exact: false, closeness }
+  s.hi = guess - 1
+  return { verdict: 'lower', goodSplit }
 }
 
-/** Points for a solved question. `used` counts the winning guess. */
-export function pointsFor(total: number, used: number): number {
-  const base = Math.max(MIN_POINTS, Math.round((BASE_POINTS * (total - used + 1)) / total))
-  return used === 1 ? base + DIRECT_HIT_BONUS : base
+export function huntPoints(r: HuntRound, s: HuntState): number {
+  if (!s.found) return 0
+  const spare = r.allowed - s.probes
+  return Math.max(20, 100 + spare * 15)
 }
 
-export const maxPointsPerQuestion = BASE_POINTS + DIRECT_HIT_BONUS
+// ── Level 2 ──────────────────────────────────────────────────────────────
+export interface NoiseRound {
+  truth: number
+  /** Each reading is the truth plus or minus up to this margin. */
+  margin: number
+  min: number
+  max: number
+  maxReadings: number
+}
 
-export function levelPassed(solved: number): boolean {
+export function noiseRounds(seed: string): NoiseRound[] {
+  const rng = createRng(seed + ':noise')
+  const margins = [30, 30, 25, 20, 20]
+  return margins.map((margin) => ({
+    truth: rng.int(150, 850),
+    margin,
+    min: 0,
+    max: 1000,
+    maxReadings: 3,
+  }))
+}
+
+export function reading(r: NoiseRound, rng: Rng): number {
+  return Math.round(r.truth + (rng.next() * 2 - 1) * r.margin)
+}
+
+export interface MarkResult {
+  /** The interval contains the true value. */
+  contains: boolean
+  /** ... and it is no wider than twice the margin (it says something). */
+  tight: boolean
+  correct: boolean
+  width: number
+}
+
+export function judgeInterval(r: NoiseRound, lo: number, hi: number): MarkResult {
+  const a = Math.min(lo, hi)
+  const b = Math.max(lo, hi)
+  const contains = r.truth >= a && r.truth <= b
+  const width = b - a
+  const tight = width <= 2 * r.margin
+  return { contains, tight, correct: contains && tight, width }
+}
+
+/** The best an interval can be from the readings taken: their overlap. */
+export function overlap(readings: number[], margin: number): [number, number] {
+  return [Math.max(...readings) - margin, Math.min(...readings) + margin]
+}
+
+export function markPoints(m: MarkResult, r: NoiseRound): number {
+  if (!m.correct) return 0
+  return Math.round(60 + 60 * (1 - Math.min(1, m.width / (2 * r.margin))))
+}
+
+// ── Level 3 ──────────────────────────────────────────────────────────────
+export interface EchoRound {
+  /** Echo time in seconds (invented spread around the real ~2.5 s). */
+  seconds: number
+}
+
+export const ECHO_TIME_S = 75
+
+export function echoRounds(seed: string): EchoRound[] {
+  const rng = createRng(seed + ':echo')
+  return Array.from({ length: ROUNDS }, () => ({ seconds: Math.round(rng.range(2.3, 2.7) * 100) / 100 }))
+}
+
+/** Distance in thousands of km for an echo time. */
+export function echoDistance(seconds: number): number {
+  return (LIGHT_KM_S * seconds) / 2 / 1000
+}
+
+export interface EchoResult {
+  correct: boolean
+  /** The guess is about double the answer: the player forgot "there and back". */
+  forgotHalf: boolean
+  truth: number
+}
+
+export function judgeEcho(r: EchoRound, guess: number): EchoResult {
+  const truth = echoDistance(r.seconds)
+  const correct = Math.abs(guess - truth) <= truth * 0.03
+  const forgotHalf = !correct && Math.abs(guess - truth * 2) <= truth * 2 * 0.03
+  return { correct, forgotHalf, truth }
+}
+
+export function echoPoints(timeLeftS: number): number {
+  return 80 + Math.round(Math.max(0, timeLeftS))
+}
+
+// ── Stars ────────────────────────────────────────────────────────────────
+export interface Stars {
+  concept: boolean
+  efficiency: boolean
+  speed: boolean
+}
+
+export function passed(solved: number): boolean {
   return solved >= PASS_MARK
 }
 
-export type Rank = 'Cadet' | 'Astronaut' | 'Mission Commander'
-
-export function rankFor(score: number, questions: number): Rank {
-  const ratio = score / (questions * maxPointsPerQuestion)
-  return ratio >= 0.75 ? 'Mission Commander' : ratio >= 0.4 ? 'Astronaut' : 'Cadet'
-}
-
-/** Deterministic shuffle: the same seed always gives the same order. */
-export function shuffledOrder<T>(items: readonly T[], seed: string): T[] {
-  let h = 1779033703 ^ seed.length
-  for (let i = 0; i < seed.length; i++) {
-    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353)
-    h = (h << 13) | (h >>> 19)
-  }
-  let state = h >>> 0
-  const rand = () => {
-    state = (state + 0x6d2b79f5) >>> 0
-    let t = state
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-  const out = [...items]
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1))
-    ;[out[i], out[j]] = [out[j], out[i]]
-  }
-  return out
+export function stars(solved: number, efficient: boolean, fast: boolean): Stars {
+  return { concept: passed(solved), efficiency: passed(solved) && efficient, speed: passed(solved) && fast }
 }

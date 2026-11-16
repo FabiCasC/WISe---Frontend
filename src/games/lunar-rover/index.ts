@@ -4,6 +4,7 @@ import { createSfx } from '../shared/audio'
 import { COLORS, roundRect, text, toLogical } from '../shared/canvasui'
 import { createInput, createLoop } from '../shared/loop'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import {
   HOME_R,
   LEVELS,
@@ -57,6 +58,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let edgeWarned = false
   let lowWarned = false
   const decisions: { concept: string; correct: boolean }[] = []
+  /** Farthest the rover got from the lunar module on this try, in metres. */
+  let farthest = 0
+  stage.setGlossary(TERMS)
 
   // Surface speckles, fixed.
   const speckles = Array.from({ length: 260 }, (_, i) => ({
@@ -85,6 +89,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     edgeWarned = false
     lowWarned = false
     tries++
+    farthest = 0
     phase = 'driving'
     stage.hideOverlay()
     sfx.tone(520, 90, 'triangle', 0.14)
@@ -99,39 +104,33 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     if (won) sfx.sweep(520, 980, 360, 'triangle', 0.2)
     else sfx.sweep(320, 100, 420, 'sawtooth', 0.18)
 
-    const lesson =
+    const km = (m: number) => (m / 1000).toFixed(1) + ' km'
+    const got = rover.collected.filter(Boolean).length
+    const lines = [
+      `You collected ${got} of ${rover.collected.length} samples, driving ${km(rover.driven)} and reaching ${km(farthest)} from the lunar module${won ? `, with ${pct(rover.battery / spec.batteryM)} of the battery left` : ''}.`,
       levelKey === 1
-        ? 'The Apollo rover ran on two batteries that could not be recharged. Every metre you drive is gone for good, so a short loop matters.'
+        ? 'The battery is not rechargeable: every metre you drive is gone for good, so a short loop leaves more.'
         : levelKey === 2
-          ? 'If the rover had broken down, the astronauts would have had to walk back to the lunar module. So drives were planned to stay within walking distance.'
-          : 'The rover’s navigation computer kept track of direction and distance back to the lunar module, even when hills hid it.'
-
-    if (won) {
-      stage.showOverlay({
-        title: 'Back at the lunar module',
-        tone: 'win',
-        score:
-          (rover.driven / 1000).toFixed(1) + ' km driven · battery left ' + pct(rover.battery / spec.batteryM) +
-          (practice ? '' : ' · ' + score + ' points'),
-        text: lesson + ' At the end of each mission the rover was parked and left on the Moon, where it still is.',
-        fact: card?.fact,
-        buttons: [{ label: 'Save and continue', onClick: () => complete(true, score) }],
-      })
-    } else {
-      stage.showOverlay({
-        title: st === 'battery' ? 'The battery is empty' : 'Too far to walk back',
-        tone: 'lose',
-        score:
-          st === 'battery'
-            ? 'You stopped ' + (dist(rover, LM) / 1000).toFixed(1) + ' km from the lunar module'
-            : 'You left the walk-back circle',
-        text: lesson,
-        buttons: [
-          { label: 'Try again', onClick: begin },
-          { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
-        ],
-      })
-    }
+          ? st === 'too-far'
+            ? 'You left the walk-back circle: if the rover broke down there, the crew could not walk home.'
+            : `Your farthest point was ${km(farthest)}, inside the ${km(spec.walkRadius ?? 0)} walk-back circle: if the rover broke down, the crew could walk home.`
+          : 'The navigation computer always showed the direction and distance back to the lunar module, even when hills hid it.',
+    ]
+    if (!won) lines.unshift(st === 'battery' ? `The battery ran out ${km(dist(rover, LM))} from the lunar module.` : 'You were too far to walk back.')
+    const star = (ok: boolean) => (ok ? '★' : '☆')
+    lines.push(`Stars: ${star(won)} back home ${star(won && got === rover.collected.length)} all samples ${star(won && rover.battery / spec.batteryM > 0.25)} battery left`)
+    stage.showOverlay({
+      title: won ? 'Back at the lunar module' : st === 'battery' ? 'The battery is empty' : 'Too far to walk back',
+      tone: won ? 'win' : 'lose',
+      score: won ? (practice ? undefined : score + ' points') : undefined,
+      lines: lines.slice(0, 4),
+      buttons: won
+        ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
+        : [
+            { label: 'Try again', onClick: begin },
+            { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
+          ],
+    })
   }
 
   function complete(won: boolean, score: number) {
@@ -213,6 +212,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     const before = rover.collected
     const ctrl = controls()
     for (let i = 0; i < steps; i++) rover = stepRover(spec, rover, ctrl, dt / steps, practice)
+    farthest = Math.max(farthest, dist(rover, LM))
     rover.collected.forEach((got, i) => {
       if (!got || before[i]) return
       stage.flash('Sample from ' + spec.stations[i].name + '!')

@@ -15,8 +15,6 @@
  * "data pending verification" disclaimer; what the game invents is declared
  * in the mission dossier (src/content/missions.ts), where the player reads it.
  */
-export const FICHA_SOURCE_URL = 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1971-063C'
-
 export const COPY = {
   intro: {
     1: {
@@ -52,9 +50,10 @@ export const COPY = {
     tooLong: (real: string) =>
       `Too far out. From there the echo would take more than ${real} s to come back.`,
     ok: 'It matches. Light takes more than a second to reach the Moon.',
-    conclusion: (km: string) =>
-      `Using a stopwatch and an echo, you measured the distance to the Moon: about ${km} km. ` +
-      'Light travels there and back in just over two seconds.',
+    recap: (echo: string, c: string, km: string) => [
+      `Your stopwatch read ${echo} s for the round trip. Light went there AND back, so the Moon is half of ${c} km/s × ${echo} s: about ${km} km.`,
+      'The laser bounced off the retroreflector Apollo 15 left on the Moon, a mirror that returns light the way it came.',
+    ],
   },
   l2: {
     start: 'Start with station A: read its delay and set the radius of the circle.',
@@ -63,9 +62,10 @@ export const COPY = {
     noCross: (other: string) => `Does not intersect with station ${other}\'s circle. Check the radius.`,
     one: 'With a single station, the quake could be anywhere on the circle. Move on to the next one.',
     two: 'With two stations, there are two possible points. A third is needed to decide.',
-    conclusion:
-      'With three stations, only one point remains. That is why scientists needed multiple stations ' +
-      'to figure out where a quake happened.',
+    recap: (radii: number[]) => [
+      `You drew ${radii.length} circles, with radii ${radii.join(', ')} map units. One circle leaves the whole circle possible, two cross in two places, three meet in one point.`,
+      'That is why scientists needed several seismometers to find where a moonquake happened.',
+    ],
   },
   l3: {
     start: 'Measure with the stations that are working. There are no hints here.',
@@ -83,9 +83,10 @@ export const COPY = {
     wrongMarks:
       'At least one mark is not where both circles cross. A possible epicentre has to match every ' +
       'station you measured.',
-    conclusion:
-      'You marked both points, and both of them fit. With two stations the quake could be in either ' +
-      'place and there is no way to choose: you showed that another signal is needed.',
+    recap: (stations: string[], marks: number) => [
+      `You measured with stations ${stations.join(' and ')} and placed ${marks} mark${marks === 1 ? '' : 's'}: both places where their circles cross.`,
+      'Both fit, so with two stations the quake could be in either place. Saying "this is not enough" is the right answer; a third signal is needed.',
+    ],
   },
   // ── Mission briefing + Level 0 (practice). Plain words for 9-year-olds. ──
   briefing: {
@@ -93,8 +94,8 @@ export const COPY = {
     ping: 'Hi, I\'m Ping, your robot guide! Apollo 15 astronauts left instruments on the Moon in 1971. Want a quick practice round to learn how to use them?',
     cards: [
       { icon: '⚡', text: 'Light is the fastest thing there is. In ONE second it could zoom around the Earth more than 7 times!' },
-      { icon: '🔦', text: 'Power 1, the laser stopwatch: bounce a laser off the Moon, time the echo, and find out how far away it is.' },
-      { icon: '📡', text: 'Power 2, moonquake ears: three stations listen to the same quake, and together they find where it happened.' },
+      { icon: '🔦', text: 'Power 1, the laser stopwatch: bounce a laser off the retroreflector (a mirror Apollo 15 left on the Moon), time the echo, and find out how far away it is.' },
+      { icon: '📡', text: 'Power 2, moonquake ears: seismometers (they feel ground shaking) in three stations listen to the same moonquake, and together they find where it happened.' },
     ],
     start: 'Start Practice',
   },
@@ -116,12 +117,12 @@ export const COPY = {
       landed:
         'The echo came back after 3 seconds. Sound travels about 340 m every second... ' +
         'but your shout went there AND came back!',
-      question: 'How far away is the cliff?',
-      options: [
-        { label: '1,020 m', correct: false, why: 'Not quite! 340 × 3 = 1,020 m is how far the sound travelled in total: there AND back. Try again.' },
-        { label: '510 m', correct: true, why: 'Yes! The sound travelled 1,020 m in total, and the cliff is only HALF of that way: 510 m. The secret: distance = speed × time ÷ 2.' },
-        { label: '255 m', correct: false, why: 'Not quite! You cut it in half one time too many. Split the whole trip in half just once.' },
-      ],
+      task: 'Move the cliff marker to where the cliff must be, then test it: your shout is replayed from there.',
+      unit: 'm',
+      target: 3,
+      ok: 'Yes! Your marker gives an echo of 3 s. The sound went 1,020 m in total, there AND back, so the cliff is half of that: 510 m. Distance = speed × time ÷ 2.',
+      near: (s: string) => `From there the echo would come back in ${s} s, but you heard 3 s. Move the marker farther.`,
+      far: (s: string) => `From there the echo would take ${s} s, but you heard 3 s. Move the marker closer.`,
     },
     light: {
       intro:
@@ -130,12 +131,12 @@ export const COPY = {
       fire: 'Fire Practice Laser',
       note: 'A pretend Moon, just for practice.',
       landed: 'The echo took 1 second. In that second the light flew almost 300,000 km, there AND back.',
-      question: 'How far away is the pretend Moon?',
-      options: [
-        { label: '150,000 km', correct: true, why: 'Yes! The light flew about 300,000 km in total. Half of that is 150,000 km. Same secret: speed × time ÷ 2.' },
-        { label: '300,000 km', correct: false, why: 'Not quite! That is how far the light flew in total, there AND back. Remember the ÷ 2.' },
-        { label: '600,000 km', correct: false, why: 'Not quite! The ÷ 2 means split the trip in half, not double it.' },
-      ],
+      task: 'Move the pretend-Moon marker to where it must be, then test it: the practice laser is replayed from there.',
+      unit: 'km',
+      target: 1,
+      ok: 'Yes! Your marker gives an echo of 1 s. The light flew about 300,000 km in total, there AND back, so the Moon marker is at half: about 150,000 km.',
+      near: (s: string) => `From there the echo would come back in ${s} s, but you measured 1 s. Move the marker farther.`,
+      far: (s: string) => `From there the echo would take ${s} s, but you measured 1 s. Move the marker closer.`,
     },
     waves: {
       intro:
@@ -152,12 +153,9 @@ export const COPY = {
       landed:
         'See the gaps? The runner (P) arrives first and the walker (S) arrives later. ' +
         'The farther away the quake, the BIGGER the gap.',
-      question: 'Which station waited longer between the two waves?',
-      options: [
-        { label: 'The near station', correct: false, why: 'Not quite! A short trip gives the slow wave little time to fall behind. Look at the gaps again.' },
-        { label: 'The far station', correct: true, why: 'Yes! A long trip gives the slow S wave lots of time to fall behind. So the gap tells us how far away the quake was.' },
-        { label: 'Both the same', correct: false, why: 'Not quite! Compare the two gap numbers on the map.' },
-      ],
+      task: 'Move the quake with the slider, then press the button. Goal: make the station on the RIGHT wait less between the two waves than the one on the left.',
+      win: 'Yes! The quake was closer to the right station, so the slow S wave had little time to fall behind. A small gap means a near quake; a big gap means a far one.',
+      lose: 'Not yet: the right station still waited longer, so the quake was farther from it. Move the quake closer to the right station and try again.',
     },
     circles: {
       intro:
@@ -169,12 +167,7 @@ export const COPY = {
       one: 'One circle! The quake could be anywhere on it. We need more stations.',
       two: 'Two circles cross in TWO places. The quake is at one of them, but which one?',
       three: 'Three circles meet at only ONE spot. Found it! That is why scientists use three stations.',
-      question: 'How many stations do scientists need to pin down a moonquake?',
-      options: [
-        { label: '1 station', correct: false, why: 'Not quite! One station only gives a circle. The quake could be anywhere on it.' },
-        { label: '2 stations', correct: false, why: 'Not quite! Two circles cross in two places, so you still cannot choose.' },
-        { label: '3 stations', correct: true, why: 'Yes! Three circles meet at one single spot. You are ready for the real mission, detective!' },
-      ],
+      ready: 'Now you know why scientists use three stations. You are ready for the real mission, detective!',
     },
   },
   // Names that pop up for a moment when a player touches an object.
@@ -202,14 +195,6 @@ export const COPY = {
   failed:
     'Out of attempts. Guessing until the game says "yes" is not measuring: run the level again and ' +
     'work the numbers out before you commit.',
-  ficha: {
-    title: 'What Apollo 15 Left Behind',
-    text:
-      'The retroreflector still returns laser pulses today; it is passive, with no battery. ' +
-      'The seismometer recorded lunar ground vibrations until the ALSEP stations were turned off ' +
-      'on September 30, 1977.',
-    link: 'View NASA Source',
-  },
   seal: 'Seal the Memory',
   sealFailed: 'Close the Log',
 } as const

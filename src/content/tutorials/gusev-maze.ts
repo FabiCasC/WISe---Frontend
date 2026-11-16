@@ -21,6 +21,11 @@ export default {
         'The swirls wandering around. They are not enemies: drive into one when your panels are dusty and its wind cleans them, so your power jumps back up.',
     },
     { name: 'Rovers', meaning: 'Your lives. You lose one when the dust covers your panels completely.' },
+    { name: 'Solar panel', meaning: 'A plate that turns sunlight into electricity. With dust on top it makes less power.' },
+    { name: 'Dust devil', meaning: 'A column of air that spins and lifts dust. Here it wanders the maze.' },
+    { name: 'Cleaning event', meaning: 'A moment when the wind cleaned the panels and the power jumped up. The real Spirit team saw them.' },
+    { name: 'Gusev crater', meaning: 'The place on Mars where Spirit explored.' },
+    { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button shows all of them.' },
   ],
   steps: [
     { text: 'Press Start, then move with the arrows or W A S D. Grab a few samples.', keys: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'] },

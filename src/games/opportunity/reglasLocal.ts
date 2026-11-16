@@ -1,6 +1,7 @@
-import type { Conteo, Evento, Ficha, Pos, PuertoReglas, Resultado } from './events'
+import type { Evento, Ficha, Pos, PuertoReglas, Resultado } from './events'
 import type { Lang } from '../../shared/types'
-import { CONFIG_NIVELES, PUNTUACION_CONFIG, obtenerTextoNivel } from './config'
+import { CONFIG_NIVELES, PUNTUACION_CONFIG } from './config'
+import { crearRoca, type Punto } from './roca'
 
 // Lógica del juego determinista (seed): tablero 6x6, combinaciones, cascadas,
 // niveles, puntuación centralizada y control pedagógico.
@@ -94,12 +95,13 @@ export function crearReglasLocal(
   levelId: number,
   seed: number,
   practica: boolean,
-  lang: Lang = 'es',
+  lang: Lang = 'en',
 ): PuertoReglas {
   const nivel = CONFIG_NIVELES[levelId] ?? CONFIG_NIVELES[1]
-  const textos = obtenerTextoNivel(nivel, lang)
   let rng = mulberry32(seed || 1)
   const azar = (): Ficha => TIPOS[Math.floor(rng() * TIPOS.length)]
+  const rngRoca = () => mulberry32((seed || 1) ^ 0x9e3779b9)
+  let roca = crearRoca({ levelId, libre: practica, rng: rngRoca() })
 
   function generar(): Ficha[][] {
     for (let intento = 0; intento < 200; intento++) {
@@ -132,7 +134,6 @@ export function crearReglasLocal(
 
   let tablero: Tablero = generar()
   let inicial: Ficha[][] = tablero.map((r) => [...r]) as Ficha[][]
-  let conteo: Conteo = {}
   let movs = nivel.movimientos
   let movsUsados = 0
   let puntos = 0
@@ -140,7 +141,8 @@ export function crearReglasLocal(
   let ganado = false
   let malas = 0
   let historialDecisiones: string[] = []
-  let nieblaQuitada = 0
+  // Nivel 3: al quedarse sin movimientos todavía se puede enviar el informe.
+  let sinMovimientos = false
 
   const sumar = (n: number) => {
     if (!practica) puntos += n
@@ -148,19 +150,18 @@ export function crearReglasLocal(
 
   const progreso = (): Extract<Evento, { tipo: 'progreso' }> => ({
     tipo: 'progreso',
-    conteo: { ...conteo },
-    metas: nivel.metas,
+    conteo: {},
+    metas: {},
     puntos,
   })
 
-  const cumplida = () =>
-    Object.entries(nivel.metas).every(([k, m]) => (conteo[k as Ficha] ?? 0) >= (m as number))
+  const vista = (): Evento => ({ tipo: 'roca', vista: roca.vista() })
 
   function reiniciar(): void {
     rng = mulberry32((seed || 1) + Date.now())
     tablero = generar()
     inicial = tablero.map((r) => [...r]) as Ficha[][]
-    conteo = {}
+    roca = crearRoca({ levelId, libre: practica, rng: rngRoca() })
     movs = nivel.movimientos
     movsUsados = 0
     puntos = 0
@@ -168,7 +169,67 @@ export function crearReglasLocal(
     ganado = false
     malas = 0
     historialDecisiones = []
-    nieblaQuitada = 0
+    sinMovimientos = false
+  }
+
+  function ganar(ev: Evento[]): void {
+    fin = ganado = true
+    if (!practica) {
+      sumar(
+        PUNTUACION_CONFIG.bonoVictoria +
+          PUNTUACION_CONFIG.bonoPorMovimientoRestante * Math.max(0, movs) +
+          (roca.decisiones().every((d) => d.correct) ? PUNTUACION_CONFIG.bonoSinMalasDecisiones : 0),
+      )
+    }
+    ev.push(vista(), progreso(), { tipo: 'nivelCompleto', ganado: true })
+  }
+
+  /** Comprobación de estado final tras gastar un movimiento. */
+  function cierre(ev: Evento[]): void {
+    const t = tablero
+    if (roca.completo()) {
+      ganar(ev)
+    } else if (!practica && movs <= 0) {
+      if (levelId === 3) {
+        // Todavía se puede enviar el informe: es la jugada que decide el nivel.
+        sinMovimientos = true
+        ev.push({ tipo: 'aviso', mensaje: 'No moves left. Send your report now.' })
+      } else {
+        fin = true
+        ganado = false
+        ev.push({ tipo: 'nivelCompleto', ganado: false })
+      }
+    } else if (!hayJugada(t)) {
+      // Remezcla automática segura sin costo ni bucle infinito
+      let exito = false
+      for (let intento = 0; intento < 60; intento++) {
+        const planas = t.flat() as Ficha[]
+        for (let i = planas.length - 1; i > 0; i--) {
+          const j = Math.floor(rng() * (i + 1))
+          ;[planas[i], planas[j]] = [planas[j], planas[i]]
+        }
+        for (let f = 0; f < N; f++) {
+          for (let c = 0; c < N; c++) {
+            t[f][c] = planas[f * N + c]
+          }
+        }
+        if (grupos(t).length === 0 && hayJugada(t)) {
+          exito = true
+          break
+        }
+      }
+      if (!exito) {
+        // Si barajar las mismas fichas no produce un tablero válido, generar de cero
+        const nuevoT = generar()
+        for (let f = 0; f < N; f++) {
+          for (let c = 0; c < N; c++) {
+            t[f][c] = nuevoT[f][c]
+          }
+        }
+      }
+      ev.push({ tipo: 'mezcla', tablero: t.map((r) => [...r]) as Ficha[][] })
+    }
+
   }
 
   function intentarSwap(a: Pos, b: Pos): Evento[] {
@@ -184,10 +245,14 @@ export function crearReglasLocal(
     t[b[0]][b[1]] = va
 
     // Intercambio inválido: no produce match, se revierte sin consumir movimientos
-    if (grupos(t).length === 0) {
+    const iniciales = grupos(t)
+    const sinPunto = !roca.hayElegido() && iniciales.some((g) => g.ficha !== 'energia')
+    if (iniciales.length === 0 || sinPunto) {
       t[a[0]][a[1]] = va
       t[b[0]][b[1]] = vb
       ev.push({ tipo: 'swapRevertido', a: b, b: a })
+      // Sin un punto elegido las herramientas no tienen sobre qué actuar: no cuesta movimiento.
+      if (sinPunto) ev.push({ tipo: 'aviso', mensaje: 'Pick a spot on the rock first, then match tools.' })
       return ev
     }
 
@@ -213,43 +278,24 @@ export function crearReglasLocal(
         sumar(PUNTUACION_CONFIG.puntosPorFicha * g.celdas.length)
         ev.push({ tipo: 'match', celdas: g.celdas, ficha: g.ficha })
 
-        const esMeta = g.ficha in nivel.metas
-
-        // Only the match the player actually aimed at (k === 0) advances the objective.
-        // Cascade matches (k > 0) fall in by chance, so they keep scoring points but
-        // must not satisfy the goal: otherwise random tapping clears every level.
-        const cuentaParaMeta = k === 0
-
-        // REGLA EDUCATIVA NIVEL 2:
-        // El jugador DEBE completar primero las 6 unidades de RAT antes de contabilizar espectrómetros.
-        // Solo cuenta como mala decision el intercambio del jugador (k === 0):
-        // una cascada automatica no la decidio nadie y no debe castigarse.
-        if (levelId === 2 && g.ficha === 'espectrometro' && (conteo.rat ?? 0) < 6) {
-          if (k > 0) continue
-          malas++
-          const desc =
-            lang === 'en'
-              ? 'Grind the rock with 6 RAT first before using the spectrometer.'
-              : 'Pule primero la roca con las 6 herramientas RAT antes de usar el espectrómetro.'
-          historialDecisiones.push(desc)
-          ev.push({
-            tipo: 'malaDecision',
-            mensaje: desc,
-          })
-          // Las fichas eliminadas puntúan normalmente, pero NO suman al objetivo.
-        } else if (esMeta && cuentaParaMeta) {
-          conteo[g.ficha] = (conteo[g.ficha] ?? 0) + g.celdas.length
+        // Solo la combinación que el jugador apuntó (k === 0) actúa sobre la roca.
+        // Las cascadas caen por azar: puntúan, pero no mueven ciencia (si no, tocar al
+        // azar resolvería el nivel).
+        if (k !== 0) continue
+        if (g.ficha === 'energia') {
+          roca.recargar()
+        } else {
+          const antes = roca.decisiones().length
+          const r = roca.usar(g.ficha)
+          if (r.mala) ev.push({ tipo: 'malaDecision', mensaje: r.mala })
+          const nuevas = roca.decisiones().slice(antes).filter((d) => !d.correct)
+          for (const d of nuevas) {
+            malas++
+            historialDecisiones.push(d.texto)
+          }
         }
       }
-
-      // NIVEL 1: Cada cámara revela una de las 6 zonas de la foto de la roca
-      if (levelId === 1) {
-        const zonas = Math.min(6, conteo.camara ?? 0) - nieblaQuitada
-        if (zonas > 0) {
-          nieblaQuitada += zonas
-          ev.push({ tipo: 'nieblaQuitada', zonas })
-        }
-      }
+      if (k === 0) ev.push(vista())
 
       // Quitar fichas combinadas, aplicar gravedad y reponer desde arriba
       const movimientos: { de: Pos; a: Pos }[] = []
@@ -282,52 +328,51 @@ export function crearReglasLocal(
       ev.push(progreso())
     }
 
-    // Comprobación de estado final
-    if (cumplida()) {
-      fin = ganado = true
-      if (!practica) {
-        sumar(
-          PUNTUACION_CONFIG.bonoVictoria +
-            PUNTUACION_CONFIG.bonoPorMovimientoRestante * Math.max(0, movs) +
-            (malas === 0 ? PUNTUACION_CONFIG.bonoSinMalasDecisiones : 0),
-        )
+    cierre(ev)
+    return ev
+  }
+
+  /** El jugador baraja las fichas cuando no hay ninguna combinación que quiera hacer. Cuesta 1 movimiento. */
+  function barajar(): Evento[] {
+    if (fin) return []
+    tablero = generar()
+    movsUsados++
+    if (!practica) movs--
+    const ev: Evento[] = [
+      { tipo: 'mezcla', tablero: tablero.map((r) => [...r]) as Ficha[][] },
+      { tipo: 'energia', delta: practica ? 0 : -1, restante: practica ? nivel.movimientos : movs },
+    ]
+    if (!practica && movs <= 0) {
+      if (levelId === 3) {
+        sinMovimientos = true
+        ev.push({ tipo: 'aviso', mensaje: 'No moves left. Send your report now.' })
+      } else {
+        fin = true
+        ganado = false
+        ev.push({ tipo: 'nivelCompleto', ganado: false })
       }
-      ev.push(progreso(), { tipo: 'nivelCompleto', ganado: true })
-    } else if (!practica && movs <= 0) {
+    }
+    return ev
+  }
+
+  function enviarInforme(): Evento[] {
+    if (fin || levelId !== 3 || practica) return []
+    const antes = roca.decisiones().length
+    const r = roca.informe()
+    const ev: Evento[] = []
+    for (const d of roca.decisiones().slice(antes).filter((d) => !d.correct)) {
+      malas++
+      historialDecisiones.push(d.texto)
+    }
+    if (r.ok) {
+      ganar(ev)
+    } else if (sinMovimientos || movs <= 0) {
       fin = true
       ganado = false
-      ev.push({ tipo: 'nivelCompleto', ganado: false })
-    } else if (!hayJugada(t)) {
-      // Remezcla automática segura sin costo ni bucle infinito
-      let exito = false
-      for (let intento = 0; intento < 60; intento++) {
-        const planas = t.flat() as Ficha[]
-        for (let i = planas.length - 1; i > 0; i--) {
-          const j = Math.floor(rng() * (i + 1))
-          ;[planas[i], planas[j]] = [planas[j], planas[i]]
-        }
-        for (let f = 0; f < N; f++) {
-          for (let c = 0; c < N; c++) {
-            t[f][c] = planas[f * N + c]
-          }
-        }
-        if (grupos(t).length === 0 && hayJugada(t)) {
-          exito = true
-          break
-        }
-      }
-      if (!exito) {
-        // Si barajar las mismas fichas no produce un tablero válido, generar de cero
-        const nuevoT = generar()
-        for (let f = 0; f < N; f++) {
-          for (let c = 0; c < N; c++) {
-            t[f][c] = nuevoT[f][c]
-          }
-        }
-      }
-      ev.push({ tipo: 'mezcla', tablero: t.map((r) => [...r]) as Ficha[][] })
+      ev.push(vista(), { tipo: 'nivelCompleto', ganado: false })
+    } else {
+      ev.push(vista(), { tipo: 'malaDecision', mensaje: roca.vista().ultimo })
     }
-
     return ev
   }
 
@@ -336,13 +381,18 @@ export function crearReglasLocal(
     progresoInicial: progreso,
     intentarSwap,
     reiniciar,
-    objetivo: () => textos.objetivo,
-    nota: () => textos.nota,
-    explicacionVictoria: () => textos.victoria,
-    explicacionDerrota: () => textos.derrota,
+    objetivo: () => nivel.objetivo,
+    resumen: (g: boolean) => roca.resumen(g),
+    roca: () => roca.vista(),
+    elegirPunto: (p: Punto) => {
+      roca.elegir(p)
+      return roca.vista()
+    },
+    enviarInforme,
+    barajar,
+    informeDisponible: () => levelId === 3 && !practica && !fin,
     movimientosMax: () => nivel.movimientos,
     movimientosRestantes: () => (practica ? nivel.movimientos : movs),
-    zonasNiebla: () => 6,
     obtenerMalasDecisiones: () => malas,
     obtenerLang: () => lang,
     resultado: (tiempoMs: number): Resultado => ({
@@ -357,7 +407,8 @@ export function crearReglasLocal(
       movimientosRestantes: practica ? nivel.movimientos : Math.max(0, movs),
       malasDecisiones: malas,
       historialDecisiones: [...historialDecisiones],
-      objetivosCompletados: { ...conteo },
+      decisiones: roca.decisiones(),
+      objetivosCompletados: {},
     }),
   }
 }

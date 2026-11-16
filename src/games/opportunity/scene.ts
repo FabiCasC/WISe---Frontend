@@ -1,10 +1,11 @@
 import Phaser from 'phaser'
 import type { Evento, Ficha, Pos, PuertoReglas } from './events'
 import { Hud } from './hud'
-import { COLOR_BORDE_FICHA, COLOR_FICHA, NOMBRE, SUBTITULO_FICHA, dibujarIcono } from './iconos'
-import { PALETA, css } from './paleta'
+import { COLOR_BORDE_FICHA, COLOR_FICHA, ETIQUETA_FICHA, dibujarIcono } from './iconos'
+import { PALETA } from './paleta'
 import { Sfx } from './sfx'
-import { ROCA_CREDITO } from './creditos'
+import { CONFIG_NIVELES } from './config'
+import { PanelRoca } from './panel'
 import type { GameSettings } from '../../shared/types'
 
 export const W = 360,
@@ -32,17 +33,15 @@ export class OpportunityScene extends Phaser.Scene {
   private fichas: (Phaser.GameObjects.Container | null)[][] = []
   private hud!: Hud
   private sfx!: Sfx
-  private niebla: Phaser.GameObjects.Rectangle[] = []
+  private panel!: PanelRoca
   private seleccion: Pos | null = null
   private ocupado = false
+  private pendiente: (() => void) | null = null
   private terminado = false
   private entregado = false
   private cascada = 0
   private cola: Promise<void> = Promise.resolve()
   private modalCont: Phaser.GameObjects.Container | null = null
-  private fotoCont: Phaser.GameObjects.Container | null = null
-  private centroCont: Phaser.GameObjects.Container | null = null
-  private targetCounterTxt: Phaser.GameObjects.Text | null = null
   private ambienteIniciado = false
 
   // Layout dinámico y responsive
@@ -65,7 +64,6 @@ export class OpportunityScene extends Phaser.Scene {
 
   preload() {
     this.load.on('loaderror', () => {})
-    if (this.cfg.levelId === 1) this.load.image('roca', 'assets/opportunity/roca.jpg')
   }
 
   create() {
@@ -79,12 +77,7 @@ export class OpportunityScene extends Phaser.Scene {
     this.bgTablero = this.add.graphics().setDepth(1)
 
     // Nombre temático del nivel
-    const nombresNiveles: Record<number, string> = {
-      1: ajustes.lang === 'en' ? 'OBSERVAR' : 'OBSERVAR',
-      2: ajustes.lang === 'en' ? 'INVESTIGAR' : 'INVESTIGAR',
-      3: ajustes.lang === 'en' ? 'INTERPRETAR' : 'INTERPRETAR',
-    }
-    const nivelNombre = nombresNiveles[levelId] ?? 'MISIÓN'
+    const nivelNombre = CONFIG_NIVELES[levelId]?.nombre ?? 'MISSION'
 
     // HUD Rediseñado con estilo del centro de control espacial
     this.hud = new Hud(
@@ -108,6 +101,29 @@ export class OpportunityScene extends Phaser.Scene {
 
     // Crear fichas iniciales
     this.crearTablero(reglas.tableroInicial(), false)
+
+    // Panel de la roca (DOM) encima del canvas
+    const host = this.game.canvas.parentElement as HTMLElement
+    this.panel = new PanelRoca(
+      host,
+      {
+        nombre: CONFIG_NIVELES[levelId]?.nombre ?? '',
+        objetivo: reglas.objetivo(),
+        practica: ajustes.practice,
+        informe: reglas.informeDisponible(),
+        foto: 'assets/opportunity/roca.jpg',
+      },
+      {
+        elegir: (p) => {
+          if (this.terminado) return
+          this.panel.render(reglas.elegirPunto(p))
+          if (ajustes.practice) this.emitirPaso('OpportunitySpot')
+        },
+        barajar: () => this.accionDelPanel(() => reglas.barajar()),
+        enviarInforme: () => this.accionDelPanel(() => reglas.enviarInforme()),
+      },
+    )
+    this.panel.render(reglas.roca())
 
     // Aplicar layout inicial
     this.reorganizarLayout(this.scale.width, this.scale.height)
@@ -181,14 +197,14 @@ export class OpportunityScene extends Phaser.Scene {
       this.centroX = panelX
       this.centroY = 68
       this.centroW = panelW
-      this.centroH = Math.max(180, Math.min(340, h - 86))
+      this.centroH = Math.max(180, Math.min(520, h - 86))
     } else {
       // Modo Vertical (Smartphones / Tablets Portrait)
       panelW = Math.min(460, w - 24)
       panelX = Math.round((w - panelW) / 2)
 
       const altoDisponible = Math.floor(h * 0.5)
-      this.celdaSize = Math.max(44, Math.min(60, Math.floor(Math.min(w - 24, altoDisponible) / N)))
+      this.celdaSize = Math.max(44, Math.min(54, Math.floor(Math.min(w - 24, altoDisponible) / N)))
       const tableroSize = this.celdaSize * N
 
       this.boardX0 = Math.round((w - tableroSize) / 2)
@@ -300,6 +316,11 @@ export class OpportunityScene extends Phaser.Scene {
     }
   }
 
+  /** Las etiquetas (CAMERA, RAT...) crecen con la ficha para leerse también en el móvil. */
+  private tamanoEtiqueta() {
+    return Math.max(10, Math.round(this.celdaSize * 0.19))
+  }
+
   private reposicionarFichas() {
     const scaleFactor = this.celdaSize / 52
     for (let f = 0; f < N; f++) {
@@ -320,357 +341,17 @@ export class OpportunityScene extends Phaser.Scene {
           if (ic) {
             ic.setScale(scaleFactor)
           }
+          const et = cont.getData('etiqueta') as Phaser.GameObjects.Text | undefined
+          et?.setFontSize(this.tamanoEtiqueta()).setY(this.celdaSize * 0.33)
         }
       }
     }
   }
 
   private redibujarAreaCentral() {
-    const { levelId } = this.cfg
-    if (levelId === 1) {
-      this.crearFotoNiebla()
-    } else if (levelId === 2) {
-      this.crearPanelLaboratorioNivel2()
-    } else {
-      this.crearPanelLaboratorioNivel3()
-    }
+    this.panel?.colocar(this.centroX, this.centroY, this.centroW, this.centroH)
   }
 
-  // NIVEL 1: Tarjeta Sci-Fi con pestaña asimétrica y marco neón
-  private crearFotoNiebla() {
-    this.fotoCont?.destroy()
-    this.fotoCont = this.add.container(0, 0).setDepth(2)
-    const x = this.centroX,
-      y = this.centroY,
-      w = this.centroW,
-      h = this.centroH
-
-    // 1. Marco exterior con pestaña asimétrica en la esquina superior izquierda
-    const cardBg = this.add.graphics()
-    const r = 18
-
-    // Resplandor exterior neón cyan
-    cardBg.lineStyle(5, PALETA.neonAzul, 0.25).strokeRoundedRect(x - 2, y - 2, w + 4, h + 4, r + 2)
-
-    // Cuerpo de la tarjeta
-    cardBg.fillStyle(PALETA.superficie, 0.98).fillRoundedRect(x, y, w, h, r)
-    cardBg.lineStyle(2.4, PALETA.neonCyan, 1).strokeRoundedRect(x, y, w, h, r)
-
-    // Líneas decorativas sci-fi en la parte superior derecha `///`
-    cardBg.fillStyle(PALETA.neonCyan, 0.7)
-    ;[0, 10, 20].forEach((dx) => {
-      cardBg.fillPoints(
-        [
-          [x + w - 38 + dx, y + 16],
-          [x + w - 32 + dx, y + 16],
-          [x + w - 40 + dx, y + 26],
-          [x + w - 46 + dx, y + 26],
-        ].map(([px, py]) => new Phaser.Math.Vector2(px, py)),
-        true,
-      )
-    })
-    this.fotoCont.add(cardBg)
-
-    // Pestaña de objetivo activo (CÁMARA 0/6)
-    const targetBadge = this.add.graphics()
-    targetBadge.fillStyle(PALETA.cyanFicha, 1).fillCircle(x + 28, y + 24, 15)
-    targetBadge.lineStyle(2, 0xffffff, 0.9).strokeCircle(x + 28, y + 24, 15)
-
-    const targetIcon = this.add.graphics({ x: x + 28, y: y + 24 }).setScale(0.55)
-    dibujarIcono(targetIcon, 'camara')
-
-    const targetTitle = this.add.text(x + 50, y + 14, 'CÁMARA', {
-      fontFamily: 'sans-serif',
-      fontSize: '11px',
-      fontStyle: 'bold',
-      color: css(PALETA.blancoCalido),
-    })
-
-    const ini = this.cfg.reglas.progresoInicial()
-    const conteoCam = ini.conteo.camara ?? 0
-    this.targetCounterTxt = this.add.text(x + 50, y + 26, `${conteoCam}/6`, {
-      fontFamily: 'sans-serif',
-      fontSize: '15px',
-      fontStyle: 'bold',
-      color: css(PALETA.neonCyan),
-    })
-    this.fotoCont.add([targetBadge, targetIcon, targetTitle, this.targetCounterTxt])
-
-    // 2. Ventana de visualización con los 4 soportes angulares `[ ]`
-    const winX = x + 16,
-      winY = y + 48,
-      winW = w - 32,
-      winH = h - 68
-
-    // Corchetes angulares en las 4 esquinas
-    const cornerGlints = this.add.graphics()
-    cornerGlints.lineStyle(2.5, PALETA.neonCyan, 1)
-    const cl = 12
-    // Sup-izq
-    cornerGlints.lineBetween(winX, winY, winX + cl, winY)
-    cornerGlints.lineBetween(winX, winY, winX, winY + cl)
-    // Sup-der
-    cornerGlints.lineBetween(winX + winW, winY, winX + winW - cl, winY)
-    cornerGlints.lineBetween(winX + winW, winY, winX + winW, winY + cl)
-    // Inf-izq
-    cornerGlints.lineBetween(winX, winY + winH, winX + cl, winY + winH)
-    cornerGlints.lineBetween(winX, winY + winH, winX, winY + winH - cl)
-    // Inf-der
-    cornerGlints.lineBetween(winX + winW, winY + winH, winX + winW - cl, winY + winH)
-    cornerGlints.lineBetween(winX + winW, winY + winH, winX + winW, winY + winH - cl)
-    this.fotoCont.add(cornerGlints)
-
-    // Imagen de la roca (o textura geológica con hematita)
-    if (this.textures.exists('roca')) {
-      const img = this.add
-        .image(winX + winW / 2, winY + winH / 2, 'roca')
-        .setDisplaySize(winW, winH)
-      this.fotoCont.add(img)
-    } else {
-      const g = this.add.graphics()
-      g.fillStyle(0x351b0c).fillRect(winX, winY, winW, winH)
-      g.fillStyle(0xba451e, 0.85).fillEllipse(winX + winW / 2, winY + winH * 0.65, winW * 0.7, winH * 0.6)
-      g.fillStyle(PALETA.arena, 0.55).fillEllipse(winX + winW / 2 - 15, winY + winH * 0.55, winW * 0.35, winH * 0.3)
-      g.fillStyle(0x0e1724, 0.95)
-      ;[
-        [-65, 8],
-        [-30, 24],
-        [12, 4],
-        [45, 20],
-        [68, 6],
-        [-8, 32],
-      ].forEach(([dx, dy]) =>
-        g.fillCircle(winX + winW / 2 + dx, winY + winH * 0.55 + dy, Phaser.Math.Between(3, 5)),
-      )
-      this.fotoCont.add(g)
-    }
-
-    // 3. 6 Sectores con retículas y marcas (+)
-    this.niebla = []
-    const cols = 3,
-      filas = 2,
-      cw = winW / cols,
-      ch = winH / filas
-
-    const reticula = this.add.graphics()
-    reticula.lineStyle(1, 0x1f3458, 0.8)
-
-    for (let i = 0; i < 6; i++) {
-      const col = i % cols
-      const fil = Math.floor(i / cols)
-      const rx = winX + col * cw + cw / 2
-      const ry = winY + fil * ch + ch / 2
-
-      // Sector de niebla
-      const rect = this.add
-        .rectangle(rx, ry, cw - 2, ch - 2, 0x111c34, 0.96)
-        .setStrokeStyle(1, 0x22385c)
-      this.fotoCont.add(rect)
-      this.niebla.push(rect)
-
-      // Marca (+) en el centro de cada sector
-      const plusIcon = this.add.graphics()
-      plusIcon.lineStyle(1.4, 0x3d5b88, 0.8)
-      plusIcon.strokeCircle(rx, ry, 7)
-      plusIcon.lineBetween(rx - 3.5, ry, rx + 3.5, ry)
-      plusIcon.lineBetween(rx, ry - 3.5, rx, ry + 3.5)
-      this.fotoCont.add(plusIcon)
-    }
-
-    // Crédito oficial de la foto
-    const creditoTxt = this.add
-      .text(x + w - 16, y + h - 11, `📷 ${ROCA_CREDITO.leyenda}`, {
-        fontFamily: 'sans-serif',
-        fontSize: '9px',
-        color: css(PALETA.grisSecundario),
-      })
-      .setOrigin(1, 0.5)
-    this.fotoCont.add(creditoTxt)
-  }
-
-  // NIVEL 2: Laboratorio de Desbaste y Análisis con el mismo estilo
-  private crearPanelLaboratorioNivel2() {
-    this.centroCont?.destroy()
-    this.centroCont = this.add.container(0, 0).setDepth(2)
-    const x = this.centroX,
-      y = this.centroY,
-      w = this.centroW,
-      h = this.centroH
-    const es = this.cfg.ajustes.lang !== 'en'
-    const r = 18
-
-    const panelBg = this.add.graphics()
-    panelBg.lineStyle(5, PALETA.neonAzul, 0.25).strokeRoundedRect(x - 2, y - 2, w + 4, h + 4, r + 2)
-    panelBg.fillStyle(PALETA.superficie, 0.98).fillRoundedRect(x, y, w, h, r)
-    panelBg.lineStyle(2.4, PALETA.naranjaFicha, 1).strokeRoundedRect(x, y, w, h, r)
-    this.centroCont.add(panelBg)
-
-    const titulo = this.add
-      .text(x + w / 2, y + 16, es ? 'SECUENCIA DE INVESTIGACIÓN' : 'INVESTIGATION SEQUENCE', {
-        fontFamily: 'sans-serif',
-        fontSize: '12px',
-        fontStyle: 'bold',
-        color: css(PALETA.amarilloFicha),
-      })
-      .setOrigin(0.5, 0)
-
-    const boxW = Math.floor((w - 36) / 2)
-    const boxH = Math.max(90, h - 54)
-
-    // Caja Fase 1 (RAT)
-    const ratBox = this.add
-      .graphics()
-      .fillStyle(PALETA.superficieElevada, 0.9)
-      .fillRoundedRect(x + 14, y + 40, boxW, boxH, 12)
-      .lineStyle(1.8, PALETA.naranjaFicha, 1)
-      .strokeRoundedRect(x + 14, y + 40, boxW, boxH, 12)
-
-    const ratIcon = this.add.graphics({ x: x + 34, y: y + 62 }).setScale(0.7)
-    dibujarIcono(ratIcon, 'rat')
-
-    const ratTitle = this.add
-      .text(x + 52, y + 54, es ? '1. Pulido RAT' : '1. RAT Grind', {
-        fontFamily: 'sans-serif',
-        fontSize: '11px',
-        fontStyle: 'bold',
-        color: css(PALETA.naranjaFicha),
-      })
-      .setOrigin(0, 0)
-
-    const ratDesc = this.add
-      .text(
-        x + 20,
-        y + 78,
-        es
-          ? 'Raspa polvo y corteza para exponer roca fresca.'
-          : 'Grinds dust to expose fresh rock.',
-        {
-          fontFamily: 'sans-serif',
-          fontSize: '9.5px',
-          color: css(PALETA.blancoCalido),
-          wordWrap: { width: boxW - 14 },
-        },
-      )
-      .setOrigin(0, 0)
-
-    // Caja Fase 2 (Espectrómetro)
-    const espBox = this.add
-      .graphics()
-      .fillStyle(PALETA.superficieElevada, 0.9)
-      .fillRoundedRect(x + boxW + 22, y + 40, boxW, boxH, 12)
-      .lineStyle(1.8, PALETA.purpuraFicha, 1)
-      .strokeRoundedRect(x + boxW + 22, y + 40, boxW, boxH, 12)
-
-    const espIcon = this.add.graphics({ x: x + boxW + 42, y: y + 62 }).setScale(0.7)
-    dibujarIcono(espIcon, 'espectrometro')
-
-    const espTitle = this.add
-      .text(x + boxW + 60, y + 54, es ? '2. Análisis' : '2. Analysis', {
-        fontFamily: 'sans-serif',
-        fontSize: '11px',
-        fontStyle: 'bold',
-        color: css(PALETA.purpuraFicha),
-      })
-      .setOrigin(0, 0)
-
-    const espDesc = this.add
-      .text(
-        x + boxW + 28,
-        y + 78,
-        es
-          ? 'Analiza minerales internos. Se activa tras pulir.'
-          : 'Analyzes minerals. Activates after grinding.',
-        {
-          fontFamily: 'sans-serif',
-          fontSize: '9.5px',
-          color: css(PALETA.grisSecundario),
-          wordWrap: { width: boxW - 14 },
-        },
-      )
-      .setOrigin(0, 0)
-
-    this.centroCont.add([titulo, ratBox, ratIcon, ratTitle, ratDesc, espBox, espIcon, espTitle, espDesc])
-  }
-
-  // NIVEL 3: Panel de Hipótesis de Agua Antigua
-  private crearPanelLaboratorioNivel3() {
-    this.centroCont?.destroy()
-    this.centroCont = this.add.container(0, 0).setDepth(2)
-    const x = this.centroX,
-      y = this.centroY,
-      w = this.centroW,
-      h = this.centroH
-    const es = this.cfg.ajustes.lang !== 'en'
-    const r = 18
-
-    const panelBg = this.add.graphics()
-    panelBg.lineStyle(5, PALETA.neonAzul, 0.25).strokeRoundedRect(x - 2, y - 2, w + 4, h + 4, r + 2)
-    panelBg.fillStyle(PALETA.superficie, 0.98).fillRoundedRect(x, y, w, h, r)
-    panelBg.lineStyle(2.4, PALETA.amarilloFicha, 1).strokeRoundedRect(x, y, w, h, r)
-    this.centroCont.add(panelBg)
-
-    const titulo = this.add
-      .text(x + w / 2, y + 14, es ? 'HIPÓTESIS DE AGUA ANTIGUA' : 'ANCIENT WATER HYPOTHESIS', {
-        fontFamily: 'sans-serif',
-        fontSize: '12px',
-        fontStyle: 'bold',
-        color: css(PALETA.amarilloFicha),
-      })
-      .setOrigin(0.5, 0)
-
-    const nota = this.add
-      .text(
-        x + w / 2,
-        y + 32,
-        es
-          ? 'Reúne las 3 evidencias para formular la conclusión científica:'
-          : 'Gather 3 lines of evidence to formulate scientific conclusion:',
-        {
-          fontFamily: 'sans-serif',
-          fontSize: '10px',
-          color: css(PALETA.arena),
-          align: 'center',
-          wordWrap: { width: w - 24 },
-        },
-      )
-      .setOrigin(0.5, 0)
-
-    const pilares: { ficha: Ficha; label: string }[] = [
-      { ficha: 'camara', label: es ? 'Fotografía' : 'Imaging' },
-      { ficha: 'espectrometro', label: es ? 'Minerales' : 'Minerals' },
-      { ficha: 'energia', label: es ? 'Telemetría' : 'Telemetry' },
-    ]
-    const pW = Math.floor((w - 36) / 3)
-    const boxH = Math.max(70, h - 72)
-
-    pilares.forEach((p, idx) => {
-      const px = x + 14 + idx * (pW + 4)
-      const pBox = this.add
-        .graphics()
-        .fillStyle(PALETA.superficieElevada, 0.9)
-        .fillRoundedRect(px, y + 58, pW, boxH, 10)
-        .lineStyle(1.4, COLOR_FICHA[p.ficha], 1)
-        .strokeRoundedRect(px, y + 58, pW, boxH, 10)
-
-      const ic = this.add.graphics({ x: px + pW / 2, y: y + 80 }).setScale(0.65)
-      dibujarIcono(ic, p.ficha)
-
-      const lb = this.add
-        .text(px + pW / 2, y + 58 + boxH - 18, p.label, {
-          fontFamily: 'sans-serif',
-          fontSize: '9.5px',
-          fontStyle: 'bold',
-          color: css(COLOR_FICHA[p.ficha]),
-        })
-        .setOrigin(0.5, 0)
-
-      this.centroCont!.add([pBox, ic, lb])
-    })
-
-    this.centroCont.add([titulo, nota])
-  }
-
-  // ---------- creación y renderizado de fichas con reflejo glossy ----------
   private crearTablero(t: Ficha[][], conFundido: boolean) {
     for (let f = 0; f < N; f++) {
       this.fichas[f] = []
@@ -721,9 +402,18 @@ export class OpportunityScene extends Phaser.Scene {
     dibujarIcono(ic, tipo)
     ic.setScale(this.celdaSize / 52)
 
-    const cont = this.add.container(p.x, yInicial ?? p.y, [bg, ic]).setDepth(2)
+    // Nombre simple bajo el icono: nadie debe necesitar saber qué es un RAT.
+    const etiqueta = this.add
+      .text(0, this.celdaSize * 0.33, ETIQUETA_FICHA[tipo], {
+        fontFamily: 'sans-serif',
+        fontSize: `${this.tamanoEtiqueta()}px`,
+        fontStyle: 'bold',
+        color: '#ffffff',
+      })
+      .setOrigin(0.5)
+    const cont = this.add.container(p.x, yInicial ?? p.y, [bg, ic, etiqueta]).setDepth(2)
     cont.setSize(this.celdaSize, this.celdaSize).setInteractive({ useHandCursor: true })
-    cont.setData('tipo', tipo).setData('bg', bg).setData('ic', ic)
+    cont.setData('tipo', tipo).setData('bg', bg).setData('ic', ic).setData('etiqueta', etiqueta)
     cont.on('pointerdown', (ptr: Phaser.Input.Pointer) => this.alPulsar(cont, ptr))
     return cont
   }
@@ -812,13 +502,54 @@ export class OpportunityScene extends Phaser.Scene {
     this.ocupado = true
     this.cascada = 0
     const eventos = this.cfg.reglas.intentarSwap(a, b)
-    this.procesar(eventos).finally(() => {
-      this.ocupado = false
-    })
+    this.procesar(eventos).finally(() => this.liberar())
+  }
+
+  /**
+   * En el Nivel 0 el coach del portal sigue las teclas. Aquí no hay teclas: cuando el jugador
+   * hace de verdad un paso (elige un punto, usa una herramienta, baraja) se emite el código
+   * de ese paso, así cada paso se marca solo cuando se cumple.
+   */
+  private avisarGuia(eventos: Evento[]) {
+    if (!this.cfg.ajustes.practice) return
+    const codigo: Record<Ficha, string> = {
+      camara: 'OpportunityCamera',
+      rat: 'OpportunityGrind',
+      espectrometro: 'OpportunityRead',
+      energia: 'OpportunityBattery',
+    }
+    for (const e of eventos) {
+      if (e.tipo === 'roca' || e.tipo === 'caida') break
+      if (e.tipo === 'match') this.emitirPaso(codigo[e.ficha])
+      if (e.tipo === 'mezcla') this.emitirPaso('OpportunityShuffle')
+    }
+  }
+
+  private emitirPaso(code: string) {
+    document.dispatchEvent(new KeyboardEvent('keydown', { code, bubbles: true }))
+  }
+
+  /** Barajar y enviar el informe: si aún cae una cascada, esperan su turno en vez de perderse. */
+  private accionDelPanel(accion: () => Evento[]) {
+    if (this.terminado) return
+    if (this.ocupado) {
+      this.pendiente = () => this.accionDelPanel(accion)
+      return
+    }
+    this.ocupado = true
+    this.procesar(accion()).finally(() => this.liberar())
+  }
+
+  private liberar() {
+    this.ocupado = false
+    const p = this.pendiente
+    this.pendiente = null
+    p?.()
   }
 
   // ---------- animación de eventos ----------
   procesar(eventos: Evento[]): Promise<void> {
+    this.avisarGuia(eventos)
     this.cola = this.cola.then(async () => {
       for (const e of eventos) await this.animar(e)
     })
@@ -842,7 +573,7 @@ export class OpportunityScene extends Phaser.Scene {
   }
 
   private async animar(e: Evento) {
-    const { ajustes, levelId } = this.cfg
+    const { ajustes } = this.cfg
     switch (e.tipo) {
       case 'swap':
         this.sfx.swap()
@@ -913,41 +644,24 @@ export class OpportunityScene extends Phaser.Scene {
         await Promise.all(movs)
         return
       }
-      case 'nieblaQuitada': {
-        this.sfx.niebla()
-        const quitar = this.niebla.splice(0, e.zonas)
-        await this.tween({
-          targets: quitar,
-          alpha: 0,
-          scaleX: 1.1,
-          scaleY: 1.1,
-          duration: this.dur(450),
-          ease: 'Quad.easeOut',
-        })
-        quitar.forEach((q) => q.destroy())
+      case 'roca':
+        this.panel.render(e.vista)
         return
-      }
+      case 'aviso':
+        this.panel.mensaje(e.mensaje)
+        return
       case 'energia':
         this.hud.setEnergia(e.restante, ajustes.practice)
         return
-      case 'progreso': {
+      case 'progreso':
         this.hud.setProgreso(e.conteo, e.puntos, ajustes.practice)
-        if (levelId === 1 && this.targetCounterTxt) {
-          const c = Math.min(6, e.conteo.camara ?? 0)
-          this.targetCounterTxt.setText(`${c}/6`)
-        }
         return
-      }
       case 'malaDecision':
+        // El texto ya está en el panel de la roca (ver roca.ts); aquí solo suena.
         this.sfx.mala()
-        this.hud.mensaje(e.mensaje)
         return
       case 'mezcla': {
-        const txt =
-          ajustes.lang === 'en'
-            ? 'No moves: reshuffling scientific deck'
-            : 'Sin jugadas: remezclando instrumentos'
-        this.hud.mensaje(txt)
+        this.panel.mensaje('The tiles were shuffled.')
         this.fichas.flat().forEach((o) => o?.destroy())
         this.crearTablero(e.tablero, true)
         await this.espera(350)
@@ -1016,6 +730,7 @@ export class OpportunityScene extends Phaser.Scene {
     this.cfg.reiniciarTiempo()
 
     this.ocupado = false
+    this.pendiente = null
     this.terminado = false
     this.entregado = false
     this.cascada = 0
@@ -1029,445 +744,36 @@ export class OpportunityScene extends Phaser.Scene {
     this.hud.setProgreso(ini.conteo, ini.puntos, this.cfg.ajustes.practice)
 
     this.crearTablero(this.cfg.reglas.tableroInicial(), true)
+    this.panel.cerrarModal()
+    this.panel.mensaje('')
+    this.panel.render(this.cfg.reglas.roca())
     this.reorganizarLayout(this.scale.width, this.scale.height)
   }
 
-  // ---------- guía interactiva del nivel [ ? ] ----------
+  // ---------- ayuda y resumen final (DOM, ver panel.ts) ----------
   private mostrarGuia() {
-    if (this.modalCont) return
-    const es = this.cfg.ajustes.lang !== 'en'
-    const w = this.scale.width,
-      h = this.scale.height
-    const pw = Math.min(460, w - 32),
-      ph = Math.min(460, h - 30),
-      py = Math.round((h - ph) / 2)
-
-    const cont = this.add.container(0, 0).setDepth(60)
-    this.modalCont = cont
-
-    cont.add(
-      this.add
-        .rectangle(w / 2, h / 2, w, h, PALETA.espacio, 0.9)
-        .setInteractive({ useHandCursor: false }),
-    )
-
-    const panel = this.add.graphics()
-    panel
-      .fillStyle(PALETA.superficie, 0.98)
-      .fillRoundedRect(w / 2 - pw / 2, py, pw, ph, 16)
-      .lineStyle(2.4, PALETA.neonCyan, 1)
-      .strokeRoundedRect(w / 2 - pw / 2, py, pw, ph, 16)
-    cont.add(panel)
-
-    // Título
-    cont.add(
-      this.add
-        .text(w / 2, py + 18, es ? 'GUÍA CIENTÍFICA DEL ROVER' : 'ROVER SCIENCE GUIDE', {
-          fontFamily: 'sans-serif',
-          fontSize: '15px',
-          fontStyle: 'bold',
-          color: css(PALETA.amarilloFicha),
-        })
-        .setOrigin(0.5, 0),
-    )
-
-    // Lista de instrumentos
-    const tipos: Ficha[] = ['camara', 'rat', 'espectrometro', 'energia']
-    const itemH = Math.min(50, Math.floor((ph - 180) / 4))
-    tipos.forEach((tipo, i) => {
-      const iy = py + 48 + i * (itemH + 6)
-      const box = this.add
-        .graphics()
-        .fillStyle(PALETA.superficieElevada, 0.85)
-        .fillRoundedRect(w / 2 - pw / 2 + 12, iy, pw - 24, itemH, 10)
-        .lineStyle(1.4, COLOR_FICHA[tipo], 0.9)
-        .strokeRoundedRect(w / 2 - pw / 2 + 12, iy, pw - 24, itemH, 10)
-
-      const ic = this.add
-        .graphics({ x: w / 2 - pw / 2 + 36, y: iy + itemH / 2 })
-        .setScale(itemH / 65)
-      dibujarIcono(ic, tipo)
-
-      const nombre = this.add.text(w / 2 - pw / 2 + 62, iy + 6, NOMBRE[tipo].toUpperCase(), {
-        fontFamily: 'sans-serif',
-        fontSize: '11px',
-        fontStyle: 'bold',
-        color: css(COLOR_FICHA[tipo]),
-      })
-      const desc = this.add.text(w / 2 - pw / 2 + 62, iy + 22, SUBTITULO_FICHA[tipo], {
-        fontFamily: 'sans-serif',
-        fontSize: '10px',
-        color: css(PALETA.blancoCalido),
-      })
-      cont.add([box, ic, nombre, desc])
-    })
-
-    // Nota pedagógica de la misión
-    const notaY = py + 48 + 4 * (itemH + 6) + 6
-    const notaH = Math.max(50, ph - (notaY - py) - 58)
-    const notaBg = this.add
-      .graphics()
-      .fillStyle(PALETA.superficieElevada, 0.7)
-      .fillRoundedRect(w / 2 - pw / 2 + 12, notaY, pw - 24, notaH, 8)
-    const notaTitle = this.add.text(
-      w / 2 - pw / 2 + 20,
-      notaY + 6,
-      es ? 'Misión actual:' : 'Current mission:',
-      {
-        fontFamily: 'sans-serif',
-        fontSize: '10px',
-        fontStyle: 'bold',
-        color: css(PALETA.arena),
-      },
-    )
-    const notaTxt = this.add.text(w / 2 - pw / 2 + 20, notaY + 22, this.cfg.reglas.nota(), {
-      fontFamily: 'sans-serif',
-      fontSize: '10px',
-      color: css(PALETA.blancoCalido),
-      wordWrap: { width: pw - 40 },
-    })
-    cont.add([notaBg, notaTitle, notaTxt])
-
-    // Botón Entendido
-    const by = py + ph - 48
-    const btnBg = this.add
-      .graphics()
-      .fillStyle(PALETA.neonCyan)
-      .fillRoundedRect(w / 2 - 80, by, 160, 36, 12)
-    const btnTxt = this.add
-      .text(w / 2, by + 18, es ? '¡Entendido!' : 'Got it!', {
-        fontFamily: 'sans-serif',
-        fontSize: '14px',
-        fontStyle: 'bold',
-        color: css(PALETA.espacio),
-      })
-      .setOrigin(0.5)
-    const hit = this.add
-      .rectangle(w / 2, by + 18, 160, 36, 0xffffff, 0.001)
-      .setInteractive({ useHandCursor: true })
-    hit.on('pointerup', () => {
-      this.modalCont?.destroy()
-      this.modalCont = null
-    })
-    cont.add([btnBg, btnTxt, hit])
+    this.panel.mostrarAyuda()
   }
 
-  // ---------- pantallas de victoria y derrota ----------
   private mostrarFinal(ganado: boolean) {
     const { levelId, ajustes, reglas } = this.cfg
     const r = reglas.resultado(this.cfg.tiempoMs())
-    const es = ajustes.lang !== 'en'
-    const w = this.scale.width,
-      h = this.scale.height
-
-    const pw = Math.min(480, w - 24),
-      ph = Math.min(ganado ? (levelId === 3 ? 480 : 420) : 360, h - 20)
-    const py = Math.round((h - ph) / 2)
-    const cont = this.add.container(0, 0).setDepth(60)
-    this.modalCont = cont
-
-    cont.add(
-      this.add
-        .rectangle(w / 2, h / 2, w, h, PALETA.espacio, 0.92)
-        .setInteractive({ useHandCursor: false }),
-    )
-
-    const panel = this.add.graphics()
-    panel
-      .fillStyle(PALETA.superficie, 0.98)
-      .fillRoundedRect(w / 2 - pw / 2, py, pw, ph, 18)
-      .lineStyle(2.4, ganado ? PALETA.verdeExito : PALETA.neonDorado, 1)
-      .strokeRoundedRect(w / 2 - pw / 2, py, pw, ph, 18)
-    cont.add(panel)
-
-    const txt = (y: number, s: string, size: number, color: number, bold = false) =>
-      cont.add(
-        this.add
-          .text(w / 2, y, s, {
-            fontFamily: 'sans-serif',
-            fontSize: `${size}px`,
-            color: css(color),
-            fontStyle: bold ? 'bold' : 'normal',
-            align: 'center',
-            wordWrap: { width: pw - 30 },
-          })
-          .setOrigin(0.5, 0),
-      )
-
-    let y = py + 18
-
-    if (ganado) {
-      txt(
-        y,
-        es ? '¡MISIÓN CUMPLIDA, EXPLORADOR!' : 'MISSION COMPLETE!',
-        18,
-        PALETA.amarilloFicha,
-        true,
-      )
-      y += 30
-
-      const seg = Math.round(r.tiempoMs / 1000)
-      txt(
-        y,
-        ajustes.practice
-          ? es
-            ? 'Modo Práctica · Experimentos libres'
-            : 'Practice Mode · Free experiments'
-          : `★ ${r.puntos} ${es ? 'PUNTOS CIENTÍFICOS' : 'SCIENCE POINTS'}`,
-        16,
-        PALETA.blancoPuro,
-        true,
-      )
-      y += 24
-
-      txt(
-        y,
-        `${es ? 'Tiempo' : 'Time'}: ${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}  ·  ${es ? 'Movs sobrantes' : 'Remaining moves'}: ${r.movimientosRestantes}`,
-        12,
-        PALETA.arena,
-      )
-      y += 20
-
-      if (!ajustes.practice) {
-        if (r.sinErroresDecision) {
-          txt(
-            y,
-            es
-              ? '✓ ¡Decisión científica impecable! (+50 pts)'
-              : '✓ Flawless scientific choice! (+50 pts)',
-            11,
-            PALETA.verdeExito,
-          )
-          y += 18
-        } else if (r.malasDecisiones > 0) {
-          txt(
-            y,
-            es
-              ? `Decisiones precipitadas registradas: ${r.malasDecisiones}`
-              : `Rushed decisions recorded: ${r.malasDecisiones}`,
-            11,
-            PALETA.naranjaFicha,
-          )
-          y += 18
-        }
-      }
-
-      if (levelId === 1 || levelId === 2) {
-        const cajaReflexion = this.add
-          .graphics()
-          .fillStyle(PALETA.superficieElevada, 0.75)
-          .fillRoundedRect(w / 2 - pw / 2 + 16, y, pw - 32, 100, 10)
-        cont.add(cajaReflexion)
-        cont.add(
-          this.add
-            .text(w / 2, y + 10, reglas.explicacionVictoria(), {
-              fontFamily: 'sans-serif',
-              fontSize: '11px',
-              color: css(PALETA.blancoCalido),
-              align: 'center',
-              wordWrap: { width: pw - 50 },
-            })
-            .setOrigin(0.5, 0),
-        )
-      } else {
-        this.tableroEvidencia(cont, y + 2, pw, es)
-      }
-
-      // Botón Continuar
-      const by = py + ph - 52
-      const btnBg = this.add.graphics()
-      btnBg.fillStyle(PALETA.verdeExito).fillRoundedRect(w / 2 - 100, by, 200, 38, 12)
-      cont.add(btnBg)
-      cont.add(
-        this.add
-          .text(w / 2, by + 19, es ? 'Registrar en el Portal' : 'Register in Portal', {
-            fontFamily: 'sans-serif',
-            fontSize: '14.5px',
-            fontStyle: 'bold',
-            color: css(PALETA.espacio),
-          })
-          .setOrigin(0.5),
-      )
-      const btnClick = this.add
-        .rectangle(w / 2, by + 19, 200, 38, 0xffffff, 0.001)
-        .setInteractive({ useHandCursor: true })
-      btnClick.on('pointerup', () => {
-        if (this.entregado) return
-        this.entregado = true
-        this.cfg.alTerminar(true)
-      })
-      cont.add(btnClick)
-    } else {
-      // Pantalla de derrota motivadora
-      txt(y, es ? '¡Buen intento, explorador!' : 'Great effort, explorer!', 19, PALETA.arena, true)
-      y += 32
-
-      txt(y, reglas.explicacionDerrota(), 12, PALETA.blancoCalido)
-      y += 66
-
-      txt(
-        y,
-        es
-          ? 'Opportunity superó muchas tormentas marcianas.\n¡Ajusta tu estrategia e inténtalo de nuevo!'
-          : 'Opportunity endured many Martian storms.\nAdjust your plan and try again!',
-        11,
-        PALETA.arena,
-      )
-
-      // Botón 1: Reintentar
-      const by1 = py + ph - 100
-      const btnReintentarBg = this.add.graphics()
-      btnReintentarBg
-        .fillStyle(PALETA.amarilloFicha)
-        .fillRoundedRect(w / 2 - 105, by1, 210, 36, 12)
-      cont.add(btnReintentarBg)
-      cont.add(
-        this.add
-          .text(w / 2, by1 + 18, es ? 'Reintentar misión' : 'Retry mission', {
-            fontFamily: 'sans-serif',
-            fontSize: '14.5px',
-            fontStyle: 'bold',
-            color: css(PALETA.espacio),
-          })
-          .setOrigin(0.5),
-      )
-      const btnReintentarClick = this.add
-        .rectangle(w / 2, by1 + 18, 210, 36, 0xffffff, 0.001)
-        .setInteractive({ useHandCursor: true })
-      btnReintentarClick.on('pointerup', () => this.reiniciarPartida())
-      cont.add(btnReintentarClick)
-
-      // Botón 2: Volver al portal
-      const by2 = py + ph - 50
-      const btnSalirBg = this.add.graphics()
-      btnSalirBg
-        .fillStyle(PALETA.superficieElevada, 0.8)
-        .fillRoundedRect(w / 2 - 105, by2, 210, 34, 12)
-        .lineStyle(1.4, PALETA.arena, 0.8)
-        .strokeRoundedRect(w / 2 - 105, by2, 210, 34, 12)
-      cont.add(btnSalirBg)
-      cont.add(
-        this.add
-          .text(w / 2, by2 + 17, es ? 'Volver al centro de control' : 'Return to control center', {
-            fontFamily: 'sans-serif',
-            fontSize: '13px',
-            color: css(PALETA.blancoCalido),
-          })
-          .setOrigin(0.5),
-      )
-      const btnSalirClick = this.add
-        .rectangle(w / 2, by2 + 17, 210, 34, 0xffffff, 0.001)
-        .setInteractive({ useHandCursor: true })
-      btnSalirClick.on('pointerup', () => {
-        if (this.entregado) return
-        this.entregado = true
-        this.cfg.alTerminar(false)
-      })
-      cont.add(btnSalirClick)
+    const nombre = CONFIG_NIVELES[levelId]?.nombre ?? ''
+    const entregar = (ok: boolean) => {
+      if (this.entregado) return
+      this.entregado = true
+      this.cfg.alTerminar(ok)
     }
-
-    if (!ajustes.reducedMotion) {
-      cont.setAlpha(0)
-      this.tweens.add({ targets: cont, alpha: 1, duration: 280 })
-    }
-  }
-
-  // Nivel 3: Tablero de evidencia científica
-  private tableroEvidencia(
-    cont: Phaser.GameObjects.Container,
-    y: number,
-    pw: number,
-    es: boolean,
-  ) {
-    const wScreen = this.scale.width
-    const fichas: Ficha[] = ['camara', 'espectrometro', 'energia'],
-      w = (pw - 24) / 3
-    fichas.forEach((f, i) => {
-      const x = wScreen / 2 - pw / 2 + 12 + i * w + w / 2
-      const g = this.add.graphics({ x: x, y: y + 16 }).setScale(0.7)
-      g.fillStyle(COLOR_FICHA[f]).fillRoundedRect(-23, -23, 46, 46, 11)
-      cont.add(g)
-      const ic = this.add.graphics({ x: x, y: y + 16 }).setScale(0.7)
-      dibujarIcono(ic, f)
-      cont.add(ic)
-      cont.add(
-        this.add
-          .text(x, y + 36, `${NOMBRE[f]} ✓`, {
-            fontFamily: 'sans-serif',
-            fontSize: '10px',
-            fontStyle: 'bold',
-            color: css(PALETA.blancoPuro),
-          })
-          .setOrigin(0.5, 0),
-      )
+    this.panel.mostrarResumen({
+      ganado,
+      titulo: ganado ? `${nombre}: done` : `${nombre}: out of moves`,
+      lineas: reglas.resumen(ganado),
+      puntos: r.puntos,
+      practica: ajustes.practice,
+      onContinuar: () => entregar(true),
+      onReintentar: () => this.reiniciarPartida(),
+      onSalir: () => entregar(false),
     })
-
-    const fila = (
-      yy: number,
-      encendido: boolean,
-      titulo: string,
-      detalle: string,
-      subdetalle: string,
-    ) => {
-      const baseX = wScreen / 2 - pw / 2 + 16
-      const g = this.add.graphics()
-      g.fillStyle(encendido ? PALETA.verdeExito : PALETA.grisSecundario, encendido ? 1 : 0.4).fillCircle(
-        baseX + 16,
-        yy + 12,
-        9,
-      )
-      if (encendido)
-        g.lineStyle(2, PALETA.amarilloFicha, 0.9).strokeCircle(baseX + 16, yy + 12, 13)
-      cont.add(g)
-      cont.add(
-        this.add.text(baseX + 34, yy, titulo, {
-          fontFamily: 'sans-serif',
-          fontSize: '12.5px',
-          fontStyle: 'bold',
-          color: css(encendido ? PALETA.verdeExito : PALETA.grisSecundario),
-        }),
-      )
-      cont.add(
-        this.add.text(baseX + 34, yy + 17, detalle, {
-          fontFamily: 'sans-serif',
-          fontSize: '10.5px',
-          color: css(PALETA.blancoCalido),
-          wordWrap: { width: pw - 60 },
-        }),
-      )
-      cont.add(
-        this.add.text(baseX + 34, yy + 33, subdetalle, {
-          fontFamily: 'sans-serif',
-          fontSize: '9.5px',
-          color: css(encendido ? PALETA.arena : PALETA.grisSecundario),
-          wordWrap: { width: pw - 60 },
-        }),
-      )
-    }
-
-    fila(
-      y + 60,
-      true,
-      es ? 'AGUA ANTIGUA: Confirmada' : 'ANCIENT WATER: Confirmed',
-      es
-        ? 'Esferas de hematita ("blueberries") y vetas de yeso.'
-        : 'Hematite spherules ("blueberries") & gypsum veins.',
-      es
-        ? 'Minerales depositados por agua líquida subterránea.'
-        : 'Minerals formed through circulating liquid water.',
-    )
-
-    fila(
-      y + 130,
-      false,
-      es ? 'VIDA: Sin pruebas (en gris)' : 'LIFE: No evidence (grayed out)',
-      es
-        ? 'Opportunity no encontró vida ni fósiles biológicos.'
-        : 'Opportunity found neither life nor biological fossils.',
-      es
-        ? 'Tener agua antigua NO demuestra la existencia de vida.'
-        : 'Ancient water does NOT demonstrate life existed.',
-    )
   }
 
   // ---------- pausa / reanudar / limpiar ----------
@@ -1484,6 +790,7 @@ export class OpportunityScene extends Phaser.Scene {
   }
 
   limpiar() {
+    this.panel?.destruir()
     this.modalCont?.destroy()
     this.modalCont = null
     this.sfx?.detener()

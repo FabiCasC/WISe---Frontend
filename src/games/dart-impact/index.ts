@@ -4,6 +4,7 @@ import { createSfx } from '../shared/audio'
 import { createInput, createLoop } from '../shared/loop'
 import { createRng } from '../shared/rng'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import {
   DIDYMOS_RADIUS_M,
   ORBIT_RADIUS_M,
@@ -100,6 +101,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
   const accent = card?.accent ?? '#C9A227'
   const stage = createStage(container, { width: W, height: H, accent })
+  stage.setGlossary(TERMS)
   const input = createInput(stage.root)
   const startedAt = performance.now()
 
@@ -316,10 +318,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       text:
         reason +
         ' Momentum only counts along the direction of travel: release so that you meet the moonlet while its arrow points back at you, and the impact takes speed away instead of wasting it sideways.',
-      fact: card?.fact,
       buttons: [
         { label: 'Fly it again', onClick: startLevel },
-        { label: 'Back to the portal', variant: 'quiet', onClick: () => ctx.onExit() },
+        { label: 'Back to the portal', variant: 'quiet', onClick: () => complete(false, 0) },
       ],
     })
   }
@@ -342,7 +343,6 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     else sfx.tone(300, 260, 'sawtooth', 0.18)
 
     const grade = hitGrade(result.alignment)
-    const detail = cut > 0 ? cut.toFixed(1) + ' min shorter' : Math.abs(cut).toFixed(1) + ' min longer'
 
     const explain =
       grade === 'wrong way'
@@ -353,26 +353,26 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
             ? 'A good hit, but off-axis: part of those 570 kg pushed sideways and did nothing. Meet it squarely and the same spacecraft cuts more.'
             : 'Square on the nose, against its travel. Every kilogram went into slowing it down.'
 
-    const ejectaNote =
-      ' The spacecraft alone carried ' +
-      (result.deltaVMs * 1000).toFixed(2) +
-      ' mm/s of kick, but the debris blasted off the surface flew away and pushed back: that ejecta multiplied the effect about ' +
-      cfg.beta.toFixed(1) +
-      ' times.'
+    const star = (v: boolean) => (v ? '★' : '☆')
+    const lines = [
+      `Your hit ${cut > 0 ? `shortened the orbit by ${cut.toFixed(1)} min` : `made the orbit ${Math.abs(cut).toFixed(1)} min longer`}; this level needed ${cfg.requiredMin} min. You used ${shotsUsed} of ${cfg.shots} impactors.`,
+      explain,
+      passed
+        ? `The spacecraft alone gave ${(result.deltaVMs * 1000).toFixed(2)} mm/s of kick; the ejecta pushed back and multiplied it about ${cfg.beta.toFixed(1)} times.`
+        : `Without the ejecta bonus the spacecraft alone gives only ${(result.deltaVMs * 1000).toFixed(2)} mm/s: aim so the hit is head-on.`,
+      `Stars: ${star(passed)} orbit shortened ${star(passed && result.alignment <= -0.9)} head-on ${star(passed && shotsUsed === 1)} first shot`,
+    ]
 
     stage.showOverlay({
       title: passed ? 'Orbit shortened' : 'Not enough',
       tone: passed ? 'win' : 'lose',
-      score: ctx.settings.practice
-        ? detail + ' · ' + grade
-        : detail + ' · ' + grade + ' · ' + score + ' points',
-      text: explain + (passed ? ejectaNote : ''),
-      fact: card?.fact,
+      score: passed && !ctx.settings.practice ? score + ' points' : undefined,
+      lines,
       buttons: passed
         ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
         : [
             { label: 'Fly it again', onClick: startLevel },
-            { label: 'Back to the portal', variant: 'quiet', onClick: () => ctx.onExit() },
+            { label: 'Back to the portal', variant: 'quiet', onClick: () => complete(false, 0) },
           ],
     })
   }

@@ -71,21 +71,21 @@ export const MISSIONS: MissionCard[] = [
     levels: [
       {
         id: 1,
-        name: 'Observe',
-        goal: '12 moves · collect 6 cameras',
-        idea: 'Look before you conclude.',
+        name: 'Look first',
+        goal: '9 moves · photograph all 3 spots before touching any',
+        idea: 'Scientists photograph a rock before they disturb it.',
       },
       {
         id: 2,
-        name: 'Investigate',
-        goal: '16 moves · 6 RAT and 6 spectrometers',
-        idea: 'The dark spheres are mineral concretions, not living things.',
+        name: 'Grind, then read',
+        goal: '8 moves · grind a spot with the RAT, then read it',
+        idea: 'Dust covers the rock: grind it off before you read what it is made of.',
       },
       {
         id: 3,
-        name: 'Interpret',
-        goal: '18 moves · 6 cameras, 6 spectrometers and 6 energy',
-        idea: 'Hematite and gypsum point to ancient water, not to confirmed life.',
+        name: 'Build the case',
+        goal: '14 moves · send a report with 3 clues',
+        idea: 'One clue is not enough. Several that agree point to ancient water, not to life.',
       },
     ],
     evidence: [

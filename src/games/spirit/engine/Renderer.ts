@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { BACK_BOX, C, H, PAUSE_BOX, PLAYER_X, SKY_Y, W, hex } from './config';
-import { INSTRUCTIONS, TAKEAWAY } from './data/levels';
+import { INSTRUCTIONS } from './data/levels';
 import { SILICA_NEEDED, type GameModel } from './state';
 
 type FontKey = 'small' | 'font' | 'medium' | 'big' | 'huge';
@@ -293,7 +293,7 @@ export class Renderer {
     this.t('LEVEL COMPLETE!', 'big', C.GREEN, W / 2, 130, true);
     this.rover(455, 215);
     this.t('WHAT YOU JUST SAW', 'small', C.YELLOW, W / 2, 335, true);
-    (TAKEAWAY[m.level] ?? []).forEach((line, i) => this.t(line, 'small', C.CREAM, W / 2, 380 + i * 36, true));
+    m.recap().forEach((line, i) => this.t(line, 'small', C.CREAM, W / 2, 372 + i * 32, true));
     this.t(`Points: ${m.score}`, 'font', C.YELLOW, W / 2, 480, true);
     this.t('Press ENTER or tap to continue', 'medium', C.GREEN, W / 2, 545, true);
   }

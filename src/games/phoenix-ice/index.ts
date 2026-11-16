@@ -4,6 +4,7 @@ import { createSfx } from '../shared/audio'
 import { COLORS, drawButton, inBox, roundRect, text, toLogical, type Box } from '../shared/canvasui'
 import { createInput, createLoop } from '../shared/loop'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import {
   LEVELS,
   chunkSize,
@@ -45,6 +46,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   const sfx = createSfx(ctx.settings.volume)
 
   const stage = createStage(container, { width: W, height: H, accent: card?.accent ?? '#9fd8ff' })
+  stage.setGlossary(TERMS)
   const input = createInput(stage.root)
   const c = stage.ctx
   const startedAt = performance.now()
@@ -57,6 +59,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let settled = false
   let armT = 0
   let lastMsg = ''
+  let deliveries = 0
+  let deliveriesOk = 0
+  let labelsRight = 0
+  let labelsTotal = 0
   const decisions: { concept: string; correct: boolean }[] = []
 
   const n = spec.columns.length
@@ -70,6 +76,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     s = createState(spec)
     selected = 0
     lastMsg = ''
+    deliveries = 0
+    deliveriesOk = 0
+    labelsRight = 0
+    labelsTotal = 0
     tries++
     phase = 'playing'
     stage.hideOverlay()
@@ -107,6 +117,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     const r = deliver(spec, s, selected, practice)
     if (r.state === s) return say(r.message, false)
     s = r.state
+    deliveries++
+    if (r.ok) deliveriesOk++
     if (!practice) decisions.push({ concept, correct: r.ok })
     if (r.ok) sfx.sweep(600, 1200, 300, 'triangle', 0.16)
     else sfx.tone(200, 260, 'sawtooth', 0.12)
@@ -133,6 +145,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     const res = labelResults(s)
     if (!practice) for (const r of res) decisions.push({ concept, correct: r.correct })
     const won = res.every((r) => r.correct)
+    labelsTotal = res.length
+    labelsRight = res.filter((r) => r.correct).length
     end(won, res.filter((r) => r.correct).length + ' of ' + res.length + ' chunks labeled right')
   }
 
@@ -153,31 +167,34 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     else sfx.sweep(320, 110, 400, 'sawtooth', 0.16)
     const lesson =
       levelKey === 1
-        ? 'Phoenix scientists saw three bright clumps in a trench vanish in four days. Ice on Mars turns straight into gas in the thin, dry air. Something that stays, like a salt crust, cannot be ice.'
+        ? 'Ice turns straight into gas (sublimation): chunks that shrank and vanished with the sols were ice, the ones that stayed were salt.'
         : levelKey === 2
-          ? 'Phoenix’s first oven sample showed no water: it had sat in the open for several days and the ice had turned to gas. Fresh samples later confirmed water ice.'
-          : 'As summer ended, less sunlight reached the solar panels. The team switched off heaters one by one. Phoenix sent its last signal on 2 November 2008. In winter, carbon dioxide frost covered it and most likely broke a solar panel.'
-    if (won) {
-      stage.showOverlay({
-        title: levelKey === 1 ? 'Good science!' : 'Water on Mars!',
-        tone: 'win',
-        score: line + (practice ? '' : ' · ' + score + ' points'),
-        text: lesson + ' Phoenix is still there, in the arctic plains of Mars.',
-        fact: card?.fact,
-        buttons: [{ label: 'Save and continue', onClick: () => complete(true, score) }],
-      })
-    } else {
-      stage.showOverlay({
-        title: levelKey === 1 ? 'Not quite' : 'Mission over',
-        tone: 'lose',
-        score: line,
-        text: lesson,
-        buttons: [
-          { label: 'Try again', onClick: begin },
-          { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
-        ],
-      })
-    }
+          ? 'A sample that sat in the open for days has lost its ice: only a fresh sample reads water in the oven.'
+          : 'Each sol brings less light, so less energy: winter closes the time you have to do science.'
+    const detail =
+      levelKey === 1
+        ? `You labeled ${labelsRight} of ${labelsTotal} chunks right.`
+        : levelKey === 2
+          ? `You delivered ${deliveries} sample${deliveries === 1 ? '' : 's'} to the oven and ${deliveriesOk} read water.`
+          : `You got ${s.readings} water reading${s.readings === 1 ? '' : 's'} before the energy ran out.`
+    const star = (v: boolean) => (v ? '★' : '☆')
+    const lines = [
+      `${line}, after ${s.sol} sol${s.sol === 1 ? '' : 's'}. ${detail}`,
+      lesson,
+      `Stars: ${star(won)} right call ${star(won && tries === 1)} first try ${star(won && s.energy > 0)} energy left`,
+    ]
+    stage.showOverlay({
+      title: won ? (levelKey === 1 ? 'Good science!' : 'Water on Mars!') : levelKey === 1 ? 'Not quite' : 'Mission over',
+      tone: won ? 'win' : 'lose',
+      score: won && !practice ? score + ' points' : undefined,
+      lines,
+      buttons: won
+        ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
+        : [
+            { label: 'Try again', onClick: begin },
+            { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
+          ],
+    })
   }
 
   function complete(won: boolean, score: number) {

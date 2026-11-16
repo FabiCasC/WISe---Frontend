@@ -27,17 +27,25 @@ export const COLOR_ICONO: Record<Ficha, number> = {
 }
 
 export const NOMBRE: Record<Ficha, string> = {
-  camara: 'Cámara',
+  camara: 'Camera',
+  rat: 'Grinder (RAT)',
+  espectrometro: 'Chemistry reader',
+  energia: 'Battery',
+}
+
+/** Nombre corto que va escrito sobre la ficha. */
+export const ETIQUETA_FICHA: Record<Ficha, string> = {
+  camara: 'CAMERA',
   rat: 'RAT',
-  espectrometro: 'Espectrómetro',
-  energia: 'Energía',
+  espectrometro: 'READER',
+  energia: 'BATTERY',
 }
 
 export const SUBTITULO_FICHA: Record<Ficha, string> = {
-  camara: 'Observación óptica',
-  rat: 'Desbaste de roca',
-  espectrometro: 'Análisis mineral',
-  energia: 'Energía solar',
+  camara: 'Takes photos',
+  rat: 'Scrapes dust off',
+  espectrometro: 'Reads minerals',
+  energia: 'Recharges power',
 }
 
 /**

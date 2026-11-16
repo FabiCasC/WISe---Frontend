@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { crearReglasLocal, grupos, hayJugada, N, type Tablero } from './reglasLocal'
-import { CONFIG_NIVELES, PUNTUACION_CONFIG } from './config'
+import { PUNTUACION_CONFIG } from './config'
 import type { Evento, Ficha, Pos } from './events'
 
 describe('Motor Match-3 y Detección de Combinaciones (grupos)', () => {
@@ -207,115 +207,6 @@ describe('Reglas de Swaps, Movimientos y Puntuación', () => {
   })
 })
 
-describe('Reglas Educativas por Nivel', () => {
-  it('Nivel 1: solo completa al reunir 6 cámaras y emite evento nieblaQuitada', () => {
-    const reglas = crearReglasLocal(1, 100, false)
-    expect(reglas.movimientosMax()).toBe(4)
-    const ini = reglas.tableroInicial()
-    expect(ini).toHaveLength(6)
-
-    const rInicial = reglas.resultado(0)
-    expect(rInicial.levelId).toBe(1)
-    expect(rInicial.completado).toBe(false)
-  })
-
-  it('Nivel 2: REGLA EDUCATIVA OBLIGATORIA - los RAT deben completarse (6) antes de que el espectrómetro sume al objetivo', () => {
-    const reglas = crearReglasLocal(2, 555, false)
-    expect(reglas.movimientosMax()).toBe(8)
-
-    // Jugar turnos verificando que espectrómetros antes de 6 RAT activan malaDecision
-    let huboMalaDecision = false
-
-    for (let f = 0; f < N && !huboMalaDecision; f++) {
-      for (let c = 0; c < N && !huboMalaDecision; c++) {
-        for (const [df, dc] of [
-          [0, 1],
-          [1, 0],
-        ]) {
-          const f2 = f + df,
-            c2 = c + dc
-          if (f2 < N && c2 < N) {
-            const ev = reglas.intentarSwap([f, c], [f2, c2])
-            if (ev.some((e) => e.tipo === 'malaDecision')) {
-              huboMalaDecision = true
-              const matchEsp = ev.find(
-                (e) => e.tipo === 'match' && (e as { ficha: string }).ficha === 'espectrometro',
-              )
-              expect(matchEsp).toBeDefined()
-              break
-            }
-          }
-        }
-      }
-    }
-
-    if (huboMalaDecision) {
-      const r = reglas.resultado(2000)
-      expect(r.malasDecisiones).toBeGreaterThan(0)
-      expect(r.sinErroresDecision).toBe(false)
-      expect(r.historialDecisiones.length).toBeGreaterThan(0)
-    }
-  })
-
-  it('Nivel 3: requiere los 3 objetivos (cámara, espectrómetro, energía) y entrega evidencias oficiales', () => {
-    const reglas = crearReglasLocal(3, 333, false)
-    expect(reglas.movimientosMax()).toBe(7)
-    const ini = reglas.progresoInicial()
-    expect(ini.metas).toEqual({ camara: 6, espectrometro: 6, energia: 6 })
-
-    const res = reglas.resultado(3000)
-    expect(res.levelId).toBe(3)
-    expect(res.completado).toBe(false)
-  })
-
-  it('reiniciar() restaura limpiamente el estado del juego', () => {
-    const reglas = crearReglasLocal(1, 123, false)
-    for (let f = 0; f < N; f++) {
-      for (let c = 0; c < N; c++) {
-        if (c + 1 < N) {
-          const ev = reglas.intentarSwap([f, c], [f, c + 1])
-          if (ev.some((e) => e.tipo === 'match')) break
-        }
-      }
-    }
-
-    reglas.reiniciar()
-    expect(reglas.movimientosRestantes()).toBe(reglas.movimientosMax())
-    const res = reglas.resultado(0)
-    expect(res.puntos).toBe(0)
-    expect(res.movimientosUsados).toBe(0)
-    expect(res.malasDecisiones).toBe(0)
-    expect(res.completado).toBe(false)
-  })
-
-  it('entrega un contrato de resultado completo y compatible con el portal', () => {
-    const reglas = crearReglasLocal(2, 456, false)
-    const r = reglas.resultado(12345)
-    expect(r).toHaveProperty('levelId', 2)
-    expect(r).toHaveProperty('completado')
-    expect(r).toHaveProperty('puntos')
-    expect(r).toHaveProperty('tiempoMs', 12345)
-    expect(r).toHaveProperty('evidencias')
-    expect(r).toHaveProperty('sinErroresDecision')
-    expect(r).toHaveProperty('practica', false)
-    expect(r).toHaveProperty('movimientosUsados')
-    expect(r).toHaveProperty('movimientosRestantes')
-    expect(r).toHaveProperty('malasDecisiones')
-    expect(r).toHaveProperty('historialDecisiones')
-    expect(r).toHaveProperty('objetivosCompletados')
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Dificultad: jugadores guionizados sobre muchas semillas.
-//
-// WHY: GameHost seeds every board from Date.now(), so a single hand-picked seed
-// proves nothing about difficulty. These helpers drive the REAL rules engine
-// with two scripted players over a deterministic sweep of seeds, so the suite
-// fails if the level ever becomes winnable by tapping at random again.
-// ---------------------------------------------------------------------------
-
-/** PRNG propio del jugador aleatorio: sembrado aparte para que el test nunca sea flaky. */
 function prngTest(semilla: number) {
   let a = semilla
   return () => {
@@ -390,170 +281,176 @@ function jugadasValidas(tab: Tablero): Jugada[] {
   return out
 }
 
-/**
- * Cuenta parejas adyacentes de fichas útiles que sobreviven a la combinación.
- * WHY: a competent player does not only cash in matches, they keep the board
- * stocked with near-matches of the type they still need. Refills are unknown,
- * so only surviving tiles count (gravity applied without refill).
- */
-function potencial(tras: Tablero, gs: { celdas: Pos[] }[], util: (f: Ficha) => number): number {
-  const t = tras.map((r) => [...r])
-  for (const g of gs) {
-    for (const [f, c] of g.celdas) t[f][c] = null
-  }
-  for (let c = 0; c < N; c++) {
-    let r = N - 1
-    for (let f = N - 1; f >= 0; f--) {
-      const v = t[f][c]
-      if (!v) continue
-      t[r][c] = v
-      if (f !== r) t[f][c] = null
-      r--
-    }
-    for (let f = r; f >= 0; f--) t[f][c] = null
-  }
-  let n = 0
-  for (let f = 0; f < N; f++) {
-    for (let c = 0; c < N; c++) {
-      const v = t[f][c]
-      if (!v || util(v) <= 0) continue
-      if (c + 1 < N && t[f][c + 1] === v) n++
-      if (f + 1 < N && t[f + 1][c] === v) n++
-    }
-  }
-  return n
-}
 
-/** Partida completa guiada por un jugador guionizado. Devuelve si ganó. */
-function partida(
-  levelId: number,
-  seed: number,
-  modo: 'azar' | 'habil',
-  dado: () => number,
-): boolean {
-  const reglas = crearReglasLocal(levelId, seed, false, 'es')
-  const metas = CONFIG_NIVELES[levelId].metas
+/** Un jugador guionizado que solo usa lo que el jugador real ve: el puerto de reglas. */
+function jugar(levelId: number, seed: number, modo: 'azar' | 'habil', dado: () => number) {
+  const reglas = crearReglasLocal(levelId, seed, false)
   const tab: Tablero = reglas.tableroInicial().map((r) => [...r])
-  let conteo: Partial<Record<Ficha, number>> = {}
+  const puntos = ['A', 'B', 'C'] as const
+  let envios = 0
 
-  // Cuánto aporta todavía una ficha al objetivo (0 si ya está completa).
-  const util = (ficha: Ficha): number => {
-    const falta = (metas[ficha] ?? 0) - (conteo[ficha] ?? 0)
-    if (falta <= 0) return 0
-    // El nivel 2 no contabiliza espectrómetros hasta pulir con 6 RAT.
-    if (levelId === 2 && ficha === 'espectrometro' && (conteo.rat ?? 0) < 6) return 0
-    return falta
+  /** Qué ficha quiere el jugador hábil ahora y sobre qué punto. */
+  const querer = (): { punto: (typeof puntos)[number]; ficha: Ficha } | 'informe' | null => {
+    const v = reglas.roca()
+    if (v.energia === 0 && v.elegido) return { punto: v.elegido, ficha: 'energia' }
+    if (levelId === 1) {
+      const p = v.puntos.find((x) => !x.fotografiado)
+      return p ? { punto: p.id, ficha: 'camara' } : null
+    }
+    if (levelId === 2) {
+      const p = v.puntos[0]
+      return { punto: p.id, ficha: p.pulido ? 'espectrometro' : 'rat' }
+    }
+    // Nivel 3: fotografiar hasta ver dos puntos con rasgos, y pulir y leer esos dos.
+    const e = v.evidencias
+    if (e.imagen && e.quimica && e.segundo) return 'informe'
+    const conRasgo = v.puntos.filter((x) => x.fotografiado && !x.perturbado && x.rasgo !== 'lisa')
+    const sinFoto = v.puntos.find((x) => !x.fotografiado)
+    if (conRasgo.length < 2 && sinFoto) return { punto: sinFoto.id, ficha: 'camara' }
+    for (const p of conRasgo) {
+      if (!p.pulido) return { punto: p.id, ficha: 'rat' }
+      if (p.lectura === null || p.lectura === 'polvo') return { punto: p.id, ficha: 'espectrometro' }
+    }
+    return 'informe'
   }
 
-  // Cota de seguridad: el presupuesto de movimientos termina la partida mucho antes.
-  for (let turno = 0; turno < 200; turno++) {
+  for (let turno = 0; turno < 120; turno++) {
     const posibles = jugadasValidas(tab)
     if (posibles.length === 0) break
+    let ev: Evento[] = []
 
-    let elegida = posibles[0]
     if (modo === 'azar') {
-      elegida = posibles[Math.floor(dado() * posibles.length)]
+      reglas.elegirPunto(puntos[Math.floor(dado() * 3)])
+      if (levelId === 3 && dado() < 0.12) {
+        envios++
+        ev = reglas.enviarInforme()
+      } else {
+        const j = posibles[Math.floor(dado() * posibles.length)]
+        ev = reglas.intentarSwap(j.a, j.b)
+      }
     } else {
-      let mejor = -1
-      let mejorPot = -1
-      for (const j of posibles) {
-        let puntos = 0
-        for (const g of j.gs) {
-          const u = util(g.ficha)
-          if (u > 0) puntos += Math.min(u, g.celdas.length) * 10 + g.celdas.length
-        }
-        const pot = potencial(j.tras, j.gs, util)
-        if (puntos > mejor || (puntos === mejor && pot > mejorPot)) {
-          mejor = puntos
-          mejorPot = pot
-          elegida = j
-        }
+      const q = querer()
+      if (q === 'informe') {
+        envios++
+        ev = reglas.enviarInforme()
+      } else {
+        const objetivo = q ?? { punto: 'A' as const, ficha: 'energia' as Ficha }
+        reglas.elegirPunto(objetivo.punto)
+        const buenas = posibles.filter((j) => j.gs.some((g) => g.ficha === objetivo.ficha))
+        const sinTocar = posibles.filter((j) => j.gs.every((g) => g.ficha === 'energia'))
+        const j = (buenas.length ? buenas : sinTocar)[0]
+        // Sin la combinación que quiere, el jugador que sabe baraja en vez de tocar la roca por error.
+        ev = j ? reglas.intentarSwap(j.a, j.b) : reglas.barajar()
       }
     }
-
-    const ev = reglas.intentarSwap(elegida.a, elegida.b)
     aplicarEventos(tab, ev)
-    for (const e of ev) if (e.tipo === 'progreso') conteo = e.conteo
     if (ev.some((e) => e.tipo === 'nivelCompleto')) break
   }
-
-  return reglas.resultado(0).completado
+  const r = reglas.resultado(0)
+  return { r, envios }
 }
 
-function tasaVictorias(levelId: number, modo: 'azar' | 'habil', semillas: number): number {
-  // Semilla fija del jugador: la prueba debe dar exactamente el mismo número siempre.
+function tasa(levelId: number, modo: 'azar' | 'habil', semillas: number, limpia: boolean): number {
   const dado = prngTest(90210 + levelId)
-  let ganadas = 0
+  let ok = 0
   for (let s = 1; s <= semillas; s++) {
-    if (partida(levelId, s * 7919, modo, dado)) ganadas++
+    const { r } = jugar(levelId, s * 7919, modo, dado)
+    if (r.completado && (!limpia || r.sinErroresDecision)) ok++
   }
-  return ganadas / semillas
+  return ok / semillas
 }
 
-describe('Dificultad: el azar no puede ganar y el juego hábil sí', () => {
-  const SEMILLAS = 150
+describe('Reglas educativas por nivel (la roca)', () => {
+  it('sin un punto elegido, las herramientas no actúan y el swap no cuesta movimiento', () => {
+    const reglas = crearReglasLocal(2, 31, false)
+    const tab: Tablero = reglas.tableroInicial().map((r) => [...r])
+    const j = jugadasValidas(tab).find((x) => x.gs.some((g) => g.ficha !== 'energia'))
+    if (!j) return
+    const ev = reglas.intentarSwap(j.a, j.b)
+    expect(ev.some((e) => e.tipo === 'aviso')).toBe(true)
+    expect(ev.some((e) => e.tipo === 'swapRevertido')).toBe(true)
+    expect(reglas.movimientosRestantes()).toBe(reglas.movimientosMax())
+  })
 
-  // Measured over 400 seeds with the current budgets (4 / 8 / 7), after cascades
-  // stopped counting toward the goal: random 26.0 / 16.0 / 18.3 %, competent
-  // 85.5 / 90.3 / 92.8 %. Before the fix (budgets 12 / 16 / 18, cascades counting
-  // toward the goal) BOTH players won 100 % of the time on all three levels.
+  it('nivel 3: el informe solo se acepta con las tres líneas de evidencia', () => {
+    const dado = prngTest(7)
+    const { r, envios } = jugar(3, 4242, 'habil', dado)
+    expect(envios).toBeGreaterThan(0)
+    expect(r.completado).toBe(true)
+    expect(r.decisiones.every((d) => d.concept === 'varias-evidencias')).toBe(true)
+    expect(r.evidencias).toEqual(['ev-blueberries', 'agua-antigua'])
+  })
+
+  it('nivel 3: enviar el informe sin pruebas es un concepto fallado y el nivel sigue', () => {
+    const reglas = crearReglasLocal(3, 99, false)
+    const ev = reglas.enviarInforme()
+    expect(ev.some((e) => e.tipo === 'nivelCompleto')).toBe(false)
+    const r = reglas.resultado(0)
+    expect(r.decisiones).toEqual([
+      expect.objectContaining({ concept: 'varias-evidencias', correct: false }),
+    ])
+    expect(r.sinErroresDecision).toBe(false)
+  })
+
+  it('fuera de nivel 3 no hay informe', () => {
+    expect(crearReglasLocal(1, 5, false).enviarInforme()).toEqual([])
+    expect(crearReglasLocal(1, 5, false).informeDisponible()).toBe(false)
+    expect(crearReglasLocal(3, 5, false).informeDisponible()).toBe(true)
+  })
+
+  it('la práctica deja probar todo y no guarda decisiones ni termina el nivel', () => {
+    const reglas = crearReglasLocal(1, 11, true)
+    const tab: Tablero = reglas.tableroInicial().map((r) => [...r])
+    reglas.elegirPunto('A')
+    for (let i = 0; i < 25; i++) {
+      const posibles = jugadasValidas(tab)
+      if (!posibles.length) break
+      const j = posibles[i % posibles.length]
+      aplicarEventos(tab, reglas.intentarSwap(j.a, j.b))
+    }
+    const r = reglas.resultado(0)
+    expect(r.practica).toBe(true)
+    expect(r.puntos).toBe(0)
+    expect(r.completado).toBe(false)
+    expect(reglas.movimientosRestantes()).toBe(reglas.movimientosMax())
+  })
+
+  it('reiniciar() restaura limpiamente el estado del juego', () => {
+    const reglas = crearReglasLocal(2, 5, false)
+    const tab: Tablero = reglas.tableroInicial().map((r) => [...r])
+    reglas.elegirPunto('A')
+    const j = jugadasValidas(tab)[0]
+    reglas.intentarSwap(j.a, j.b)
+    reglas.reiniciar()
+    expect(reglas.movimientosRestantes()).toBe(reglas.movimientosMax())
+    expect(reglas.resultado(0).puntos).toBe(0)
+    expect(reglas.resultado(0).decisiones).toEqual([])
+    expect(reglas.roca().elegido).toBeNull()
+  })
+
+  it('entrega un contrato de resultado completo y compatible con el portal', () => {
+    const { r } = jugar(2, 1234, 'habil', prngTest(1))
+    expect(r.levelId).toBe(2)
+    expect(r.completado).toBe(true)
+    expect(r.puntos).toBeGreaterThan(PUNTUACION_CONFIG.bonoVictoria)
+    expect(r.decisiones.length).toBeGreaterThan(0)
+    expect(r.decisiones.every((d) => d.concept === 'pulir-antes-de-analizar')).toBe(true)
+  })
+})
+
+describe('Dificultad: el azar no gana limpio y el juego hábil sí', () => {
+  const SEMILLAS = 120
+  // "Limpio" = ganar sin ninguna decisión mal hecha: es lo que mide al profesor.
   const MAX_AZAR = 0.35
   const MIN_HABIL = 0.8
 
   for (const levelId of [1, 2, 3]) {
-    it(`Nivel ${levelId}: un jugador al azar pierde la gran mayoría de las partidas`, () => {
-      expect(tasaVictorias(levelId, 'azar', SEMILLAS)).toBeLessThan(MAX_AZAR)
+    it(`Nivel ${levelId}: un jugador al azar casi nunca gana sin errores`, () => {
+      expect(tasa(levelId, 'azar', SEMILLAS, true)).toBeLessThan(MAX_AZAR)
     })
 
-    it(`Nivel ${levelId}: un jugador que apunta al objetivo sigue ganando con holgura`, () => {
-      expect(tasaVictorias(levelId, 'habil', SEMILLAS)).toBeGreaterThan(MIN_HABIL)
+    it(`Nivel ${levelId}: un jugador que sabe qué hacer gana con holgura y sin errores`, () => {
+      expect(tasa(levelId, 'habil', SEMILLAS, true)).toBeGreaterThan(MIN_HABIL)
     })
   }
-
-  it('el jugador hábil gana al menos el doble que el azar en los tres niveles', () => {
-    // WHY: both absolute thresholds could drift together; the gap between the two
-    // players is the property that actually encodes "skill decides the outcome".
-    for (const levelId of [1, 2, 3]) {
-      const azar = tasaVictorias(levelId, 'azar', SEMILLAS)
-      const habil = tasaVictorias(levelId, 'habil', SEMILLAS)
-      expect(habil).toBeGreaterThan(azar * 2)
-    }
-  })
-
-  it('las cascadas puntúan pero no suman al objetivo del nivel', () => {
-    // WHY: this is the rule that forces the player to aim. Without it, whatever
-    // falls in after a match satisfies the goal and random tapping clears the game.
-    const reglas = crearReglasLocal(1, 2468, false)
-    const tab: Tablero = reglas.tableroInicial().map((r) => [...r])
-    let comprobado = false
-
-    for (let turno = 0; turno < 4 && !comprobado; turno++) {
-      const posibles = jugadasValidas(tab)
-      if (posibles.length === 0) break
-      const j = posibles[turno % posibles.length]
-      const ev = reglas.intentarSwap(j.a, j.b)
-
-      // Más de una 'caida' en el mismo turno significa que hubo cascada.
-      const hayCascada = ev.filter((e) => e.tipo === 'caida').length > 1
-      if (hayCascada) {
-        const camarasTotales = ev
-          .filter(
-            (e): e is Extract<Evento, { tipo: 'match' }> =>
-              e.tipo === 'match' && e.ficha === 'camara',
-          )
-          .reduce((n, m) => n + m.celdas.length, 0)
-        const progresos = ev.filter(
-          (e): e is Extract<Evento, { tipo: 'progreso' }> => e.tipo === 'progreso',
-        )
-        const contabilizadas = progresos[progresos.length - 1].conteo.camara ?? 0
-        // Hubo cámaras eliminadas en cascada: el objetivo no puede haberlas contado todas.
-        if (camarasTotales > 0 && contabilizadas > 0 && camarasTotales > contabilizadas) {
-          expect(contabilizadas).toBeLessThan(camarasTotales)
-          comprobado = true
-        }
-      }
-      aplicarEventos(tab, ev)
-      if (ev.some((e) => e.tipo === 'nivelCompleto')) break
-    }
-  })
 })

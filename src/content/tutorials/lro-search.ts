@@ -11,6 +11,12 @@ export default {
     { keys: ['B'], does: 'Level 3: hold it to see the old 1967 photo', touch: 'Hold the button' },
   ],
   parts: [
+    { name: 'LRO', meaning: 'The Lunar Reconnaissance Orbiter: a NASA probe that circles the Moon and photographs it. You use its pictures.' },
+    { name: 'Descent stage', meaning: 'The bottom part of the lunar module. It stayed on the Moon, so LRO can still see it.' },
+    { name: 'ALSEP', meaning: 'The set of experiments the astronauts left working on the surface.' },
+    { name: 'Shadow', meaning: 'The dark area behind an object. It is longer when the Sun is low.' },
+    { name: 'Footprints', meaning: 'The path the astronauts walked. From orbit it shows as a difference in brightness, best with a high Sun.' },
+    { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button shows all of them.' },
     { name: 'Sun height', meaning: 'How high the Sun is in that pass. A low Sun makes long shadows, so tall things stand out. A high Sun makes short shadows and shows differences in brightness, like footpaths.' },
     { name: 'Passes', meaning: 'How many orbit passes you have. Each pass is one picture, so choose well.' },
     { name: 'Looking for', meaning: 'What you must find now: a lander stage, an experiment, a footpath…' },

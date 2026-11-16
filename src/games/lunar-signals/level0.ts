@@ -13,17 +13,24 @@ import { circleIntersections, dist, spDelay, type Vec } from './rules'
  * decisions, so it cannot change the player's results.
  */
 
-interface Choice {
-  readonly label: string
-  readonly correct: boolean
-  readonly why: string
+/** Practice is learned by doing: a slider the player sets and the game tests. No multiple choice. */
+interface SliderTask {
+  prompt: string
+  min: number
+  max: number
+  step: number
+  start: number
+  show(v: number): string
+  check(v: number): { ok: boolean; text: string }
 }
 type Tone = '' | 'ok'
 
 interface StepApi {
   scene: HTMLElement
   say(text: string, tone?: Tone): void
-  ask(question: string, options: readonly Choice[]): void
+  task(t: SliderTask): void
+  /** The lesson is done: unlocks "Next". */
+  done(): void
 }
 /** A step builds its scene and may return a per-frame tick. */
 type Step = (api: StepApi) => ((dtMs: number) => void) | undefined
@@ -161,37 +168,45 @@ export function buildLevel0(env: Env, onFinish: () => void): LevelRun {
   env.stage.append(root)
 
   const say = (text: string, tone: Tone = '') => {
-    bubble.textContent = text
+    env.decorate(bubble, text)
     bubble.className = `ls-bubble${tone ? ` is-${tone}` : ''}`
   }
 
-  /** Multiple choice. A wrong answer costs nothing; the right one unlocks "Next". */
-  const ask = (question: string, options: readonly Choice[]) => {
+  /** A slider the player sets and tests. A wrong test costs nothing; a right one unlocks "Next". */
+  const task = (t: SliderTask) => {
     quiz.replaceChildren()
-    const row = el('div', 'ls-choices')
-    for (const o of options) {
-      const b = el('button', 'btn btn--ghost ls-choice', o.label)
-      b.type = 'button'
-      b.addEventListener('click', () => {
-        if (o.correct) {
-          env.sfx.ok()
-          b.classList.add('is-right')
-          for (const x of row.querySelectorAll('button')) x.disabled = true
-          say(o.why, 'ok')
-          next.disabled = false
-        } else {
-          env.sfx.bad()
-          b.classList.add('is-wrong')
-          b.disabled = true
-          say(o.why)
-        }
-      })
-      row.append(b)
-    }
-    quiz.append(el('p', 'ls-question', question), row)
+    const prompt = el('p', 'ls-question')
+    env.decorate(prompt, t.prompt)
+    const slider = el('input', 'ls-slider')
+    slider.type = 'range'
+    slider.min = String(t.min)
+    slider.max = String(t.max)
+    slider.step = String(t.step)
+    slider.value = String(t.start)
+    slider.setAttribute('aria-label', 'Practice marker')
+    const readout = el('p', 'ls-readout', t.show(t.start))
+    slider.addEventListener('input', () => {
+      readout.textContent = t.show(Number(slider.value))
+    })
+    const test = el('button', 'btn btn--primary', 'Test my marker')
+    test.type = 'button'
+    test.addEventListener('click', () => {
+      const r = t.check(Number(slider.value))
+      say(r.text, r.ok ? 'ok' : '')
+      if (r.ok) {
+        env.sfx.ok()
+        slider.disabled = true
+        test.disabled = true
+        next.disabled = false
+      } else env.sfx.bad()
+    })
+    quiz.append(prompt, slider, readout, test)
+  }
+  const done = () => {
+    next.disabled = false
   }
 
-  const api: StepApi = { scene, say, ask }
+  const api: StepApi = { scene, say, task, done }
 
   // ── Lesson 1: an echo with sound ──
   const soundStep: Step = (a) => {
@@ -208,7 +223,16 @@ export function buildLevel0(env: Env, onFinish: () => void): LevelRun {
         if (asked) return
         asked = true
         a.say(COPY.l0.sound.landed)
-        a.ask(COPY.l0.sound.question, COPY.l0.sound.options)
+        a.task({
+          prompt: COPY.l0.sound.task,
+          min: 0, max: 1500, step: 10, start: 200,
+          show: (v) => `Cliff marker at ${v} m`,
+          check: (v) => {
+            const echo = (2 * v) / 340
+            if (Math.abs(echo - COPY.l0.sound.target) <= 0.1) return { ok: true, text: COPY.l0.sound.ok }
+            return { ok: false, text: echo < COPY.l0.sound.target ? COPY.l0.sound.near(fmt(echo, 1)) : COPY.l0.sound.far(fmt(echo, 1)) }
+          },
+        })
       },
     })
   }
@@ -228,7 +252,16 @@ export function buildLevel0(env: Env, onFinish: () => void): LevelRun {
         if (asked) return
         asked = true
         a.say(COPY.l0.light.landed)
-        a.ask(COPY.l0.light.question, COPY.l0.light.options)
+        a.task({
+          prompt: COPY.l0.light.task,
+          min: 0, max: 600000, step: 5000, start: 50000,
+          show: (v) => `Moon marker at ${v.toLocaleString('en-US')} km`,
+          check: (v) => {
+            const echo = (2 * v) / 299_792
+            if (Math.abs(echo - COPY.l0.light.target) <= 0.05) return { ok: true, text: COPY.l0.light.ok }
+            return { ok: false, text: echo < COPY.l0.light.target ? COPY.l0.light.near(fmt(echo, 2)) : COPY.l0.light.far(fmt(echo, 2)) }
+          },
+        })
       },
     })
   }
@@ -240,6 +273,7 @@ export function buildLevel0(env: Env, onFinish: () => void): LevelRun {
     const SPEEDUP = 4
     const EPI: Vec = { x: 10, y: 25 }
     a.say(COPY.l0.waves.intro)
+    a.scene.dataset.step = 'waves'
 
     const svg = sv('svg', { viewBox: '0 0 100 50', class: 'ls-wavemap', role: 'img', 'aria-label': COPY.l0.waves.aria })
     sv('rect', { x: 0, y: 0, width: 100, height: 50, rx: 4, class: 'ls-map__bg' }, svg)
@@ -250,6 +284,7 @@ export function buildLevel0(env: Env, onFinish: () => void): LevelRun {
     env.name(epi, COPY.names.epicenter)
 
     interface Slot {
+      x: number
       d: number
       pLine: SVGTextElement
       sLine: SVGTextElement
@@ -268,12 +303,27 @@ export function buildLevel0(env: Env, onFinish: () => void): LevelRun {
       const sLine = sv('text', { x, y: EPI.y + 11.5, class: 'ls-wavetext ls-wavetext--s' }, g)
       const gapLine = sv('text', { x, y: EPI.y + 16.5, class: 'ls-wavetext ls-wavetext--gap' }, g)
       env.name(g, label)
-      return { d: x - EPI.x, pLine, sLine, gapLine, pDone: false, sDone: false }
+      return { x, d: Math.abs(x - EPI.x), pLine, sLine, gapLine, pDone: false, sDone: false }
     })
 
     const button = el('button', 'btn btn--primary', COPY.l0.waves.button)
     button.type = 'button'
-    a.scene.append(svg, button)
+    const quakeSlider = el('input', 'ls-slider')
+    quakeSlider.type = 'range'
+    quakeSlider.min = '5'
+    quakeSlider.max = '95'
+    quakeSlider.step = '1'
+    quakeSlider.value = String(EPI.x)
+    quakeSlider.setAttribute('aria-label', 'Quake position')
+    const placeQuake = () => {
+      EPI.x = Number(quakeSlider.value)
+      epi.setAttribute('cx', String(EPI.x))
+      epiLabel.setAttribute('x', String(EPI.x))
+    }
+    quakeSlider.addEventListener('input', placeQuake)
+    const taskText = el('p', 'ls-question')
+    env.decorate(taskText, COPY.l0.waves.task)
+    a.scene.append(svg, taskText, quakeSlider, button)
 
     let waves: { t: number; p: SVGCircleElement; s: SVGCircleElement } | null = null
     let asked = false
@@ -289,14 +339,27 @@ export function buildLevel0(env: Env, onFinish: () => void): LevelRun {
     }
     const land = () => {
       if (asked) return
-      asked = true
-      a.say(COPY.l0.waves.landed)
-      a.ask(COPY.l0.waves.question, COPY.l0.waves.options)
+      const near = slots[0]
+      const far = slots[1]
+      if (near && far && far.d < near.d) {
+        asked = true
+        a.say(COPY.l0.waves.win, 'ok')
+        env.sfx.ok()
+        quakeSlider.disabled = true
+        button.disabled = true
+        a.done()
+      } else {
+        a.say(COPY.l0.waves.lose)
+        env.sfx.bad()
+      }
+      waves = null
     }
 
     button.addEventListener('click', () => {
       if (waves) return
+      placeQuake()
       for (const s of slots) {
+        s.d = Math.abs(s.x - EPI.x)
         s.pDone = false
         s.sDone = false
         s.pLine.textContent = ''
@@ -402,7 +465,8 @@ export function buildLevel0(env: Env, onFinish: () => void): LevelRun {
         if (!env.reducedMotion) svg.classList.add('is-quake')
         env.sfx.ok()
         a.say(COPY.l0.circles.three, 'ok')
-        a.ask(COPY.l0.circles.question, COPY.l0.circles.options)
+        a.say(COPY.l0.circles.ready, 'ok')
+        a.done()
         button.textContent = COPY.l0.circles.done
         return
       }

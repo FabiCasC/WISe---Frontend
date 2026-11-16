@@ -409,19 +409,19 @@ export const ARCADE: ArcadeCard[] = [
   {
     gameId: 'nasa-numbers',
     title: 'NASA Number Mission',
-    kicker: 'Number puzzle · Apollo 15 and the Moon',
+    kicker: 'Find the beacon · halving, margins and the laser echo',
     genre: 'Number puzzle',
     fact:
       'Apollo 15 landed on the Moon on 30 July 1971 and left a science station that was shut down on 30 September 1977. It also left a laser retroreflector with 300 corner cubes that needs no power and is still used today. A laser pulse takes about 2.5 seconds to go from Earth to the Moon and back, and the Moon is about 384,400 km away on average.',
     dramatization:
-      'The guessing game, the attempts, the hints and the points are game rules. Some answers are rounded or accepted within a margin to keep play simple; the mission log after each question shows NASA’s exact value. The order of the questions is shuffled for each run.',
+      'The probe called Dawn, the beacon positions, the scans, the noise of the readings, the echo times of each round and the points are game rules the game invents. The speed of light and the Moon distance are real values.',
     learning: 'The numbers behind a mission are measured, and you can narrow down any number by halving the range.',
     accent: '#6DE2F2',
     durationMin: [3, 5],
     levels: [
-      { id: 1, name: 'Launch Pad', goal: '5 questions about Apollo 15 · reach 3 correct' },
-      { id: 2, name: 'Mission Control', goal: '5 years and measurements · reach 3 correct' },
-      { id: 3, name: 'Deep Space', goal: '5 connected numbers about the Moon · reach 3 correct' },
+      { id: 1, name: 'Halving the range', goal: 'Find 5 hidden beacons with limited scans · find 3' },
+      { id: 2, name: 'Margin of error', goal: 'Mark an interval that holds the real spot · 3 of 5' },
+      { id: 3, name: 'Echo to distance', goal: 'Turn the laser echo time into the distance to the Moon · 3 of 5' },
     ],
     evidence: [
       {

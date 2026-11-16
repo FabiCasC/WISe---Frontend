@@ -15,6 +15,13 @@ export default {
     { name: 'Battery', meaning: 'Ingenuity charged a solar panel and could fly about 90 seconds a day. Climbing hard uses more power.' },
     { name: 'Goal', meaning: 'What to do this level: reach a height, photograph the rocks, or land at the new base.' },
     { name: 'NAV', meaning: 'Ingenuity’s camera needs ground with texture, like pebbles. Over smooth sand ripples it gets lost.' },
+    { name: 'Rotor', meaning: 'The blades that spin to push air downward and lift the helicopter.' },
+    { name: 'Revolutions per minute (rpm)', meaning: 'How many turns the rotor makes in one minute. On Mars it needs many more than on Earth.' },
+    { name: 'Lift', meaning: 'The force that pushes the helicopter up. It needs enough air to push on.' },
+    { name: 'Thin air', meaning: 'Very little air to push on, so the rotor must spin much faster to lift the same weight.' },
+    { name: 'Navigation camera', meaning: 'The camera that looks at the ground to know how the helicopter is moving. Smooth ground gives it nothing to follow.' },
+    { name: 'Sol', meaning: 'One day on Mars. The helicopter flew about once per sol.' },
+    { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button shows all of them.' },
   ],
   steps: [
     { text: 'Press Start the rotors. Hold ↑ to spin the blades faster. Watch Rotor speed.', keys: ['ArrowUp', 'KeyW', 'Space'] },

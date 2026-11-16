@@ -15,6 +15,9 @@ export default {
     { name: 'Clock', meaning: 'The game speeds up time high in the sky and slows it down near the ground, so you can react when it matters.' },
     { name: 'Heat shield', meaning: 'Does the first big braking and drops off by itself.' },
     { name: 'Parachute', meaning: 'Slows you a lot, but if you open it while you are still too fast, it tears.' },
+    { name: 'Cord (tether)', meaning: 'The rope that holds the lander to its parachute. It is cut before the ground.' },
+    { name: 'Thin air', meaning: 'Very little air, so it brakes very little. That is why the parachute alone is not enough on Mars.' },
+    { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button shows all of them.' },
     { name: 'Rockets and airbags', meaning: 'Mars air is very thin, so a parachute is not enough. Rockets brake the last part, and airbags cushion the bounce.' },
   ],
   steps: [

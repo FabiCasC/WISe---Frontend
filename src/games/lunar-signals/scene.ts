@@ -1,6 +1,9 @@
 import type { GameContext, GameController } from '../../shared/types'
+import { createGlossary } from '../shared/glossary'
+import { showRecap } from '../shared/recap'
+import { TERMS } from './terms'
 import { getMission } from '../../content/missions'
-import { COPY, FICHA_SOURCE_URL } from './copy'
+import { COPY } from './copy'
 import { createNameTags, el, type Env, type LevelRun } from './dom'
 import { buildLevel0 } from './level0'
 import { buildLevel1 } from './level1'
@@ -44,18 +47,25 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
   head.append(headTitle, headText)
   const setHead = (h: { title: string; text: string }) => {
     headTitle.textContent = h.title
-    headText.textContent = h.text
+    gl.decorate(headText, h.text)
   }
 
   const stage = el('div', 'ls-stage')
   const end = el('section', 'ls-end')
   end.hidden = true
 
+  const helpBtn = el('button', 'gl-help', '?')
+  helpBtn.type = 'button'
+  helpBtn.setAttribute('aria-label', 'Help: what the words mean')
+
   const pauseLayer = el('div', 'ls-pause', 'Paused')
   pauseLayer.setAttribute('role', 'status')
 
-  root.append(style, head, stage, end, pauseLayer)
+  root.append(style, head, stage, end, pauseLayer, helpBtn)
   container.append(root)
+  const gl = createGlossary(root, TERMS)
+  helpBtn.addEventListener('click', () => gl.openHelp())
+  gl.decorate(headText, intro.text)
 
   // Touch an object and its name shows for a moment.
   const tags = createNameTags(root)
@@ -80,29 +90,21 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
     })
   }
 
-  /** Shared tail of both endings: conclusion text plus the sealing button. */
-  const closeWith = (text: string, label: string, ok: boolean) => {
+  /** Shared tail of both endings: the recap card, built from what the player did. */
+  const closeWith = (lines: string[], label: string, ok: boolean) => {
     finished = true
     stage.inert = true // the attempt is over: no more fiddling with the sliders
-    end.replaceChildren(el('p', '', text))
-    end.classList.toggle('is-failed', !ok)
-
-    if (ok && ctx.levelId === 3) {
-      const ficha = el('div', 'ls-ficha')
-      const link = el('a', '', COPY.ficha.link)
-      link.href = FICHA_SOURCE_URL
-      link.target = '_blank'
-      link.rel = 'noreferrer noopener'
-      ficha.append(el('h3', '', COPY.ficha.title), el('p', '', COPY.ficha.text), link)
-      end.append(ficha)
-    }
-
-    const seal = el('button', 'btn btn--primary', label)
-    seal.type = 'button'
-    seal.addEventListener('click', complete)
-    end.append(seal)
-    end.hidden = false
-    seal.focus()
+    const extra = ok
+      ? `You needed ${metrics.attempts} check${metrics.attempts === 1 ? '' : 's'}, ${wrong} of them wrong. Stars: ${ok ? '★' : '☆'} concept ${wrong === 0 ? '★' : '☆'} no wrong checks ${activeMs <= 90_000 ? '★' : '☆'} under 90 s.`
+      : `You made ${wrong} wrong checks in ${Math.round(activeMs / 1000)} s.`
+    showRecap(gl, {
+      won: ok,
+      title: ok ? 'Level complete' : 'Out of attempts',
+      lines: [...lines, extra].slice(0, 4),
+      points: ok ? Math.max(MIN_SCORE, BASE_SCORE - WRONG_PENALTY * wrong) : null,
+      practice: ctx.settings.practice,
+      buttons: [{ label, main: true, onClick: complete }],
+    })
   }
 
   const env: Env = {
@@ -119,14 +121,17 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
       if (log.failed && !finished) {
         failed = true
         sfx.bad()
-        closeWith(COPY.failed, COPY.sealFailed, false)
+        closeWith([COPY.failed], COPY.sealFailed, false)
       }
       return log.left
     },
-    finish(conclusion) {
+    finish(lines) {
       if (finished) return
       sfx.done()
-      closeWith(conclusion, COPY.seal, true)
+      closeWith(lines, COPY.seal, true)
+    },
+    decorate(host, text) {
+      gl.decorate(host, text)
     },
     name(target, label) {
       tags.attach(target, label)
@@ -188,6 +193,7 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
       destroyed = true
       sfx.dispose()
       tags.dispose()
+      gl.destroy()
       cancelAnimationFrame(raf)
       root.remove()
       return Promise.resolve()

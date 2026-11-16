@@ -3,6 +3,7 @@ import type { GameContext, GameController } from '../../shared/types'
 import { createSfx } from '../shared/audio'
 import { createInput, createLoop } from '../shared/loop'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import { CELL, SUN_LEVELS } from './levels'
 import {
   cellRange,
@@ -44,6 +45,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   const H = level.h * CELL
 
   const stage = createStage(container, { width: W, height: H, accent: card?.accent ?? '#F2A65A' })
+  stage.setGlossary(TERMS)
   const input = createInput(stage.root)
   const startedAt = performance.now()
 
@@ -58,6 +60,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let gemsTaken = 0
   const totalGems = level.gems.length
   let resets = 0
+  /** Stops by rover, to say in the recap who stopped where and why. */
+  const stops: Record<Who, number> = { solar: 0, nuclear: 0 }
   let elapsed = 0
   let dyingMs = 0
   let settled = false
@@ -87,6 +91,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     level = parseLevel(spec.map)
     gemsTaken = 0
     resets = 0
+    stops.solar = 0
+    stops.nuclear = 0
     elapsed = 0
     sparks = []
     placeBodies()
@@ -132,26 +138,24 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     sfx.sweep(520, 980, 360, 'triangle', 0.22)
 
     const secs = Math.round(elapsed / 1000)
+    const stopsLine =
+      resets + stops.solar + stops.nuclear === 0
+        ? 'No stops: every shade went to the nuclear rover and every low gap to the solar rover.'
+        : `Stops: the solar rover ${stops.solar}, the nuclear rover ${stops.nuclear}. ${stops.solar ? 'The solar rover stops in shade because its panels need light. ' : ''}${stops.nuclear ? 'The nuclear rover stops at low gaps because it is too big, not because of power. ' : ''}`.trim()
+    const star = (ok: boolean) => (ok ? '★' : '☆')
     stage.showOverlay({
       title: 'Both rovers made it',
       tone: 'win',
-      score:
-        gemsTaken +
-        ' / ' +
-        totalGems +
-        ' samples - ' +
-        secs +
-        ' s - ' +
-        resets +
-        (resets === 1 ? ' stop' : ' stops') +
-        (practice ? '' : ' - ' + score + ' points'),
-      text:
+      score: practice ? undefined : score + ' points',
+      lines: [
+        `You took ${gemsTaken} of ${totalGems} samples in ${secs} s.`,
+        stopsLine,
         (level.gates.length
-          ? 'Neither rover could have done it alone: each door opened from a plate only the other one could reach. '
+          ? 'Each door opened from a plate only the other rover could reach. '
           : 'Each rover crossed the ground the other one could not. ') +
-        'Solar panels need sunlight; a nuclear generator (RTG) makes power from ' +
-        'heat, day or night, but it makes the rover too big for a low gap.',
-      fact: card?.fact,
+          'A solar panel needs light; a nuclear generator (RTG) makes power from heat, day or night, but makes the rover too big for a low gap.',
+        `Stars: ${star(true)} both through ${star(stops.solar + stops.nuclear === 0)} no stops ${star(gemsTaken === totalGems)} all samples`,
+      ],
       buttons: [{ label: 'Save and continue', onClick: () => complete(score) }],
     })
   }
@@ -164,6 +168,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     phase = 'dying'
     dyingMs = 620
     sfx.sweep(380, 90, 420, 'sawtooth', 0.2)
+    stops[who]++
     decisions.push({ concept: 'solar-vs-nuclear', correct: false })
     // Texto en rules.ts: la explicacion es ciencia, y alli la vigilan los tests.
     stage.flash(STOP_REASON[who], 'bad')

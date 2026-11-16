@@ -4,6 +4,7 @@ import { createSfx } from '../shared/audio'
 import { createInput, createLoop } from '../shared/loop'
 import { createRng } from '../shared/rng'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import {
   MOON_G,
   hoverSecondsLeft,
@@ -62,6 +63,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
   const accent = card?.accent ?? '#9BB8D3'
   const stage = createStage(container, { width: W, height: H, accent })
+  stage.setGlossary(TERMS)
+  let floatKg = 0
+  let brakeKg = 0
   const input = createInput(stage.root)
   const startedAt = performance.now()
 
@@ -178,6 +182,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     lateral = 0
     result = 'flying'
     touchdownVy = 0
+    floatKg = 0
+    brakeKg = 0
     dust.length = 0
     phase = 'flying'
     stage.hideOverlay()
@@ -234,28 +240,26 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       sfx.sweep(300, 90, 460, 'sawtooth', 0.2)
     }
 
-    const hoverLeft = hoverSecondsLeft(cfg, state.fuelKg)
-    const detail = passed
-      ? 'Down at ' +
-        Math.abs(touchdownVy).toFixed(1) +
-        ' m/s · ' +
-        Math.round(state.fuelKg) +
-        ' kg left (' +
-        Math.round(hoverLeft) +
-        ' s of hover)'
-      : Math.abs(touchdownVy).toFixed(1) + ' m/s, ' + Math.abs(state.x).toFixed(0) + ' m from centre'
-
+    const total = Math.round(cfg.fuelKg - state.fuelKg)
+    const lines = [
+      `You touched down at ${Math.abs(touchdownVy).toFixed(1)} m/s (the legs take up to ${cfg.maxTouchdownVyMs} m/s), ${Math.abs(state.x).toFixed(0)} m from the pad centre, drifting ${Math.abs(state.vx).toFixed(1)} m/s.`,
+      `You burned ${total} kg of fuel: ${Math.round(floatKg)} kg floating (barely sinking) and ${Math.round(brakeKg)} kg braking. ${floatKg > brakeKg ? 'Floating costs fuel and gets you nowhere.' : 'Fuel is time: the less you float, the more you keep.'}`,
+      passed
+        ? 'With no air on the Moon only the engine can brake, and low gravity still pulls all the way down.'
+        : verdictReason(result),
+    ]
+    const star = (ok: boolean) => (ok ? '★' : '☆')
+    lines.push(`Stars: ${star(passed)} soft landing ${star(passed && Math.abs(state.x) <= cfg.padHalfWidthM * 0.5)} near the centre ${star(passed && state.fuelKg > cfg.fuelKg * 0.1)} fuel left`)
     stage.showOverlay({
       title: passed ? 'The Eagle has landed' : 'Vehicle lost',
       tone: passed ? 'win' : 'lose',
-      score: ctx.settings.practice ? detail : detail + ' · ' + score + ' points',
-      text: verdictReason(result),
-      fact: card?.fact,
+      score: ctx.settings.practice ? undefined : passed ? score + ' points' : undefined,
+      lines,
       buttons: passed
         ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
         : [
             { label: 'Try again', onClick: startRun },
-            { label: 'Back to the portal', variant: 'quiet', onClick: () => ctx.onExit() },
+            { label: 'Back to the portal', variant: 'quiet', onClick: () => complete(false, 0) },
           ],
     })
     statLine()
@@ -350,7 +354,12 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     if (engineOn && !engineWasOn) sfx.noise(90, 0.1)
     engineWasOn = engineOn
 
+    const fuelBefore = state.fuelKg
     state = step(cfg, state, { throttle, lateral }, dtS)
+    // Fuel burnt while barely sinking is spent hovering: it buys time, not height.
+    const burnt = fuelBefore - state.fuelKg
+    if (state.vy > -1.5 && state.altitude > 8) floatKg += burnt
+    else brakeKg += burnt
     spawnDust(dtS)
 
     for (const d of dust) {

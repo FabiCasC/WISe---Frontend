@@ -5,6 +5,7 @@ import { createInput, createLoop } from '../shared/loop'
 import { createRng } from '../shared/rng'
 import { createStage } from '../shared/stage'
 import { MAZE_LEVELS } from './maps'
+import { TERMS } from './terms'
 import {
   canGo,
   chooseGhostDir,
@@ -53,6 +54,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     height: maze.h * CELL + PAD * 2,
     accent: card?.accent ?? '#F2A65A',
   })
+  stage.setGlossary(TERMS)
   const input = createInput(stage.root)
   const startedAt = performance.now()
 
@@ -70,6 +72,20 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let respawnMs = 0
   const decisions: { concept: string; correct: boolean }[] = []
   const CONCEPT = 'remolinos-limpian-paneles'
+  /** Power (%) before each cleaning event, for the recap. */
+  const cleanings: number[] = []
+  /** A key moment: power is low and a dust devil is close. It ends in use (correct) or in leaving it (wrong). */
+  let moment = false
+  let momentsDecided = 0
+  let momentsUsed = 0
+  const MOMENT_DUST = 0.5
+  const resolveMoment = (correct: boolean) => {
+    if (!moment) return
+    moment = false
+    momentsDecided++
+    if (correct) momentsUsed++
+    if (!practice) decisions.push({ concept: CONCEPT, correct })
+  }
   let elapsed = 0
   let settled = false
 
@@ -143,6 +159,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     resetPositions()
     // Partida nueva: paneles limpios. Un respawn por polvo no, ver update().
     dust = 0
+    cleanings.length = 0
+    moment = false
+    momentsDecided = 0
+    momentsUsed = 0
   }
 
   function begin() {
@@ -190,16 +210,26 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
     // Igual que en el resto del arcade: el resultado se informa al portal
     // cuando el jugador pulsa, para que le de tiempo a leer el dato real.
+    const secs = Math.round(elapsed / 1000)
+    const power = Math.round(panelPower(dust) * 100)
+    const lines = [
+      won
+        ? `You collected all ${maze.totalPellets} samples in ${secs} s, with ${power}% panel power left.`
+        : `Dust covered your panels: you stopped with ${left} of ${maze.totalPellets} samples still to collect.`,
+      cleanings.length
+        ? `Cleaning events: ${cleanings.map((p) => p + '% → 100%').join(', ')}. Each time you drove into a dust devil, its wind blew the dust off your panels.`
+        : 'You never used a dust devil, so the dust only piled up. Its wind is what cleans the panels.',
+      momentsDecided
+        ? `Low power with a dust devil close: ${momentsDecided} time${momentsDecided > 1 ? 's' : ''}, and you used it ${momentsUsed}.`
+        : '',
+    ].filter(Boolean)
+    const star = (ok: boolean) => (ok ? '★' : '☆')
+    lines.push(`Stars: ${star(won)} samples ${star(won && power >= 40)} power left ${star(cleanings.some((p) => p <= 65))} devil used in time`)
     stage.showOverlay({
       title: won ? 'Crater explored' : 'Rover stopped',
       tone: won ? 'win' : 'lose',
-      score: won
-        ? pelletsTaken + ' samples - ' + scattered + ' cleaning events - ' + score + ' points'
-        : left + ' samples were left to collect',
-      text: won
-        ? 'You used dust devils to blow the dust off your panels. Spirit lasted over six years on Mars, far longer than its 90-day plan, partly thanks to these cleaning events.'
-        : 'Dust covered your panels three times. When power drops, drive toward a dust devil: its wind cleans the panels.',
-      fact: card?.fact,
+      score: won ? score + ' points' : undefined,
+      lines: lines.slice(0, 4),
       buttons: won
         ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
         : [
@@ -303,7 +333,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     // --- Polvo en los paneles: menos energia, rover mas lento.
     dust = Math.min(1, dust + dt / (tuning.dustSecs * (practice ? 2 : 1)))
     if (dust >= 1) {
-      decisions.push({ concept: CONCEPT, correct: false })
+      if (moment) resolveMoment(false)
+      else if (!practice) decisions.push({ concept: CONCEPT, correct: false })
       stage.flash('Panels covered in dust: no power', 'bad')
       loseLife()
       return
@@ -392,9 +423,21 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       cleanMs = tuning.cleanSecs * 1000
       scattered++
       // Going for a devil when power was low is the smart call.
-      if (before >= SMART_CLEAN_DUST) decisions.push({ concept: CONCEPT, correct: true })
+      cleanings.push(Math.round(panelPower(before) * 100))
+      if (moment) resolveMoment(true)
+      else if (before >= SMART_CLEAN_DUST && !practice) decisions.push({ concept: CONCEPT, correct: true })
       stage.flash('Cleaning event! Power ' + Math.round(panelPower(before) * 100) + '% → 100%')
       sfx.tone(980, 120, 'sine', 0.2)
+    }
+
+    // --- Key moment: low power with a devil close. Using it is the lesson; walking away is the miss.
+    if (dust >= MOMENT_DUST) {
+      const closest = Math.min(
+        ...ghosts.filter((g) => g.goneMs <= 0).map((g) => Math.abs(g.mover.x - player.x) + Math.abs(g.mover.y - player.y)),
+        99,
+      )
+      if (!moment && closest <= 4) moment = true
+      else if (moment && closest > 8) resolveMoment(false)
     }
 
     // --- Victoria
@@ -613,7 +656,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     text:
       'Collect all ' +
       maze.totalPellets +
-      ' samples. Dust keeps settling on your solar panels: less power, slower rover. If they get fully covered, you stop. Dust devils are your friends: drive into one and its wind cleans the panels.',
+      ' samples. Dust keeps settling on your solar panels: less power, slower rover. If they get fully covered, you stop. Watch the Panel power meter, and see what happens when you meet a dust devil.',
     buttons: [{ label: 'Start', onClick: begin }],
   })
 

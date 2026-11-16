@@ -159,4 +159,17 @@ describe('Spirit is playable with a finger', () => {
     // The pause chip must not swallow a jump tap next to it.
     expect(padZone(700, 20)).toBe('jump')
   })
+
+  it('the recap is built from what happened on this run, with its own numbers', () => {
+    const g = playing(2)
+    driveUntil(g, () => g.found.size >= 1)
+    const lines = g.recap().join(' ')
+    expect(lines).toMatch(new RegExp(`Bright patches uncovered: ${g.found.size} of ${g.silica.length}`))
+  })
+
+  it('level 1 recap counts the sand the wheels really touched', () => {
+    const g = playing(1)
+    g.update(1 / 60, right)
+    expect(g.recap().join(' ')).toMatch(/Sand patches: \d+, wheels in the sand on 0/)
+  })
 })

@@ -112,6 +112,8 @@ export function distToLM(c: Cell): number {
 }
 
 export interface State {
+  /** The explorer stands still until the first direction is chosen. */
+  started: boolean
   body: Cell[]
   cargo: Cargo[]
   dir: Dir
@@ -126,7 +128,7 @@ export interface State {
 }
 
 export type Event =
-  | { type: 'rock'; kind: RockKind; good: boolean }
+  | { type: 'rock'; kind: RockKind; good: boolean; /** wagons that broke off */ lost: number }
   | { type: 'deploy'; ok: boolean; at: Cell }
   | { type: 'notReady' }
   | { type: 'won' }
@@ -155,6 +157,7 @@ export function initialState(spec: LevelSpec, rand: () => number): State {
   // The explorer's own body is the first 3 cells; extra cargo grows the tail.
   for (let i = 0; i < cargo.length; i++) body.push({ x: 9, y: 11 })
   const s: State = {
+    started: false,
     body,
     cargo,
     dir: 'up',
@@ -203,8 +206,18 @@ export function goalMet(s: State, spec: LevelSpec) {
 }
 
 export function turn(s: State, d: Dir) {
+  if (!s.started) {
+    // The first key or tap decides where to walk, even if it is "backwards".
+    s.started = true
+    s.dir = d
+    return
+  }
   if (!opposite(d, s.dir)) s.queued = d
 }
+
+/** A wrong rock breaks this many wagons off the end of the train, and costs air. */
+export const BREAK_WAGONS = 2
+export const WRONG_ROCK_AIR_S = 8
 
 /** Sets down the experiment package carried right behind the head. */
 export function deploy(s: State, spec: LevelSpec): Event | null {
@@ -223,7 +236,7 @@ export function deploy(s: State, spec: LevelSpec): Event | null {
 
 /** One grid step. Returns what happened. */
 export function step(s: State, spec: LevelSpec, rand: () => number): Event[] {
-  if (s.phase !== 'playing') return []
+  if (s.phase !== 'playing' || !s.started) return []
   if (s.queued) {
     s.dir = s.queued
     s.queued = null
@@ -261,11 +274,26 @@ export function step(s: State, spec: LevelSpec, rand: () => number): Event[] {
     const rock = s.rocks[rockIdx]
     s.rocks.splice(rockIdx, 1)
     const good = spec.want === 'any' || rock.kind === spec.want
-    s.cargo.push(rock.kind)
-    if (good) s.collected += 1
-    events.push({ type: 'rock', kind: rock.kind, good })
+    let lost = 0
+    if (good) {
+      s.cargo.push(rock.kind)
+      s.collected += 1
+      // The tail grows: you carry the rock.
+    } else {
+      // The wrong rock does not come aboard: it breaks the last wagons off the train.
+      s.body.pop()
+      for (let i = 0; i < BREAK_WAGONS; i++) {
+        const idx = s.cargo.map((c) => c !== 'experiment').lastIndexOf(true)
+        if (idx < 0) break
+        if (s.cargo[idx] === spec.want) s.collected = Math.max(0, s.collected - 1)
+        s.cargo.splice(idx, 1)
+        s.body.pop()
+        lost++
+      }
+      s.oxygen = Math.max(1, s.oxygen - WRONG_ROCK_AIR_S)
+    }
+    events.push({ type: 'rock', kind: rock.kind, good, lost })
     refillRocks(s, spec, rand)
-    // The tail grows: you carry the rock.
   } else {
     s.body.pop()
   }
@@ -274,7 +302,7 @@ export function step(s: State, spec: LevelSpec, rand: () => number): Event[] {
 
 /** Oxygen runs down in seconds. */
 export function breathe(s: State, dt: number): Event | null {
-  if (s.phase !== 'playing') return null
+  if (s.phase !== 'playing' || !s.started) return null
   s.oxygen -= dt
   if (s.oxygen <= 0) {
     s.oxygen = 0
@@ -291,4 +319,15 @@ export function conceptFor(level: 1 | 2 | 3): string {
 
 export function scoreWalk(s: State, _spec: LevelSpec, wrongRocks: number): number {
   return Math.max(100, Math.round(500 + s.oxygen * 5 - wrongRocks * 60 + s.deployed.length * 50))
+}
+
+export interface Stars {
+  concept: boolean
+  efficiency: boolean
+  speed: boolean
+}
+
+/** Concept: won. Efficiency: no wrong rock. Speed: home with at least 40% of the air left. */
+export function stars(won: boolean, wrongRocks: number, spec: LevelSpec, s: State): Stars {
+  return { concept: won, efficiency: won && wrongRocks === 0, speed: won && s.oxygen >= spec.oxygen * 0.4 }
 }

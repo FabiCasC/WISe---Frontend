@@ -16,7 +16,10 @@ export default {
       meaning:
         'τ (say "tau") measures how much dust blocks the Sun. The higher τ is, the less sunlight reaches your panels, and the faster your energy drains. The percentage is the sunlight that gets through.',
     },
-    { name: 'Sun breaks', meaning: 'Bright patches you can catch to recharge your battery.' },
+    { name: 'Sun breaks', meaning: 'Bright patches, gaps in the dust where sunlight gets through. Catch them to recharge your battery.' },
+    { name: 'Solar panel', meaning: 'A plate that turns light into electricity. Opportunity, the NASA rover you drive, used them.' },
+    { name: 'Global dust storm', meaning: 'A storm that covers the whole planet and darkens the sky. It is what the level 3 sky is based on.' },
+    { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button shows all of them.' },
     { name: 'Rocks, dunes and gusts', meaning: 'Hit one and you lose energy. Jump the low ones, duck the high ones.' },
   ],
   steps: [

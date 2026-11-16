@@ -2131,6 +2131,19 @@ a {
   color: var(--text-dim);
 }
 
+/* Resumen de fin de nivel: lo que hizo el jugador, con sus numeros. */
+.mg__card-lines {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  text-align: left;
+}
+
 /* La caja del dato real: es lo que separa este arcade de uno cualquiera. */
 .mg__card-fact {
   margin: 2px 0 0;

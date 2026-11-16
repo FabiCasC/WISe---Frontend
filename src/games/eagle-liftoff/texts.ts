@@ -309,7 +309,7 @@ const EN: Texts = {
   backToArcade: 'Back to the arcade',
   tutorial: {
     title: '🎓 Level 0 · Learn to fly!',
-    intro: 'Capi teaches you 3 things:\n⏳ when to launch\n🐇 lower is faster\n🚪 how to dock',
+    intro: 'Capi teaches you 3 things:\n⏳ when to launch (the launch window)\n🐇 lower is faster (an orbit is a race track)\n🚪 how to dock (rendezvous and docking)\nEagle lifts off with its ascent engine and leaves the descent stage on the Moon. A burn is a short engine push that changes orbit. Tap any underlined word to see what it means.',
     pips: 'Level 0',
     meet: (d, t) => `Tap each thing to meet it! (${d}/${t})`,
     meetDone: 'Great! You know everyone 🎉',

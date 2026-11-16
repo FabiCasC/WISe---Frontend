@@ -17,6 +17,11 @@ export default {
     { name: 'Sol', meaning: 'A Martian day. You only have a few sols, so plan well.' },
     { name: 'Plans sent', meaning: 'How many plans you have sent to Mars so far.' },
     { name: 'APXS', meaning: 'Sojourner’s chemistry tool. It sits on the BACK of the rover, so you must back up to a rock to measure it.' },
+    { name: 'Sol', meaning: 'One day on Mars. It lasts a little longer than an Earth day. You get a limited number of sols.' },
+    { name: 'Signal delay', meaning: 'The time the radio takes to reach Mars. That is why you plan your commands and send them all at once.' },
+    { name: 'Lander', meaning: 'The base ship that every message of the rover went through.' },
+    { name: 'Hazard avoidance (autonomy)', meaning: 'The rover stops by itself in front of a big rock or a drop, and waits for new orders.' },
+    { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button shows all of them.' },
   ],
   steps: [
     { text: 'Press Start planning. Add a few moves with the arrow keys: ↑ forward, ↓ back, ← and → turn.', keys: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyQ', 'KeyE'] },

@@ -17,6 +17,11 @@ export default {
     { name: 'The 24-hour bar', meaning: 'After you run a day: green is time with contact, red is a blackout.' },
     { name: 'Contact last run', meaning: 'The share of the day you stayed in touch. Your goal is on the right.' },
     { name: 'Days run', meaning: 'How many times you tested. Testing is how you find the gap.' },
+    { name: 'Deep Space Network (DSN)', meaning: 'The giant antennas of NASA that talk to far-away probes.' },
+    { name: 'Goldstone, Madrid and Canberra', meaning: 'The three sites of the Deep Space Network, spread around the world.' },
+    { name: 'Horizon', meaning: 'The line where the sky meets the Earth. An antenna only sees what is above its horizon, so when the Earth turns it away it loses the probe.' },
+    { name: 'Blackout', meaning: 'The time when no antenna sees the probe. It shows in red on the 24-hour bar.' },
+    { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button shows all of them.' },
   ],
   steps: [
     { text: 'Press Start. Click on the ring around the Earth to place a dish (or move with ← → and press Space).', keys: ['Space'], pointer: true },
