@@ -12,9 +12,10 @@ import {
 import {
   getState, selectEntity, addEntityById, updateEntity, removeEntity,
 } from '../store'
+import SpritePreview from './SpritePreview'
 
 /* -------------------------------------------------------------------------
-   Iconos SVG
+   Iconos SVG mínimos (solo los que no tienen sprite)
    ------------------------------------------------------------------------- */
 const stroke = {
   fill: 'none', stroke: 'currentColor',
@@ -23,29 +24,13 @@ const stroke = {
   strokeLinejoin: 'round' as const,
 }
 
-function IconPlayer()      { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5" {...stroke} /><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" {...stroke} /></svg> }
-function IconEnemy()       { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3L12 3z" {...stroke} /></svg> }
-function IconCollectible() { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.1 6.4 7 1-5 4.9 1.2 7L12 18l-6.3 3.3 1.2-7-5-4.9 7-1z" {...stroke} /></svg> }
-function IconObstacle()    { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 7-9 7-9-7z" {...stroke} /></svg> }
-function IconPlatform()    { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="12" width="20" height="6" rx="2" {...stroke} /></svg> }
-function IconGoal()        { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2v20M5 4l9 3-9 3" {...stroke} /></svg> }
-function IconAll()         { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" {...stroke} /><rect x="14" y="3" width="7" height="7" rx="1" {...stroke} /><rect x="3" y="14" width="7" height="7" rx="1" {...stroke} /><rect x="14" y="14" width="7" height="7" rx="1" {...stroke} /></svg> }
-function IconClose()       { return <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" {...stroke} /></svg> }
-function IconAdd()         { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" {...stroke} /></svg> }
+function IconAll()   { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" {...stroke} /><rect x="14" y="3" width="7" height="7" rx="1" {...stroke} /><rect x="3" y="14" width="7" height="7" rx="1" {...stroke} /><rect x="14" y="14" width="7" height="7" rx="1" {...stroke} /></svg> }
+function IconClose() { return <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" {...stroke} /></svg> }
+function IconAdd()   { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" {...stroke} /></svg> }
 
 /* -------------------------------------------------------------------------
-   Mapa de tipo a icono
+   Labels de tipo (para filtros de texto)
    ------------------------------------------------------------------------- */
-const TYPE_ICON: Record<EntityType | 'all', () => JSX.Element> = {
-  all:         IconAll,
-  player:      IconPlayer,
-  enemy:       IconEnemy,
-  collectible: IconCollectible,
-  obstacle:    IconObstacle,
-  platform:    IconPlatform,
-  goal:        IconGoal,
-}
-
 const TYPE_LABELS: Record<EntityType | 'all', string> = {
   all:         'All',
   player:      'Player',
@@ -115,50 +100,45 @@ export default function EntityLibrary({ spec }: Props) {
         </div>
       ) : (
         <div className="dg-entity-lib__body">
-          {/* Filtro */}
+          {/* Filtro por tipo */}
           <div className="dg-entity-lib__filter">
-            {(['all', 'player', 'enemy', 'collectible', 'obstacle', 'platform', 'goal'] as const).map((t) => {
-              const Icon = TYPE_ICON[t]
-              return (
-                <button
-                  key={t}
-                  className={`dg-filter-btn ${filterType === t ? 'dg-filter-btn--active' : ''}`}
-                  onClick={() => setFilterType(t)}
-                  title={TYPE_LABELS[t]}
-                >
-                  <Icon />
-                </button>
-              )
-            })}
+            {(['all', 'player', 'enemy', 'collectible', 'obstacle', 'platform', 'goal'] as const).map((t) => (
+              <button
+                key={t}
+                className={`dg-filter-btn ${filterType === t ? 'dg-filter-btn--active' : ''}`}
+                onClick={() => setFilterType(t)}
+              >
+                {TYPE_LABELS[t]}
+              </button>
+            ))}
           </div>
 
           <div className="dg-entity-lib__templates">
-            {filteredTemplates.map((template) => {
-              const Icon = TYPE_ICON[template.type] ?? IconAll
-              return (
-                <button
-                  key={template.name}
-                  className="dg-template-btn"
-                  onClick={() => {
-                    const entity = createEntityFromTemplate(template)
-                    entity.position = {
-                      x: 50 + Math.floor(Math.random() * 300),
-                      y: 50 + Math.floor(Math.random() * 200),
-                    }
-                    addEntityById(entity)
-                    selectEntity(entity.id)
-                    setTab('scene')
-                  }}
-                >
-                  <span className="dg-template-btn__glyph" aria-hidden="true"><Icon /></span>
-                  <div className="dg-template-btn__info">
-                    <span className="dg-template-btn__name">{template.name}</span>
-                    <span className="dg-template-btn__desc">{template.description}</span>
-                  </div>
-                  <span className="dg-template-btn__add" aria-hidden="true"><IconAdd /></span>
-                </button>
-              )
-            })}
+            {filteredTemplates.map((template) => (
+              <button
+                key={template.name}
+                className="dg-template-btn"
+                onClick={() => {
+                  const entity = createEntityFromTemplate(template)
+                  entity.position = {
+                    x: 50 + Math.floor(Math.random() * 300),
+                    y: 50 + Math.floor(Math.random() * 200),
+                  }
+                  addEntityById(entity)
+                  selectEntity(entity.id)
+                  setTab('scene')
+                }}
+              >
+                <span className="dg-template-btn__glyph" aria-hidden="true">
+                  <SpritePreview sprite={template.sprite} size={20} />
+                </span>
+                <div className="dg-template-btn__info">
+                  <span className="dg-template-btn__name">{template.name}</span>
+                  <span className="dg-template-btn__desc">{template.description}</span>
+                </div>
+                <span className="dg-template-btn__add" aria-hidden="true"><IconAdd /></span>
+              </button>
+            ))}
           </div>
         </div>
       )}
@@ -167,23 +147,24 @@ export default function EntityLibrary({ spec }: Props) {
 }
 
 /* -------------------------------------------------------------------------
-   Entity item
+   Entity item — tarjeta cuadrada con sprite real
    ------------------------------------------------------------------------- */
 
 function EntityItem({ entity, isSelected, onSelect, onDelete }: {
   entity: Entity; isSelected: boolean; onSelect: () => void; onDelete: () => void
 }) {
-  const Icon = TYPE_ICON[entity.type] ?? IconAll
   return (
-    <div className={`dg-entity-item ${isSelected ? 'dg-entity-item--selected' : ''}`} onClick={onSelect}>
-      <span className="dg-entity-item__glyph"><Icon /></span>
+    <div
+      className={`dg-entity-item ${isSelected ? 'dg-entity-item--selected' : ''}`}
+      onClick={onSelect}
+    >
+      <span className="dg-entity-item__glyph">
+        <SpritePreview sprite={entity.sprite} size={24} label={entity.name} />
+      </span>
       <div className="dg-entity-item__info">
         <span className="dg-entity-item__name">{entity.name}</span>
         <span className="dg-entity-item__type">{TYPE_LABELS[entity.type]}</span>
       </div>
-      <span className="dg-entity-item__pos">
-        {Math.round(entity.position.x)}, {Math.round(entity.position.y)}
-      </span>
       <button
         className="dg-entity-item__delete"
         onClick={(e) => { e.stopPropagation(); onDelete() }}
@@ -200,11 +181,12 @@ function EntityItem({ entity, isSelected, onSelect, onDelete }: {
    ------------------------------------------------------------------------- */
 
 function EntityPropsEditor({ entity, spec }: { entity: Entity; spec: GameSpecification }) {
-  const Icon = TYPE_ICON[entity.type] ?? IconAll
   return (
     <div className="dg-entity-props">
       <h4 className="dg-entity-props__title">
-        <span className="dg-entity-props__title-icon"><Icon /></span>
+        <span className="dg-entity-props__title-icon">
+          <SpritePreview sprite={entity.sprite} size={16} />
+        </span>
         {entity.name}
       </h4>
 

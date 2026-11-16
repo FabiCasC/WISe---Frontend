@@ -676,7 +676,12 @@
 }
 
 /* =========================================================================
-   EDITOR PRINCIPAL
+   EDITOR PRINCIPAL — layout inspirado en Scratch
+   =========================================================================
+   Desktop (3 columnas):
+     col-left  │  col-blocks  │  col-scripts
+     Stage     │  Categorías  │  Canvas de bloques
+     Sprites   │  + bloques   │  (sprite tabs arriba)
    ========================================================================= */
 
 .dg-editor {
@@ -695,10 +700,10 @@
   justify-content: space-between;
   gap: 12px;
   padding: 0 clamp(12px, 2vw, 20px);
-  height: 56px;
+  height: 52px;
   background: #05060a;
   border-bottom: 1px solid #1a2030;
-  flex: 0 0 56px;
+  flex: 0 0 52px;
   z-index: 10;
 }
 
@@ -747,52 +752,83 @@
 }
 
 .dg-editor__mobile-tab {
-  padding: 10px 16px;
+  padding: 10px 18px;
   font-size: 12.5px;
   font-weight: 700;
   color: var(--text-dim);
   white-space: nowrap;
   border-bottom: 2px solid transparent;
   transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
-
-.dg-editor__mobile-tab svg { width: 14px; height: 14px; }
 
 .dg-editor__mobile-tab--active {
   color: var(--action);
   border-bottom-color: var(--action);
 }
 
-/* --- Workspace 4 paneles ------------------------------------------------- */
+/* =========================================================================
+   WORKSPACE — grid Scratch
+   =========================================================================
+   3 columnas:
+     [col-left]   stage + sprites  — anchura ampliada para el simulador
+     [col-blocks] block library    — anchura fija ~200px
+     [col-scripts] script canvas   — resto del espacio
+   ========================================================================= */
 
 .dg-editor__workspace {
   display: grid;
-  grid-template-columns: 216px minmax(0, 1fr) clamp(360px, 32vw, 680px);
-  grid-template-rows: auto minmax(220px, 1fr);
-  grid-template-areas:
-    "left center right-top"
-    "left center right-bottom";
+  grid-template-columns:
+    clamp(400px, 38vw, 540px)   /* Stage + Sprites (doble de grande) */
+    clamp(180px, 16vw, 220px)   /* Block library                    */
+    minmax(0, 1fr);             /* Script canvas                    */
+  grid-template-rows: 1fr;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: var(--hairline-soft);
+  background: #0a0c12;
   gap: 1px;
 }
 
-.dg-editor__panel {
-  background: var(--panel);
-  overflow: auto;
+/* Columna izquierda: Stage arriba, Sprites pegados justo debajo */
+.dg-editor__col-left {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.dg-editor__panel--left        { grid-area: left; }
-.dg-editor__panel--center      { grid-area: center; }
-.dg-editor__panel--right-top   { grid-area: right-top; }
-.dg-editor__panel--right-bottom { grid-area: right-bottom; }
+/* Panel base */
+.dg-editor__panel {
+  background: var(--panel);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Stage: altura fija que deja espacio real para los sprites */
+.dg-editor__panel--stage {
+  flex: 0 0 auto;
+  height: clamp(260px, 55vh, 420px);
+}
+
+/* Sprites: se pega inmediatamente debajo del stage, ocupa lo que queda */
+.dg-editor__panel--sprites {
+  flex: 1 1 0;
+  min-height: 120px;
+  overflow: auto;
+  border-top: 1px solid #0a0c12;
+}
+
+/* Bloques: columna central, scroll propio */
+.dg-editor__panel--blocks {
+  overflow: auto;
+}
+
+/* Scripts: columna derecha, ocupa todo el alto */
+.dg-editor__panel--scripts {
+  overflow: hidden;
+}
 
 /* --- AI drawer ---------------------------------------------------------- */
 
@@ -838,7 +874,10 @@
 }
 
 /* =========================================================================
-   BIBLIOTECA DE BLOQUES
+   BIBLIOTECA DE BLOQUES — paleta estilo Scratch
+   =========================================================================
+   Col izq: botones de categoría con color propio
+   Col der: bloques de la categoría como pastillas coloreadas
    ========================================================================= */
 
 .dg-block-lib {
@@ -849,8 +888,9 @@
 }
 
 .dg-block-lib__header {
-  padding: 10px 10px 8px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--hairline-soft);
+  flex: 0 0 auto;
 }
 
 .dg-block-lib__title {
@@ -859,7 +899,7 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--text-faint);
-  margin: 0 0 7px;
+  margin: 0 0 6px;
 }
 
 .dg-block-lib__search {
@@ -882,48 +922,66 @@
   box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.2);
 }
 
+/* Cuerpo en dos columnas: categorías | bloques */
+.dg-block-lib__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Columna de categorías — botones de color tipo Scratch */
 .dg-block-lib__cats {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 6px 6px 0;
-  border-bottom: 1px solid var(--hairline-soft);
+  gap: 2px;
+  padding: 8px 6px;
+  border-right: 1px solid var(--hairline-soft);
+  overflow-y: auto;
+  flex: 0 0 auto;
+  width: 76px;
+  scrollbar-width: none;
 }
 
 .dg-block-lib__cat {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-dim);
+  gap: 4px;
+  padding: 8px 4px 7px;
+  border-radius: 10px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #120c04;
   cursor: pointer;
-  border-left: 2px solid transparent;
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
-  text-align: left;
+  border: none;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  text-align: center;
+  line-height: 1.2;
 }
 
 .dg-block-lib__cat:hover {
-  background: rgb(var(--accent-rgb) / 0.06);
-  color: var(--text);
+  transform: scale(1.07);
+  box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.6);
 }
 
 .dg-block-lib__cat--active {
-  background: rgb(var(--accent-rgb) / 0.1);
-  color: var(--text);
-  font-weight: 800;
-  border-left-color: var(--action);
+  box-shadow: 0 0 0 2.5px #fff, 0 4px 12px -4px rgb(0 0 0 / 0.5);
+  transform: scale(1.07);
 }
 
 .dg-block-lib__cat-dot {
-  width: 7px;
-  height: 7px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  flex: 0 0 7px;
+  background: rgb(0 0 0 / 0.2);
+  flex: 0 0 20px;
+  display: grid;
+  place-items: center;
 }
 
+/* Columna de bloques de la categoría activa */
 .dg-block-lib__blocks {
   flex: 1;
   overflow-y: auto;
@@ -941,36 +999,39 @@
   font-weight: 600;
 }
 
-/* Bloque individual en la biblioteca */
+/* Bloque individual — pastilla coloreada */
 .dg-block-item {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 8px 9px;
-  border-radius: var(--dg-block-radius);
-  border-left: 3px solid var(--block-color, var(--hairline));
-  background: rgb(var(--fg-rgb, 236 230 216) / 0.03);
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--block-color, #888) 14%, #0d1017);
+  border: 1px solid color-mix(in srgb, var(--block-color, #888) 28%, transparent);
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
   text-align: left;
   width: 100%;
 }
 
 .dg-block-item:hover {
-  background: color-mix(in srgb, var(--block-color, #888) 9%, rgb(var(--fg-rgb, 236 230 216) / 0.04));
+  background: color-mix(in srgb, var(--block-color, #888) 24%, #0d1017);
   transform: translateX(2px);
+  box-shadow: 0 2px 8px -4px rgb(0 0 0 / 0.5);
 }
 
+.dg-block-item:active { transform: scale(0.97); }
+
 .dg-block-item__icon {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
   color: var(--block-color, var(--text-faint));
   display: grid;
   place-items: center;
 }
 
-.dg-block-item__icon svg { width: 14px; height: 14px; }
+.dg-block-item__icon svg { width: 12px; height: 12px; }
 
 .dg-block-item__text {
   display: flex;
@@ -979,14 +1040,14 @@
 }
 
 .dg-block-item__label {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
   color: var(--text);
   line-height: 1.2;
 }
 
 .dg-block-item__desc {
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--text-faint);
   line-height: 1.3;
   font-weight: 600;
@@ -996,12 +1057,13 @@
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  padding: 8px 10px;
-  font-size: 10.5px;
+  padding: 7px 10px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-faint);
   border-top: 1px solid var(--hairline-soft);
   line-height: 1.45;
+  flex: 0 0 auto;
 }
 
 .dg-block-lib__tip-icon {
@@ -1013,7 +1075,11 @@
 }
 
 /* =========================================================================
-   EDITOR DE SCRIPTS
+   EDITOR DE SCRIPTS — canvas de bloques estilo Scratch
+   =========================================================================
+   Tabs de sprite arriba (grandes, con icono)
+   Lista de scripts izquierda
+   Canvas de bloques derecha (zona de trabajo amplia)
    ========================================================================= */
 
 .dg-script-editor {
@@ -1028,37 +1094,40 @@
   justify-content: center;
 }
 
-/* Barra de entidades */
+/* Barra de sprites — tabs prominentes, fondo ligeramente diferente */
 .dg-script-editor__entity-bar {
   display: flex;
-  gap: 3px;
+  gap: 2px;
   padding: 6px 10px;
   border-bottom: 1px solid var(--hairline-soft);
   overflow-x: auto;
   scrollbar-width: none;
   flex: 0 0 auto;
   align-items: center;
-  min-height: 44px;
+  min-height: 48px;
+  background: #080b12;
 }
 
 .dg-entity-tab {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
+  gap: 7px;
+  padding: 6px 13px;
   border-radius: 8px;
-  border: 1px solid var(--hairline-soft);
-  font-size: 12px;
+  border: 1.5px solid var(--hairline-soft);
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--text-dim);
   cursor: pointer;
   white-space: nowrap;
   transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+  background: transparent;
 }
 
 .dg-entity-tab:hover {
   border-color: rgb(var(--accent-rgb) / 0.4);
   color: var(--text);
+  background: rgb(var(--accent-rgb) / 0.05);
 }
 
 .dg-entity-tab--active {
@@ -1069,16 +1138,16 @@
 }
 
 .dg-entity-tab__icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   color: var(--text-faint);
-  flex: 0 0 14px;
+  flex: 0 0 16px;
 }
 
 .dg-entity-tab--active .dg-entity-tab__icon { color: var(--action); }
 
 .dg-entity-tab__name {
-  max-width: 76px;
+  max-width: 86px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1091,13 +1160,15 @@
   overflow: hidden;
 }
 
+/* Lista de scripts — columna izquierda delgada */
 .dg-script-editor__scripts-col {
-  width: 172px;
-  flex: 0 0 172px;
+  width: 160px;
+  flex: 0 0 160px;
   border-right: 1px solid var(--hairline-soft);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: #080b12;
 }
 
 .dg-script-editor__scripts-header {
@@ -1152,8 +1223,8 @@
 .dg-script-item:hover { background: rgb(var(--accent-rgb) / 0.05); }
 
 .dg-script-item--selected {
-  background: rgb(var(--dg-accent-blocks-rgb) / 0.08);
-  border-color: rgb(var(--dg-accent-blocks-rgb) / 0.25);
+  background: rgb(var(--dg-accent-blocks-rgb) / 0.1);
+  border-color: rgb(var(--dg-accent-blocks-rgb) / 0.3);
 }
 
 .dg-script-item__event-icon {
@@ -1166,7 +1237,6 @@
 }
 
 .dg-script-item__event-icon svg { width: 13px; height: 13px; }
-
 .dg-script-item--selected .dg-script-item__event-icon { color: var(--action); }
 
 .dg-script-item__info {
@@ -1204,13 +1274,20 @@
 .dg-script-item:hover .dg-script-item__delete { opacity: 1; }
 .dg-script-item__delete:hover { background: rgb(224 108 90 / 0.15); color: #e06c5a; }
 
+/* Canvas del script — zona de trabajo amplia con fondo reticulado */
 .dg-script-editor__editor-col {
   flex: 1;
   overflow: auto;
-  padding: 14px;
+  padding: 16px;
+  background: #05060a;
+  /* Retícula sutil tipo pizarra */
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.025) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
-/* Canvas del script */
+/* Script canvas */
 .dg-script-canvas {
   display: flex;
   flex-direction: column;
@@ -1241,15 +1318,20 @@
   font-weight: 600;
 }
 
+/* Drop zone */
 .dg-script-canvas__area {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 14px;
-  background: #05060a;
+  background: rgb(var(--bg-rgb) / 0.6);
   border-radius: 12px;
-  border: 1px solid var(--hairline);
+  border: 1.5px dashed var(--hairline);
   min-height: 220px;
+}
+
+.dg-script-canvas__area:hover {
+  border-color: rgb(var(--accent-rgb) / 0.3);
 }
 
 .dg-script-canvas__empty-hint {
@@ -1270,7 +1352,7 @@
   flex-direction: column;
   border-radius: var(--dg-block-radius);
   border-left: 4px solid var(--block-color, var(--hairline));
-  background: color-mix(in srgb, var(--block-color, #444) 8%, var(--panel));
+  background: color-mix(in srgb, var(--block-color, #444) 10%, var(--panel));
   margin-left: 14px;
   transition: box-shadow var(--dur-fast) var(--ease);
 }
@@ -1279,9 +1361,9 @@
 
 .dg-block-node--event {
   margin-left: 0;
-  border-top: 2px solid var(--block-color, var(--hairline));
+  border-top: 3px solid var(--block-color, var(--hairline));
   border-left-width: 0;
-  background: color-mix(in srgb, var(--block-color, #444) 12%, var(--panel));
+  background: color-mix(in srgb, var(--block-color, #444) 15%, var(--panel));
 }
 
 .dg-block-node:hover { box-shadow: 0 2px 10px rgb(0 0 0 / 0.3); }
@@ -1660,7 +1742,10 @@
 .dg-touch-pad__btn--jump svg { width: 13px; height: 13px; }
 
 /* =========================================================================
-   BIBLIOTECA DE ENTIDADES
+   BIBLIOTECA DE ENTIDADES — panel sprites estilo Scratch
+   =========================================================================
+   Panel compacto debajo del stage. Sprites como tarjetas en grid,
+   igual que la bandeja de sprites de Scratch.
    ========================================================================= */
 
 .dg-entity-lib {
@@ -1670,25 +1755,31 @@
   min-height: 0;
 }
 
+/* Cabecera con tabs */
 .dg-entity-lib__tabs {
   display: flex;
   border-bottom: 1px solid var(--hairline-soft);
   flex: 0 0 auto;
+  padding: 0 10px;
+  gap: 2px;
 }
 
 .dg-entity-lib__tab {
-  flex: 1;
-  padding: 0 8px;
-  height: 38px;
+  padding: 0 12px;
+  height: 36px;
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--text-dim);
+  color: var(--text-faint);
   border-bottom: 2px solid transparent;
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  white-space: nowrap;
 }
 
-.dg-entity-lib__tab--active { color: var(--action); border-bottom-color: var(--action); }
+.dg-entity-lib__tab--active {
+  color: var(--action);
+  border-bottom-color: var(--action);
+}
 
 .dg-entity-lib__body {
   flex: 1;
@@ -1699,31 +1790,44 @@
   gap: 6px;
 }
 
-.dg-entity-lib__list { display: flex; flex-direction: column; gap: 3px; }
+/* Grid de sprites — tarjetas cuadradas como en Scratch */
+.dg-entity-lib__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  gap: 6px;
+}
 
 .dg-entity-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 7px 9px;
+  gap: 4px;
+  padding: 8px 4px 6px;
   border-radius: 10px;
-  border: 1px solid var(--hairline-soft);
+  border: 1.5px solid var(--hairline-soft);
   background: #05060a;
   cursor: pointer;
-  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  text-align: center;
+  min-width: 0;
 }
 
-.dg-entity-item:hover { border-color: rgb(var(--accent-rgb) / 0.4); }
+.dg-entity-item:hover {
+  border-color: rgb(var(--accent-rgb) / 0.4);
+  background: rgb(var(--accent-rgb) / 0.05);
+  transform: translateY(-1px);
+}
 
 .dg-entity-item--selected {
   border-color: var(--action);
-  background: rgb(var(--accent-rgb) / 0.07);
+  background: rgb(var(--accent-rgb) / 0.08);
+  box-shadow: 0 0 0 1px var(--action);
 }
 
 .dg-entity-item__glyph {
-  width: 26px;
-  height: 26px;
-  flex: 0 0 26px;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
   border-radius: 8px;
   background: rgb(var(--fg-rgb, 236 230 216) / 0.07);
   border: 1px solid var(--hairline-soft);
@@ -1732,7 +1836,7 @@
   color: var(--text-dim);
 }
 
-.dg-entity-item__glyph svg { width: 13px; height: 13px; }
+.dg-entity-item__glyph svg { width: 28px; height: 28px; }
 
 .dg-entity-item--selected .dg-entity-item__glyph {
   color: var(--action);
@@ -1740,10 +1844,16 @@
   border-color: rgb(var(--accent-rgb) / 0.25);
 }
 
-.dg-entity-item__info { display: flex; flex-direction: column; flex: 1; gap: 1px; min-width: 0; }
+.dg-entity-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  width: 100%;
+}
 
 .dg-entity-item__name {
-  font-size: 12.5px;
+  font-size: 10px;
   font-weight: 800;
   color: var(--text);
   overflow: hidden;
@@ -1751,13 +1861,18 @@
   white-space: nowrap;
 }
 
-.dg-entity-item__type { font-size: 10.5px; color: var(--text-faint); font-weight: 600; }
-
-.dg-entity-item__pos {
-  font-size: 10px;
+.dg-entity-item__type {
+  font-size: 9px;
   color: var(--text-faint);
-  font-family: var(--font-mono);
-  flex: 0 0 auto;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Coordenadas: solo visibles en hover, ahorran espacio */
+.dg-entity-item__pos {
+  display: none;
 }
 
 .dg-entity-item__delete {
@@ -1766,17 +1881,20 @@
   padding: 2px 5px;
   opacity: 0;
   transition: opacity var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  position: absolute;
+  top: 3px;
+  right: 3px;
 }
 
-.dg-entity-item:hover .dg-entity-item__delete { opacity: 1; }
-.dg-entity-item__delete:hover { color: #e06c5a; }
+/* En grid no usamos .dg-entity-item__delete visible — botón queda en la vista de props */
 
-/* Props editor */
+/* Props editor — se muestra como panel debajo del grid cuando hay selección */
 .dg-entity-props {
   background: #05060a;
   border: 1px solid var(--hairline);
   border-radius: 12px;
   padding: 12px;
+  margin-top: 4px;
 }
 
 .dg-entity-props__title {
@@ -1844,7 +1962,7 @@
 
 .dg-entity-props__range { width: 100%; accent-color: var(--action); }
 
-/* Filtros */
+/* Filtros — Add tab */
 .dg-entity-lib__filter {
   display: flex;
   flex-wrap: wrap;
@@ -2451,12 +2569,17 @@
    RESPONSIVE
    ========================================================================= */
 
-@media (max-width: 1100px) and (min-width: 901px) {
+/* Pantalla media: comprime un poco las columnas fijas */
+@media (max-width: 1200px) and (min-width: 901px) {
   .dg-editor__workspace {
-    grid-template-columns: 190px 1fr 272px;
+    grid-template-columns:
+      clamp(320px, 34vw, 420px)
+      clamp(160px, 14vw, 200px)
+      minmax(0, 1fr);
   }
 }
 
+/* Móvil: una sola columna con tabs */
 @media (max-width: 900px) {
   .dg-editor__workspace {
     display: flex;
@@ -2464,9 +2587,33 @@
     overflow-y: auto;
   }
 
+  .dg-editor__col-left {
+    gap: 0;
+  }
+
+  /* En móvil, col-left actúa como un panel más */
+  .dg-editor__col-left,
   .dg-editor__panel {
     display: none;
     height: auto;
+    min-height: 50vh;
+    flex: none;
+  }
+
+  /* Stage siempre visible cuando se activa el tab simulator */
+  .dg-editor__panel--stage,
+  .dg-editor__panel--sprites {
+    min-height: auto;
+  }
+
+  /* Cuando el tab "simulator" está activo, mostrar col-left completa */
+  .dg-editor__col-left.dg-editor__panel--active {
+    display: flex;
+  }
+
+  /* Cuando el tab "entities" está activo */
+  .dg-editor__panel--sprites.dg-editor__panel--active {
+    display: flex;
     min-height: 50vh;
   }
 
@@ -2475,13 +2622,9 @@
   .dg-editor__mobile-tabs { display: flex; }
 
   .dg-genre-grid { grid-template-columns: 1fr; gap: 6px; }
-
   .dg-welcome__form { padding: 20px 16px; }
-
   .dg-editor__title-name { max-width: 110px; }
-
   .dg-touch-pad { display: flex; }
-
   .dg-script-editor__scripts-col { width: 140px; flex: 0 0 140px; }
 }
 

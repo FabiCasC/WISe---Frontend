@@ -9,22 +9,13 @@ import {
   getState, selectEntity, selectScript, createScript, removeScript,
   appendBlock, removeBlock, updateBlockParams,
 } from '../store'
+import SpritePreview from './SpritePreview'
 
 const stroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
 
 function IconAdd()   { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" {...stroke} /></svg> }
 function IconClose() { return <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" {...stroke} /></svg> }
 function IconCode()  { return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 7l-4 10" {...stroke} /></svg> }
-
-/** Icono de tipo de entidad */
-function entityIcon(type: string) {
-  if (type === 'player')     return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5" {...stroke} /><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" {...stroke} /></svg>
-  if (type === 'enemy')      return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3L12 3z" {...stroke} /></svg>
-  if (type === 'collectible') return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.1 6.4 7 1-5 4.9 1.2 7L12 18l-6.3 3.3 1.2-7-5-4.9 7-1z" {...stroke} /></svg>
-  if (type === 'platform')   return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="12" width="20" height="6" rx="2" {...stroke} /></svg>
-  if (type === 'obstacle')   return <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 7-9 7-9-7z" {...stroke} /></svg>
-  return                            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 8-8 8-8-8z" {...stroke} /></svg>
-}
 
 interface Props { spec: GameSpecification }
 
@@ -50,7 +41,7 @@ export default function ScriptEditor({ spec }: Props) {
 
   return (
     <div className="dg-script-editor">
-      {/* Selector de entidad */}
+      {/* Selector de sprite — tabs grandes tipo Scratch */}
       <div className="dg-script-editor__entity-bar">
         {entities.map((entity) => (
           <button
@@ -59,7 +50,9 @@ export default function ScriptEditor({ spec }: Props) {
             onClick={() => selectEntity(entity.id)}
             title={entity.name}
           >
-            <span className="dg-entity-tab__icon">{entityIcon(entity.type)}</span>
+            <span className="dg-entity-tab__icon">
+              <SpritePreview sprite={entity.sprite} size={16} />
+            </span>
             <span className="dg-entity-tab__name">{entity.name}</span>
           </button>
         ))}
