@@ -4,6 +4,7 @@ import { createSfx } from '../shared/audio'
 import { createInput, createLoop } from '../shared/loop'
 import { createRng } from '../shared/rng'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import {
   createObstacle,
   createPickup,
@@ -46,6 +47,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     height: WORLD.height,
     accent: card?.accent ?? '#E68A68',
   })
+  stage.setGlossary(TERMS)
   const input = createInput(stage.root)
   const startedAt = performance.now()
 
@@ -65,6 +67,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let graceMs = 0
   let shake = 0
   let settled = false
+  let lowestEnergy: number = WORLD.maxEnergy
   /** One per run, kept across retries: a lost run is a lesson too. */
   const decisions: { concept: string; correct: boolean }[] = []
 
@@ -105,6 +108,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     energy = WORLD.maxEnergy
     pickupCount = 0
     crashes = 0
+    lowestEnergy = WORLD.maxEnergy
     graceMs = 0
     shake = 0
     obstacles = []
@@ -131,27 +135,29 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     if (won) sfx.sweep(440, 880, 320, 'triangle', 0.22)
     else sfx.sweep(320, 90, 420, 'sawtooth', 0.22)
 
-    // El portal cierra la partida en cuanto recibe onComplete, asi que el
-    // resultado se informa SOLO cuando el jugador pulsa el boton: primero
-    // ve su marca y el dato real.
+    const reachedTau = tauAt(levelKey, Math.min(1, meters / tuning.targetDistance))
+    const bestKey = `orbita-arcade:dust-run:best:${levelKey}`
+    let best = 0
+    try {
+      best = Number(localStorage.getItem(bestKey)) || 0
+      if (meters > best) localStorage.setItem(bestKey, String(Math.floor(meters)))
+    } catch {
+      /* no storage: the personal best just is not remembered */
+    }
+    const lines = [
+      `You ran ${Math.floor(meters)} m of ${tuning.targetDistance} m${best > 0 ? ` (your best before: ${best} m)` : ''}, caught ${pickupCount} sun break${pickupCount === 1 ? '' : 's'} and crashed ${crashes} time${crashes === 1 ? '' : 's'}.`,
+      won
+        ? `At the end the dust opacity τ was ${reachedTau.toFixed(1)}: only ${pctSun(reachedTau)} of direct sunlight got through, yet your panels kept charging in the sun breaks.`
+        : `The energy hit zero at τ ${reachedTau.toFixed(1)}, when only ${pctSun(reachedTau)} of direct sunlight reached the panels: with so little light there is almost nothing to charge.`,
+      `The lowest your energy got was ${Math.round(lowestEnergy)}%. Without light the energy only goes down: sun breaks are the only way to get it back.`,
+    ]
+    const star = (ok: boolean) => (ok ? '★' : '☆')
+    lines.push(`Stars: ${star(won)} distance ${star(won && energy >= 25)} energy left ${star(won && pickupCount >= 3)} sun breaks caught`)
     stage.showOverlay({
       title: won ? 'Mission complete' : 'Out of power',
       tone: won ? 'win' : 'lose',
-      score: won
-        ? Math.floor(meters) + ' m - ' + pickupCount + ' sun breaks - ' + score + ' points'
-        : Math.floor(meters) + ' m of ' + tuning.targetDistance + ' m',
-      text: won
-        ? 'You made it before the sky closed. Each sun break was energy coming in. The dust opacity τ reached ' +
-          tauAt(levelKey, 1).toFixed(1) +
-          ': only ' +
-          pctSun(tauAt(levelKey, 1)) +
-          ' of direct sunlight got through.'
-        : 'At τ ' +
-          tauAt(levelKey, meters / tuning.targetDistance).toFixed(1) +
-          ' only ' +
-          pctSun(tauAt(levelKey, meters / tuning.targetDistance)) +
-          ' of direct sunlight reached the panels. That is how Opportunity went silent in June 2018, at τ ≈ 10.8.',
-      fact: card?.fact,
+      score: won && !practice ? score + ' points' : undefined,
+      lines: lines.slice(0, 4),
       buttons: won
         ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
         : [
@@ -263,6 +269,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     // Energia: la tormenta tapa el sol. En practica no baja nunca.
     const tau = tauAt(levelKey, meters / tuning.targetDistance)
     if (!practice) energy -= tuning.drainPerSec * drainFactor(tau) * dt
+    lowestEnergy = Math.min(lowestEnergy, energy)
     if (graceMs > 0) graceMs -= dtMs
     if (shake > 0) shake = Math.max(0, shake - dtMs * 0.02)
 
