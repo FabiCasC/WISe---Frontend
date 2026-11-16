@@ -25,6 +25,8 @@ import {
   type VerdictCode,
 } from './rules'
 import { getTexts, type ObjectId } from './texts'
+import { TERMS } from './terms'
+import { createRng } from '../shared/rng'
 import { applyTheme, PALETTE } from './theme'
 import {
   bigButton,
@@ -110,6 +112,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   const reduced = ctx.settings.reducedMotion
   const stage = createStage(container, { width: W, height: H, accent: card?.accent ?? '#F3B54A' })
   const removeTheme = applyTheme(stage.root)
+  stage.setGlossary(TERMS)
+  let attempt = 0
+  let launchGap: number | null = null
   const input = createInput(stage.root)
   const c = stage.ctx
   let startedAt = performance.now()
@@ -382,8 +387,13 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
   function beginPlay() {
     mode = 'play'
-    spec = LEVELS[levelKey]
+    attempt++
+    const base = LEVELS[levelKey]
+    // A different starting angle each attempt, so the launch moment cannot be memorised.
+    const jitter = base.fromPad ? Math.round(createRng(`${ctx.seed}:${attempt}`).range(-50, 50)) : 0
+    spec = { ...base, csmStart: base.csmStart + jitter }
     s = initialState(spec)
+    launchGap = null
     resetRun()
     startedAt = performance.now()
     running = true
@@ -523,11 +533,21 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     const allOk = decisions.every((d) => d.correct)
     const left = Math.max(0, spec.timeLimit - s.t) / spec.timeLimit
     const stars = 1 + (allOk ? 1 : 0) + (left > 0.45 ? 1 : 0)
+    const [lo, hi] = spec.window
+    const lines: string[] = []
+    if (spec.fromPad && launchGap !== null) {
+      lines.push(
+        `You launched with Columbia ${launchGap}° ahead; the launch window is ${lo}° to ${hi}°. ${launchGap >= lo && launchGap <= hi ? 'Inside it, so your lower orbit was faster.' : 'Outside it, so Eagle could not catch up.'}`,
+      )
+    }
+    if (spec.burns > 0) lines.push(`You used ${spec.burns - s.burnsLeft} of ${spec.burns} burns${won ? ` and docked after ${Math.round(s.t)} s in orbit` : ''}.`)
+    lines.push(won ? 'A lower orbit is faster, so you dropped below Columbia, gained on it and climbed back to dock.' : loseText())
+    lines.push(`Stars: ${won ? '★' : '☆'} docked ${won && s.burnsLeft > 0 ? '★' : '☆'} burns to spare ${won && left > 0.45 ? '★' : '☆'} fast`)
     stage.showOverlay({
       title: won ? tx.winTitle : tx.loseTitle,
       tone: won ? 'win' : 'lose',
-      score: won ? '⭐'.repeat(stars) + '☆'.repeat(3 - stars) + '  ' + (practice ? tx.practice : tx.points(score)) : undefined,
-      text: won ? tx.winText[levelKey] : loseText(),
+      score: won ? (practice ? tx.practice : tx.points(score)) + ' · ' + '⭐'.repeat(stars) + '☆'.repeat(3 - stars) : undefined,
+      lines: lines.slice(0, 4),
       buttons: won
         ? [{ label: tx.saveContinue, onClick: () => complete(true, score) }]
         : [
@@ -566,6 +586,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         return
       }
     }
+    launchGap = Math.round(gap(s))
     launch(s)
     sfx.sweep(200, 700, 500, 'sawtooth', 0.16)
     note = tx.liftoffNote
