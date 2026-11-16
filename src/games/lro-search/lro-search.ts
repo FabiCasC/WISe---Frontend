@@ -1,4 +1,4 @@
-import type { Tutorial } from './types'
+import type { Tutorial } from '../../content/tutorials/types'
 
 export default {
   gameId: 'lro-search',
