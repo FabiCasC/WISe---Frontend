@@ -83,7 +83,25 @@ export interface LevelSpec {
   goal: string
 }
 
-export const LEVELS: Record<1 | 2 | 3, LevelSpec> = {
+/** 0 = the guided practice round (Level 0): an easy, friendly scene. */
+export type Lvl = 0 | 1 | 2 | 3
+
+export const LEVELS: Record<Lvl, LevelSpec> = {
+  0: {
+    name: 'Learn to look',
+    mode: 'search',
+    passes: [
+      { label: 'Noon pass · Sun 70°', sun: 70 },
+      { label: 'Morning pass · Sun 12°', sun: 12 },
+    ],
+    maxPasses: 2,
+    targets: ['lm'],
+    beforeSun: null,
+    // Practice never loses: this only keeps the hearts honest if it is ever used.
+    maxMistakes: 99,
+    intro: 'Meet LRO, a space camera! Pick a time for the photo, then tap the lunar module.',
+    goal: 'Find the lunar module',
+  },
   1: {
     name: 'Long shadows',
     mode: 'search',
@@ -94,10 +112,9 @@ export const LEVELS: Record<1 | 2 | 3, LevelSpec> = {
     maxPasses: 2,
     targets: ['lm'],
     beforeSun: null,
-    maxMistakes: 3,
-    intro:
-      'LRO flies over the Moon taking pictures. Somewhere in this patch is an Apollo lunar module descent stage, among many boulders. Pick a pass, then tap the lander. Hint: tall things throw long shadows when the Sun is low.',
-    goal: 'Find the lunar module descent stage',
+    maxMistakes: 4,
+    intro: 'Hide and seek on the Moon! Pick a photo time, then tap the lunar module. Tall things throw long shadows.',
+    goal: 'Find the lunar module',
   },
   2: {
     name: 'Footpaths',
@@ -109,10 +126,9 @@ export const LEVELS: Record<1 | 2 | 3, LevelSpec> = {
     maxPasses: 2,
     targets: ['alsep'],
     beforeSun: null,
-    maxMistakes: 3,
-    intro:
-      'The astronauts walked from the lunar module to set up their experiments, the ALSEP. Their footprints darkened the soil in a trail. Find the ALSEP at the end of the footpath. Shadows can hide faint trails: which Sun is best?',
-    goal: 'Follow the footpath and tap the ALSEP',
+    maxMistakes: 4,
+    intro: 'The astronauts left a dark trail of footprints. Follow it to the science station!',
+    goal: 'Follow the trail to the ALSEP',
   },
   3: {
     name: 'Before and after',
@@ -121,10 +137,9 @@ export const LEVELS: Record<1 | 2 | 3, LevelSpec> = {
     maxPasses: 1,
     targets: ['lm', 'surveyor', 'tracks'],
     beforeSun: 15,
-    maxMistakes: 4,
-    intro:
-      'Hold the “1967 photo” button to see an old picture of the same place, taken before anyone landed. Find the 3 things that are really NEW. Careful: the Sun was lower in 1967, so shadows changed too. A different shadow is not a new object!',
-    goal: 'Tap the 3 new things · shadows that changed do not count',
+    maxMistakes: 5,
+    intro: 'Hold the button to see the old 1967 photo. Tap only what is NEW. A moved shadow is not new!',
+    goal: 'Tap the 3 new things',
   },
 }
 
@@ -143,20 +158,20 @@ export function trailVisibility(sunDeg: number): number {
   return Math.max(0, brightnessContrast(sunDeg) - 0.35) / 0.65
 }
 
-export function makeScene(level: 1 | 2 | 3): Scene {
+export function makeScene(level: Lvl): Scene {
   const rng = createRng('lro-' + level)
   const things: Thing[] = []
   const craters: Crater[] = []
-  const lm = level === 2 ? { x: 230, y: 120 } : level === 3 ? { x: 120, y: 90 } : { x: rng.range(80, 240), y: rng.range(50, 160) }
+  const lm = level === 0 ? { x: 200, y: 105 } : level === 2 ? { x: 230, y: 120 } : level === 3 ? { x: 120, y: 90 } : { x: rng.range(80, 240), y: rng.range(50, 160) }
   const far = (x: number, y: number, d: number) => Math.hypot(x - lm.x, y - lm.y) > d
   // Keep craters off the hardware and the trails, so nothing hides inside a bowl.
   const keepClear = level === 2 ? [lm, { x: 185, y: 95 }, { x: 140, y: 70 }] : level === 3 ? [lm, { x: 175, y: 105 }, { x: 230, y: 140 }] : [lm]
-  for (let i = 0; craters.length < 9 && i < 200; i++) {
+  for (let i = 0; craters.length < (level === 0 ? 6 : 9) && i < 200; i++) {
     const cr = { x: rng.range(20, IMG.w - 20), y: rng.range(20, IMG.h - 20), r: rng.range(6, 18) }
     if (keepClear.every((k) => Math.hypot(cr.x - k.x, cr.y - k.y) > cr.r + 34)) craters.push(cr)
   }
   // Boulders, about as wide as the lander but much lower.
-  for (let i = 0; things.length < 46 && i < 400; i++) {
+  for (let i = 0; things.length < (level === 0 ? 22 : 46) && i < 400; i++) {
     const x = rng.range(10, IMG.w - 10)
     const y = rng.range(10, IMG.h - 10)
     if (!far(x, y, 12)) continue
@@ -229,7 +244,7 @@ export type TapResult =
  * What did the tap land on? Targets first; on level 3 a tap on a boulder or
  * crater is a "lighting" change (its shadow differs from 1967, nothing new).
  */
-export function tap(level: 1 | 2 | 3, scene: Scene, p: { x: number; y: number }, sunDeg: number, found: TargetId[]): TapResult {
+export function tap(level: Lvl, scene: Scene, p: { x: number; y: number }, sunDeg: number, found: TargetId[]): TapResult {
   const spec = LEVELS[level]
   for (const id of spec.targets) {
     if (found.includes(id)) continue
@@ -249,15 +264,33 @@ export function tap(level: 1 | 2 | 3, scene: Scene, p: { x: number; y: number },
   return { kind: 'miss' }
 }
 
+export type Seen = 'lm' | 'alsep' | 'surveyor' | 'tracks' | 'boulder' | 'crater' | 'ground'
+
+/**
+ * What is under the finger? Used to show the NAME of whatever a child taps,
+ * whether or not it is the thing being searched for.
+ */
+export function identify(scene: Scene, p: { x: number; y: number }, sunDeg: number): Seen {
+  for (const kind of ['lm', 'alsep', 'surveyor'] as const) {
+    const t = scene.things.find((x) => x.kind === kind)
+    if (t && hitThing(t, p, sunDeg)) return kind
+  }
+  const path = scene.paths.find((x) => x.id === 'tracks')
+  if (path && hitPath(path, p)) return 'tracks'
+  for (const t of scene.things) if (t.kind === 'boulder' && hitThing(t, p, sunDeg, 1.5)) return 'boulder'
+  for (const c of scene.craters) if (Math.hypot(p.x - c.x, p.y - c.y) <= c.r) return 'crater'
+  return 'ground'
+}
+
 /** The lighting choice each search level teaches. */
-export function goodLight(level: 1 | 2 | 3, sunDeg: number): boolean {
-  if (level === 1) return sunDeg <= 30
+export function goodLight(level: Lvl, sunDeg: number): boolean {
+  if (level === 0 || level === 1) return sunDeg <= 30
   if (level === 2) return sunDeg >= 50
   return true
 }
 
-export function conceptFor(level: 1 | 2 | 3): string {
-  return level === 1 ? 'sombra-revela-altura' : level === 2 ? 'sol-alto-revela-brillo' : 'cambio-o-iluminacion'
+export function conceptFor(level: Lvl): string {
+  return level <= 1 ? 'sombra-revela-altura' : level === 2 ? 'sol-alto-revela-brillo' : 'cambio-o-iluminacion'
 }
 
 export function scoreSearch(mistakes: number, passesUsed: number): number {
