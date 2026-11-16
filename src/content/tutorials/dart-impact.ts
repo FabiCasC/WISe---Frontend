@@ -14,6 +14,12 @@ export default {
     { name: 'Orbit cut', meaning: 'How many minutes you actually took off with your hit.' },
     { name: 'Divert fuel', meaning: 'Fuel to steer. Steering is limited, so line up early.' },
     { name: 'The arrow on Dimorphos', meaning: 'Shows which way it is moving. It turns green when it is coming toward you. A head-on hit slows it down; a hit from the side does not.' },
+    { name: 'Impactor', meaning: 'The spacecraft that crashes on purpose into the asteroid. Here you throw it.' },
+    { name: 'Dimorphos', meaning: 'The small moon of the asteroid that DART hit.' },
+    { name: 'Orbital period', meaning: 'How long the little moon takes to go once around the asteroid. A good hit makes it shorter.' },
+    { name: 'Head-on hit', meaning: 'A crash against the movement. Only that part of the hit slows the moon down; a sideways hit does almost nothing.' },
+    { name: 'Ejecta', meaning: 'The dust and rocks thrown out by the crash. They push back and add to the kick.' },
+    { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button shows all of them.' },
   ],
   steps: [
     { text: 'Press Begin. Look at the arrow on Dimorphos: it shows which way the moonlet is moving.', keys: ['Space', 'Enter'] },
