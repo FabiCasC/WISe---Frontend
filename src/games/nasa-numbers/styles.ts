@@ -27,6 +27,13 @@ export const STYLES = `
   background:rgba(10,26,48,.85);border:1px solid rgba(123,227,164,.4)}
 .nq-end p{margin:0;line-height:1.5}
 .nq-end ul{margin:0;padding-left:18px}
+.nq-bar{position:relative;height:26px;border-radius:13px;background:rgba(255,255,255,.1);overflow:hidden}
+.nq-bar-fill{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,#1875E8,#6DE2F2);border-radius:13px;transition:left .35s,width .35s}
+.nq-bar-ticks{position:absolute;inset:0}
+.nq-tick{position:absolute;top:2px;bottom:2px;width:4px;margin-left:-2px;border-radius:2px}
+.nq-tick.is-read{background:#F2C94C}.nq-tick.is-truth{background:#7be3a4;width:6px}
+.nq-help{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;cursor:pointer;
+  border:2px solid #6DE2F2;background:rgba(12,16,28,.92);color:#eef3ff;font:700 16px system-ui,sans-serif}
 .nq-pause{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
   background:rgba(5,11,24,.8);font-family:Orbitron,system-ui,sans-serif;font-size:22px}
 .nq-root.is-paused .nq-pause{display:flex}
