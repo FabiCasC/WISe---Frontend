@@ -4,6 +4,7 @@ import { createSfx } from '../shared/audio'
 import { COLORS, roundRect, text, toLogical } from '../shared/canvasui'
 import { createInput, createLoop } from '../shared/loop'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import {
   EARTH_G,
   IDLE_RPM,
@@ -52,6 +53,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   const HOVER_BAND = 48
 
   const stage = createStage(container, { width: W, height: H, accent: card?.accent ?? '#c9ccd4' })
+  stage.setGlossary(TERMS)
   const input = createInput(stage.root)
   const c = stage.ctx
   const startedAt = performance.now()
@@ -63,6 +65,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let tries = 0
   let settled = false
   let spin = 0
+  /** Rotor speed at the moment the helicopter first left the ground, for the recap. */
+  let liftRpm: number | null = null
   let lowWarned = false
   /** Seconds flying with no key down, to teach once that the setting holds. */
   let coasting = 0
@@ -82,6 +86,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
 
   function begin() {
     heli = createHeli(spec)
+    liftRpm = null
     lowWarned = false
     coasting = 0
     holdExplained = false
@@ -106,33 +111,31 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     }
     const lesson =
       levelKey === 1
-        ? 'Lift depends on how thick the air is. Mars air is less than 1% as dense as Earth’s, so Ingenuity spun its blades at about 2,500 rpm. In this game’s model the same helicopter would lift off on Earth at about ' +
-          Math.round(EARTH_HOVER / 10) * 10 +
-          ' rpm.'
+        ? 'Lift depends on how thick the air is. Mars air is very thin, so the rotor has to spin far faster than on Earth.'
         : levelKey === 2
-          ? 'Ingenuity’s solar panel charged its batteries for about one 90-second flight per Martian day. Every flight was planned to fit the battery.'
-          : 'On its 72nd flight Ingenuity was over steep, smooth sand ripples. Its camera found too little texture to measure its speed, and at landing a rotor blade was damaged. It never flew again, but it still stands on Mars.'
-    if (v.won) {
-      stage.showOverlay({
-        title: 'Flight complete',
-        tone: 'win',
-        score: 'Battery left ' + Math.round(heli.battery) + ' s · max height ' + heli.maxAlt.toFixed(1) + ' m' + (practice ? '' : ' · ' + score + ' points'),
-        text: lesson,
-        fact: card?.fact,
-        buttons: [{ label: 'Save and continue', onClick: () => complete(true, score) }],
-      })
-    } else {
-      stage.showOverlay({
-        title: event === 'battery' ? 'Battery empty' : event === 'crash' ? 'Hard landing' : 'Not yet',
-        tone: 'lose',
-        score: v.reason,
-        text: lesson,
-        buttons: [
-          { label: 'Try again', onClick: begin },
-          { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
-        ],
-      })
-    }
+          ? 'The battery limits every flight: each one has to be planned to fit it.'
+          : 'Over smooth sand the navigation camera sees too little texture to know how fast it moves: land where there are rocks.'
+    const star = (x: boolean) => (x ? '★' : '☆')
+    const lines = [
+      liftRpm === null
+        ? `The rotor reached ${Math.round(heli.rpm)} rpm and the helicopter never left the ground.`
+        : `You took off at ${liftRpm} rpm and reached ${heli.maxAlt.toFixed(1)} m; the battery ended at ${Math.round(heli.battery)} s.`,
+      v.reason,
+      lesson,
+      `Stars: ${star(v.won)} flown ${star(v.won && heli.battery > 10)} battery left ${star(v.won && tries === 1)} first try`,
+    ]
+    stage.showOverlay({
+      title: v.won ? 'Flight complete' : event === 'battery' ? 'Battery empty' : event === 'crash' ? 'Hard landing' : 'Not yet',
+      tone: v.won ? 'win' : 'lose',
+      score: v.won && !practice ? score + ' points' : undefined,
+      lines,
+      buttons: v.won
+        ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
+        : [
+            { label: 'Try again', onClick: begin },
+            { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
+          ],
+    })
   }
 
   function complete(won: boolean, score: number) {
@@ -227,6 +230,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     for (let i = 0; i < steps; i++) {
       const r = stepHeli(spec, heli, ctrl, dt / steps, { infinite: practice })
       heli = r.heli
+      if (liftRpm === null && heli.airborne) liftRpm = Math.round(heli.rpm)
       if (r.event !== 'none') return finish(r.event, r.reason)
     }
     if (!wasAir && heli.airborne) {
