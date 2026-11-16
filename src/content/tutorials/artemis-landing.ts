@@ -13,6 +13,11 @@ export default {
     { name: 'Vertical', meaning: 'How fast you move up or down. The arrow ▼ means falling and ▲ means rising. Touch down gently.' },
     { name: 'Drift', meaning: 'How fast you slide sideways. Touching down while sliding tips the lander over.' },
     { name: 'Fuel (hover)', meaning: 'Your fuel, measured in seconds you could hover. Every second of engine burns it, and hovering gets you no closer to the ground.' },
+    { name: 'Descent engine', meaning: 'The big engine that slows your fall. It is the only brake you have.' },
+    { name: 'Thruster', meaning: 'A small engine that pushes sideways to stop the drift.' },
+    { name: 'Low gravity', meaning: 'The Moon pulls gently, so a fall is slow, but the pull never stops: floating in place just burns fuel.' },
+    { name: 'Fuel', meaning: 'What the engine burns. With none left there is no braking.' },
+    { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button shows all of them.' },
     { name: 'The landing pad', meaning: 'Land on it, slowly, upright and with fuel left.' },
   ],
   steps: [
