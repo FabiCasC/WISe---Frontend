@@ -67,18 +67,10 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         malasDecisiones: r.malasDecisiones,
         objetivosCompletados: r.objetivosCompletados,
         historialDecisiones: r.historialDecisiones,
-        // Contrato v2: un concepto por nivel, medido con lo que hizo el jugador.
-        // L1 observar antes de intervenir; L2 cada espectrometro usado antes de
-        // pulir es un error y terminar bien es un acierto; L3 juntar las tres
-        // lineas de evidencia.
-        decisions: ctx.settings.practice
-          ? []
-          : ctx.levelId === 2
-            ? [
-                ...Array.from({ length: r.malasDecisiones }, () => ({ concept: 'pulir-antes-de-analizar', correct: false })),
-                ...(r.completado ? [{ concept: 'pulir-antes-de-analizar', correct: true }] : []),
-              ]
-            : [{ concept: ctx.levelId === 1 ? 'observar-primero' : 'varias-evidencias', correct: r.completado }],
+        // Contrato v2: cada decision importante de la roca (mirar antes de tocar, pulir
+        // antes de leer, enviar el informe con todas las pruebas) es un concepto
+        // acertado o fallado. El nivel 0 (practica) no guarda nada.
+        decisions: ctx.settings.practice ? [] : r.decisiones.map(({ concept, correct }) => ({ concept, correct })),
       }
       ctx.onComplete(result)
     },
