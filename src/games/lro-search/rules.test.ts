@@ -4,6 +4,7 @@ import {
   LM_HEIGHT,
   brightnessContrast,
   goodLight,
+  identify,
   makeScene,
   shadowLength,
   tap,
@@ -95,5 +96,49 @@ describe('before and after: new objects versus new shadows', () => {
   it('a thing already found is not found twice', () => {
     const lm = scene.things.find((t) => t.kind === 'lm')!
     expect(tap(3, scene, lm, sun, ['lm']).kind).not.toBe('target')
+  })
+})
+
+describe('level 0 (guided practice) is an easy, friendly scene', () => {
+  const scene = makeScene(0)
+  const lm = scene.things.find((t) => t.kind === 'lm')!
+
+  it('is the same every time and has fewer boulders than level 1', () => {
+    expect(makeScene(0)).toEqual(scene)
+    const count = (s: typeof scene) => s.things.filter((t) => t.kind === 'boulder').length
+    expect(count(scene)).toBeLessThan(count(makeScene(1)))
+  })
+
+  it('teaches the same idea as level 1: low Sun, long shadow', () => {
+    expect(LEVELS[0].targets).toEqual(['lm'])
+    expect(goodLight(0, 12)).toBe(true)
+    expect(goodLight(0, 70)).toBe(false)
+    const p = { x: lm.x + shadowLength(lm.height, 12) - 1, y: lm.y }
+    expect(tap(0, scene, p, 12, [])).toEqual({ kind: 'target', id: 'lm' })
+  })
+
+  it('never runs out of tries', () => {
+    expect(LEVELS[0].maxMistakes).toBeGreaterThan(50)
+  })
+})
+
+describe('every tapped object can be named', () => {
+  const scene = makeScene(1)
+
+  it('names the lander, a boulder, a crater and empty ground', () => {
+    const lm = scene.things.find((t) => t.kind === 'lm')!
+    expect(identify(scene, lm, 70)).toBe('lm')
+    const b = scene.things.find((t) => t.kind === 'boulder')!
+    expect(identify(scene, { x: b.x, y: b.y }, 70)).toBe('boulder')
+    const cr = scene.craters.find((k) => !scene.things.some((t) => Math.hypot(t.x - k.x, t.y - k.y) < k.r))!
+    expect(identify(scene, { x: cr.x, y: cr.y }, 70)).toBe('crater')
+    expect(identify({ ...scene, things: [], craters: [] }, { x: 1, y: 1 }, 70)).toBe('ground')
+  })
+
+  it('names footprints and Surveyor 3 on level 3', () => {
+    const s3 = makeScene(3)
+    const sv = s3.things.find((t) => t.kind === 'surveyor')!
+    expect(identify(s3, sv, 45)).toBe('surveyor')
+    expect(identify(s3, s3.paths[0].points[7], 45)).toBe('tracks')
   })
 })
