@@ -141,7 +141,7 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
 
   // ───────────────────────── Drawing ─────────────────────────
   const say = (text: string, tone: '' | 'ok' | 'bad' = '') => {
-    msg.textContent = text
+    env.decorate(msg, text)
     msg.className = `ls-msg${tone ? ` is-${tone}` : ''}`
   }
 
@@ -287,7 +287,7 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
         drawPoints([q.epicenter], 'ls-dot is-final')
         refresh()
         startWaves()
-        env.finish(COPY.l2.conclusion)
+        env.finish(COPY.l2.recap([...confirmed.values()].map((r) => Math.round(r))))
         return
       }
     } else if (confirmed.size === order.length) {
@@ -363,7 +363,7 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
       pickLayer.replaceChildren()
       drawPoints(candidates(q, order).points, 'ls-dot is-ghost')
       refresh()
-      env.finish(COPY.l3.conclusion)
+      env.finish(COPY.l3.recap(order, marks.length))
       return
     }
     if (left === 0) return // the scene has already ended the level as failed

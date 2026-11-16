@@ -129,8 +129,10 @@ export interface Env {
    * caller must stop touching the UI.
    */
   judge(correct: boolean): number
-  /** The level has been solved: shows the conclusion and the sealing button. */
-  finish(conclusion: string): void
+  /** The level has been solved: shows the recap (lines built from what the player did). */
+  finish(lines: string[]): void
+  /** Writes a text into host, underlining the technical words so they explain on tap. */
+  decorate(host: HTMLElement, text: string): void
   /** Touch or click `target` and its name shows for a moment (see createNameTags). */
   name(target: Element, label: string): void
 }

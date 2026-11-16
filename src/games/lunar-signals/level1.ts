@@ -81,7 +81,7 @@ export function buildLevel1(env: Env): LevelRun {
   env.name(slider, COPY.names.marker)
 
   const say = (text: string, tone: '' | 'ok' | 'bad' = '') => {
-    msg.textContent = text
+    env.decorate(msg, text)
     msg.className = `ls-msg${tone ? ` is-${tone}` : ''}`
   }
 
@@ -146,7 +146,7 @@ export function buildLevel1(env: Env): LevelRun {
       check.disabled = true
       fire.disabled = true
       say(COPY.l1.ok, 'ok')
-      env.finish(COPY.l1.conclusion(km(Math.round(distanceFromEcho(measured) / 1000) * 1000)))
+      env.finish(COPY.l1.recap(fmt(measured), km(C_KM_S), km(Math.round(distanceFromEcho(measured) / 1000) * 1000)))
       return
     }
     if (left === 0) return // the scene has already ended the level as failed
