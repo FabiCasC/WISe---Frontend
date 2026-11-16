@@ -4,6 +4,7 @@ import { createSfx } from '../shared/audio'
 import { COLORS, drawButton, drawStars, inBox, roundRect, text, toLogical, type Box } from '../shared/canvasui'
 import { createInput, createLoop } from '../shared/loop'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import {
   AIRBAG_MAX,
   CHUTE_MAX_SPEED,
@@ -54,6 +55,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   const sfx = createSfx(ctx.settings.volume)
 
   const stage = createStage(container, { width: W, height: H, accent: card?.accent ?? '#E68A68' })
+  stage.setGlossary(TERMS)
   const input = createInput(stage.root)
   const c = stage.ctx
   const startedAt = performance.now()
@@ -70,6 +72,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let settled = false
   let anim = 0
   const decisions: { concept: string; correct: boolean }[] = []
+  /** What the player did and at which altitude and speed: the timeline of the recap. */
+  let acts: { id: EventId; h: number; v: number }[] = []
 
   // Buttons: one per player event, along the bottom.
   const buttons: { id: EventId; box: Box }[] = spec.player.map((id, i, all) => {
@@ -81,6 +85,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   function begin() {
     craft = createCraft()
     log = []
+    acts = []
     landing = null
     bounceList = []
     bounceT = 0
@@ -107,6 +112,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       return
     }
     craft = r.craft
+    acts.push({ id, h: craft.h, v: speed(craft) })
     log.push({ t: craft.t, msg: r.message })
     stage.flash(r.message, r.ok ? 'ok' : 'bad')
     if (id === 'chute') sfx.sweep(200, 90, 300, 'triangle', 0.18)
@@ -136,35 +142,35 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     if (l.ok) sfx.sweep(520, 980, 360, 'triangle', 0.2)
     else sfx.sweep(300, 90, 420, 'sawtooth', 0.2)
 
+    const NAME: Record<EventId, string> = { chute: 'parachute', airbags: 'airbags', rockets: 'rockets', cut: 'cord cut' }
+    const did = acts.length
+      ? acts.map((a) => `${NAME[a.id]} at ${Math.round(a.h).toLocaleString('en-US')} m (${Math.round(a.v)} m/s)`).join(', ')
+      : 'you pressed nothing'
     const lesson =
       levelKey === 1
-        ? 'The heat shield did most of the braking: from 7300 m/s down to about 400 m/s. Only then could the parachute open without tearing.'
+        ? 'The heat shield did most of the braking before the parachute could open.'
         : levelKey === 2
-          ? 'Mars air is so thin that the parachute only slowed Pathfinder to about 70 m/s. Three small rockets fired at 98 m to brake the last part.'
-          : 'Pathfinder hit the ground wrapped in airbags and bounced at least 15 times before it rolled to a stop, about 1 km away.'
-
-    if (l.ok) {
-      stage.showOverlay({
-        title: 'Pathfinder is on Mars',
-        tone: 'win',
-        score:
-          'Hit the ground at ' + Math.round(l.impact) + ' m/s · ' + bounceList.length + ' bounces' + (practice ? '' : ' · ' + score + ' points'),
-        text: lesson + ' The lander, later named the Carl Sagan Memorial Station, is still in Ares Vallis.',
-        fact: card?.fact,
-        buttons: [{ label: 'Save and continue', onClick: () => complete(true, score) }],
-      })
-    } else {
-      stage.showOverlay({
-        title: 'Landing failed',
-        tone: 'lose',
-        score: l.reason,
-        text: lesson,
-        buttons: [
-          { label: 'Try again', onClick: begin },
-          { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
-        ],
-      })
-    }
+          ? 'Mars air is thin: the parachute alone is not enough, so rockets brake the last part.'
+          : 'The airbags let the lander survive the hit and bounce to a stop.'
+    const star = (v: boolean) => (v ? '★' : '☆')
+    const lines = [
+      `You did: ${did}.`,
+      `${l.ok ? 'It touched the ground' : 'It hit the ground'} at ${Math.round(l.impact)} m/s${l.ok ? `, with ${bounceList.length} bounces` : ''}. ${l.reason}`,
+      lesson,
+      `Stars: ${star(l.ok)} landed ${star(l.ok && correct)} every step in its window ${star(l.ok && tries === 1)} first try`,
+    ]
+    stage.showOverlay({
+      title: l.ok ? 'Pathfinder is on Mars' : 'Landing failed',
+      tone: l.ok ? 'win' : 'lose',
+      score: l.ok && !practice ? score + ' points' : undefined,
+      lines,
+      buttons: l.ok
+        ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
+        : [
+            { label: 'Try again', onClick: begin },
+            { label: 'Back to the arcade', variant: 'quiet', onClick: () => complete(false, 0) },
+          ],
+    })
   }
 
   function complete(won: boolean, score: number) {
