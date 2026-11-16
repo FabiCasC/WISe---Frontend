@@ -3,6 +3,7 @@ import type { GameContext, GameController } from '../../shared/types'
 import { createSfx } from '../shared/audio'
 import { createInput, createLoop } from '../shared/loop'
 import { createStage } from '../shared/stage'
+import { TERMS } from './terms'
 import {
   DSN_IDS,
   HALF_VIEW,
@@ -53,6 +54,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   const practice = ctx.settings.practice
 
   const stage = createStage(container, { width: W, height: H, accent: card?.accent ?? '#75CBD1' })
+  stage.setGlossary(TERMS)
   const input = createInput(stage.root)
   const c = stage.ctx
   const startedAt = performance.now()
@@ -70,6 +72,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let hoverLon: number | null = null
   let lastTimeline: boolean[] | null = null
   let settled = false
+  /** Longest blackout (minutes) of the first full run, to say what the player improved. */
+  let firstBlackout: number | null = null
   const decisions: { concept: string; correct: boolean }[] = []
 
   const sites = spec.sites
@@ -161,6 +165,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     }
 
     const ok = passed(lons, spec)
+    if (firstBlackout === null) firstBlackout = blackout
     decisions.push({ concept, correct: ok })
     if (ok) return win(cov, blackout)
 
@@ -184,12 +189,20 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
           : usedDsn
             ? 'You picked the real Deep Space Network: Goldstone, Madrid and Canberra, about a third of the world apart.'
             : 'Your three sites work. NASA chose Goldstone (California), Madrid (Spain) and Canberra (Australia), spread about a third of the world apart.'
+    const star = (v: boolean) => (v ? '★' : '☆')
+    const lines = [
+      `${currentLons().length} dishes at ${currentLons().map((l) => Math.round(l) + '°').join(', ')}: the probe stayed in contact ${Math.round(cov * 100)}% of the day, longest blackout ${fmtMin(blackout)}.`,
+      runs === 1
+        ? 'You got it on the first run.'
+        : `It took ${runs} runs. The first full run left a blackout of ${fmtMin(firstBlackout ?? blackout)}.`,
+      text,
+      `Stars: ${star(true)} link kept ${star(runs === 1)} first run ${star(blackout === 0 && (!sites || !!usedDsn))} ${sites ? 'real sites' : 'no blackout'}`,
+    ]
     stage.showOverlay({
       title: 'Link kept',
       tone: 'win',
-      score: Math.round(cov * 100) + '% contact - ' + runs + (runs === 1 ? ' day run' : ' days run') + (practice ? '' : ' - ' + score + ' points'),
-      text,
-      fact: card?.fact,
+      score: practice ? undefined : score + ' points',
+      lines,
       buttons: [{ label: 'Save and continue', onClick: () => complete(score) }],
     })
   }
