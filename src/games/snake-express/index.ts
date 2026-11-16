@@ -5,6 +5,7 @@ import { createInput, createLoop } from '../shared/loop'
 import { createRng } from '../shared/rng'
 import { createStage } from '../shared/stage'
 import { COLORS, text } from '../shared/canvasui'
+import { TERMS } from './terms'
 import {
   COLS,
   LEVELS,
@@ -17,6 +18,7 @@ import {
   goalMet,
   initialState,
   scoreWalk,
+  stars,
   step,
   turn,
   type Dir,
@@ -53,6 +55,9 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   let running = false
   let acc = 0
   let wrongRocks = 0
+  let brokenWagons = 0
+  let playedMs = 0
+  let tooClose = 0
   let settled = false
   let note = ''
   let noteT = 0
@@ -62,13 +67,15 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     note = msg
     noteT = secs
   }
+  stage.setGlossary(TERMS)
   const decide = (correct: boolean) => {
     if (!practice) decisions.push({ concept, correct })
   }
 
   function handle(ev: Event) {
     if (ev.type === 'rock') {
-      decide(ev.good)
+      // In level 3 any rock counts: the decision there is where the packages go.
+      if (levelKey !== 3) decide(ev.good)
       if (ev.good) {
         sfx.tone(760, 70, 'sine', 0.14)
         say(
@@ -82,12 +89,14 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         )
       } else {
         wrongRocks++
+        brokenWagons += ev.lost
         sfx.tone(240, 120, 'square', 0.12)
-        stage.flash('Not the rock you need', 'bad')
+        stage.flash(ev.lost ? 'Wagons broke off!' : 'Not the rock you need', 'bad')
         say(
-          ev.kind === 'bright'
-            ? 'Bright rock: a piece of highland crust thrown here by an impact. It is not the lava of this sea, and now it weighs on you.'
-            : 'Dark basalt: lava that flooded the low plains later. The highlands\' oldest crust is the BRIGHT rock.',
+          (ev.kind === 'bright'
+            ? 'Bright rock: highland crust thrown here by an impact, not the lava of this sea.'
+            : 'Dark basalt: lava that flooded the low plains later. The highlands\' oldest crust is the BRIGHT rock.') +
+            (ev.lost ? ` It broke ${ev.lost} wagon${ev.lost > 1 ? 's' : ''} off your train.` : ''),
           5,
         )
       }
@@ -98,6 +107,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
         say('Package set down. It stays here and keeps sending data after you leave.')
       } else {
         decide(false)
+        tooClose++
         stage.flash('Too close', 'bad')
         say(
           distToLM(ev.at) < spec.deployMin
@@ -142,9 +152,47 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     acc = 0
     running = true
     wrongRocks = 0
+    brokenWagons = 0
+    playedMs = 0
+    tooClose = 0
     stage.hideOverlay()
-    say(spec.want === 'dark' ? 'Find the DARK rocks.' : spec.want === 'bright' ? 'Find the BRIGHT rocks.' : 'Space sets down a package.', 3)
+    say('Press an arrow key, WASD or swipe to start walking. The air only runs once you move.', 6)
     stats()
+  }
+
+  function recapLines(won: boolean): string[] {
+    const secs = Math.round(playedMs / 1000)
+    const kind = spec.want === 'dark' ? 'dark' : 'bright'
+    const lines: string[] = []
+    if (levelKey === 3) {
+      const far = s.deployed.map((d) => distToLM(d))
+      lines.push(
+        s.deployed.length
+          ? `You set down ${s.deployed.length} of ${spec.experiments} science packages, the nearest ${Math.min(...far)} steps from the lunar module${tooClose ? `, after ${tooClose} attempt${tooClose > 1 ? 's' : ''} too close` : ''}.`
+          : 'You did not set down any science package.',
+      )
+      lines.push("Packages are left far from the lunar module so the liftoff blast does not hit them, and they keep sending data after you go. Apollo's seismometers did until 1977.")
+    } else {
+      lines.push(
+        `You brought back ${s.collected} ${kind} rock${s.collected === 1 ? '' : 's'} in ${secs} s, with ${wrongRocks} wrong pick${wrongRocks === 1 ? '' : 's'}${brokenWagons ? ` that broke ${brokenWagons} wagon${brokenWagons > 1 ? 's' : ''} off your train` : ''}.`,
+      )
+      lines.push(
+        kind === 'dark'
+          ? 'Dark rock is basalt: lava that cooled. The dark plains of the Moon are old lava floods.'
+          : 'Bright rock is highland crust, the oldest crust of the Moon.',
+      )
+      if (wrongRocks) {
+        lines.push(
+          kind === 'dark'
+            ? 'The bright rocks you hit are highland crust thrown onto the sea by impacts: not made from this lava.'
+            : 'The dark rocks you hit are basalt from the lava seas: younger than the highlands.',
+        )
+      }
+    }
+    if (!won) lines.unshift(s.reason)
+    const st = stars(won, wrongRocks, spec, s)
+    lines.push(`Stars: ${st.concept ? '★' : '☆'} concept ${st.efficiency ? '★' : '☆'} no wrong rocks ${st.speed ? '★' : '☆'} air left`)
+    return lines.slice(0, 4)
   }
 
   function finish(won: boolean) {
@@ -156,14 +204,7 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       title: won ? 'Back in the lunar module' : 'Moonwalk over',
       tone: won ? 'win' : 'lose',
       score: won && !practice ? score + ' points' : undefined,
-      text: won
-        ? levelKey === 1
-          ? 'You brought back the lava of the sea. The dark plains you can see on the Moon from Earth are these basalt lava flows.'
-          : levelKey === 2
-            ? 'You brought back the oldest crust. The bright parts of the Moon you see from Earth are these highlands.'
-            : 'Your packages stay behind on purpose. Apollo\'s seismometers kept sending moonquake data to Earth until 1977.'
-        : s.reason,
-      fact: card?.fact,
+      lines: recapLines(won),
       buttons: won
         ? [{ label: 'Save and continue', onClick: () => complete(true, score) }]
         : [
@@ -244,6 +285,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
   function update(dtMs: number) {
     if (!running) return
     noteT = Math.max(0, noteT - dtMs / 1000)
+    if (!s.started) return
+    playedMs += dtMs
     if (!practice) {
       const ev = breathe(s, dtMs / 1000)
       if (ev) return handle(ev)

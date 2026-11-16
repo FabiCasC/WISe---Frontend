@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  BREAK_WAGONS,
   LEVELS,
+  breathe,
+  stars,
   LM,
   deploy,
   distToLM,
@@ -98,6 +101,7 @@ describe('Lunar Express', () => {
     current = LEVELS[1]
     const s = initialState(current, rng())
     s.rocks = []
+    s.started = true
     const evs = step(s, current, rng()) // (9,9) -> (9,8)
     expect(evs).toEqual([])
     const evs2 = step(s, current, rng()) // -> (9,7): the LM
@@ -108,7 +112,69 @@ describe('Lunar Express', () => {
   it('turning back into yourself is ignored, running into your tail loses', () => {
     current = LEVELS[1]
     const s = initialState(current, rng())
+    s.started = true
     turn(s, 'down')
     expect(s.queued).toBeNull()
+  })
+
+  it('the explorer stands still until the first key or tap, and the air does not run', () => {
+    current = LEVELS[1]
+    const s = initialState(current, rng())
+    const head = { ...s.body[0] }
+    for (let i = 0; i < 50; i++) {
+      expect(step(s, current, rng())).toEqual([])
+      expect(breathe(s, 5)).toBeNull()
+    }
+    expect(s.body[0]).toEqual(head)
+    expect(s.oxygen).toBe(current.oxygen)
+    turn(s, 'left') // the first input may even be "backwards": it only chooses the way
+    step(s, current, rng())
+    expect(s.body[0]).toEqual({ x: head.x - 1, y: head.y })
+  })
+
+  it('a wrong rock breaks wagons off the train, costs air and does not come aboard', () => {
+    current = LEVELS[1]
+    const s = initialState(current, rng())
+    s.started = true
+    s.rocks = [{ x: 9, y: 8, kind: 'dark' }]
+    step(s, current, rng()) // takes the good rock: (9,9) -> (9,8)
+    s.rocks.push({ x: 9, y: 4, kind: 'bright' })
+    s.collected = 1
+    s.cargo = ['dark', 'dark', 'dark']
+    s.collected = 3
+    s.body = [{ x: 9, y: 5 }, { x: 9, y: 6 }, { x: 9, y: 7 }, { x: 8, y: 7 }, { x: 7, y: 7 }, { x: 6, y: 7 }]
+    s.dir = 'up'
+    const air = s.oxygen
+    const evs = step(s, current, rng())
+    expect(evs).toContainEqual({ type: 'rock', kind: 'bright', good: false, lost: BREAK_WAGONS })
+    expect(s.cargo).toEqual(['dark'])
+    expect(s.collected).toBe(1)
+    expect(s.oxygen).toBeLessThan(air)
+  })
+
+  it('a bot that walks at random almost never wins', () => {
+    current = LEVELS[1]
+    let wins = 0
+    for (let i = 0; i < 100; i++) {
+      const r = createRng('rnd' + i)
+      const s = initialState(current, r.next)
+      const dirs: Dir[] = ['up', 'down', 'left', 'right']
+      for (let t = 0; t < 600 && s.phase === 'playing'; t++) {
+        turn(s, r.pick(dirs))
+        step(s, current, r.next)
+        breathe(s, 0.2)
+      }
+      if (s.phase === 'won') wins++
+    }
+    expect(wins).toBeLessThanOrEqual(2)
+  })
+
+  it('stars: concept needs the win, efficiency no wrong rocks, speed air left', () => {
+    current = LEVELS[1]
+    const s = initialState(current, rng())
+    s.oxygen = current.oxygen
+    expect(stars(true, 0, current, s)).toEqual({ concept: true, efficiency: true, speed: true })
+    expect(stars(true, 2, current, s).efficiency).toBe(false)
+    expect(stars(false, 0, current, s).concept).toBe(false)
   })
 })
