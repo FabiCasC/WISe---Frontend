@@ -64,6 +64,7 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
     sv('circle', { cx: s.pos.x, cy: s.pos.y, r: 2.2 }, g)
     const label = sv('text', { x: s.pos.x + 3.4, y: s.pos.y + 1.2 }, g)
     label.textContent = s.working ? s.id : `${s.id} · no signal`
+    env.name(g, COPY.names.station(s.id, s.working))
   }
 
   // ───────────────────────── Panel ─────────────────────────
@@ -86,6 +87,7 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
     role: 'img',
     'aria-label': 'Vibration graph of the station',
   })
+  env.name(graph, COPY.names.graph)
   const delayText = el('p', 'ls-readout')
   const legend = el('p', 'ls-note', `1 second of delay equals ${fmt(unitsPerSecond, 1)} map units.`)
 
@@ -145,7 +147,10 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
 
   const drawPoints = (points: Vec[], cls: string) => {
     pointsLayer.replaceChildren()
-    for (const p of points) sv('circle', { cx: p.x, cy: p.y, r: 2.4, class: cls }, pointsLayer)
+    for (const p of points) {
+      const dot = sv('circle', { cx: p.x, cy: p.y, r: 2.4, class: cls }, pointsLayer)
+      env.name(dot, cls.includes('is-final') ? COPY.names.quakeSpot : COPY.names.spot)
+    }
   }
 
   const drawGraph = (id: string) => {
@@ -221,7 +226,10 @@ export function buildQuakeLevel(env: Env, q: QuakeDef, mode: QuakeMode): LevelRu
 
   const drawPick = () => {
     pickLayer.replaceChildren()
-    for (const m of marks) sv('circle', { cx: m.x, cy: m.y, r: 2, class: 'ls-pick' }, pickLayer)
+    for (const m of marks) {
+      const pick = sv('circle', { cx: m.x, cy: m.y, r: 2, class: 'ls-pick' }, pickLayer)
+      env.name(pick, COPY.names.mark)
+    }
   }
 
   const refresh = () => {

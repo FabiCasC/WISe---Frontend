@@ -72,6 +72,14 @@ export function buildLevel1(env: Env): LevelRun {
   root.append(track, watchWrap, fire, tools, msg)
   env.stage.append(root)
 
+  // Touch an object to see its name for a moment.
+  env.name(earth, COPY.names.earth)
+  env.name(moon, COPY.names.moon)
+  env.name(pulse, COPY.names.pulse)
+  env.name(beam, COPY.names.beam)
+  env.name(watchWrap, COPY.names.stopwatch)
+  env.name(slider, COPY.names.marker)
+
   const say = (text: string, tone: '' | 'ok' | 'bad' = '') => {
     msg.textContent = text
     msg.className = `ls-msg${tone ? ` is-${tone}` : ''}`

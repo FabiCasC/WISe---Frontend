@@ -83,12 +83,58 @@ export const STYLES = `
   background:rgba(5,11,24,.8);font-family:Orbitron,system-ui,sans-serif;font-size:22px}
 .ls-root.is-paused .ls-pause{display:flex}
 
+/* Name tags: touch an object and its name shows for a moment */
+.ls-nametag{position:absolute;z-index:6;pointer-events:none;padding:4px 10px;border-radius:999px;
+  background:rgba(232,240,255,.96);color:#0b1426;font-size:13px;font-weight:700;white-space:nowrap;
+  box-shadow:0 2px 10px rgba(0,0,0,.45);animation:ls-tagin .15s ease-out}
+@keyframes ls-tagin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Level 0 · practice run with Ping */
+.ls-l0{display:flex;flex-direction:column;gap:14px;max-width:760px}
+.ls-l0__top{display:flex;gap:12px;align-items:flex-start}
+.ls-l0__scene{display:flex;flex-direction:column;gap:14px}
+.ls-l0__quiz{display:flex;flex-direction:column;gap:10px}
+.ls-l0__bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+.ls-ping{flex:0 0 64px;width:64px;height:64px;cursor:pointer}
+.ls-ping__ant{stroke:#6DE2F2;stroke-width:2}
+.ls-ping__bulb{fill:#ffd6a5;animation:ls-blink 1.6s ease-in-out infinite}
+@keyframes ls-blink{50%{opacity:.35}}
+.ls-ping__head{fill:#c9d6ee;stroke:#6DE2F2;stroke-width:2}
+.ls-ping__eye{fill:#0b1426}
+.ls-ping__smile{fill:none;stroke:#0b1426;stroke-width:2.4;stroke-linecap:round}
+.ls-bubble{flex:1;margin:0;padding:12px 14px;border-radius:14px;font-size:15px;line-height:1.5;
+  background:rgba(109,226,242,.12);border:1px solid rgba(109,226,242,.35)}
+.ls-bubble.is-ok{background:rgba(123,227,164,.12);border-color:rgba(123,227,164,.5)}
+.ls-brief{display:flex;flex-direction:column;gap:10px}
+.ls-brief__title{margin:0;font-family:Orbitron,system-ui,sans-serif;font-size:16px}
+.ls-brief__card{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;
+  font-size:15px;line-height:1.5;background:rgba(10,26,48,.7);border:1px solid rgba(109,226,242,.25)}
+.ls-brief__icon{font-size:26px;flex:0 0 auto}
+.ls-question{margin:0;font-weight:700;font-size:15px}
+.ls-choices{display:flex;flex-wrap:wrap;gap:10px}
+.ls-choice{min-height:44px;min-width:110px}
+.ls-choice.is-right{border-color:#7be3a4;background:rgba(123,227,164,.18)}
+.ls-choice.is-wrong{border-color:#ffb38a;opacity:.6}
+.ls-you,.ls-cliff{position:absolute;top:50%;transform:translate(-50%,-50%)}
+.ls-you{left:0;width:30px;height:30px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#ffe3b8,#e0a064 65%,#8d5a2b)}
+.ls-cliff{left:100%;width:22px;height:46px;border-radius:6px 6px 3px 3px;
+  background:linear-gradient(90deg,#7a6a58,#4e4338)}
+.ls-wavemap{width:100%;max-width:560px;aspect-ratio:2/1;touch-action:manipulation}
+.ls-map--still{flex:none;width:100%;max-width:420px;cursor:default}
+.ls-wavetext{fill:#e8f0ff;font-size:3.2px;text-anchor:middle}
+.ls-wavetext--free{text-anchor:start}
+.ls-station .ls-wavetext{font-size:3.2px;text-anchor:middle}
+.ls-wavetext--p,.ls-station .ls-wavetext--p{fill:#6DE2F2}
+.ls-wavetext--s,.ls-station .ls-wavetext--s{fill:#E68A68}
+.ls-wavetext--gap,.ls-station .ls-wavetext--gap{fill:#7be3a4;font-weight:700}
+
 /* Animations (all disabled by .is-reduced, i.e. "reduced motion") */
 .is-reduced *{animation:none!important;transition:none!important}
 .ls-beam{position:absolute;top:50%;left:0;width:0;height:3px;transform:translateY(-50%);border-radius:2px;
   background:linear-gradient(90deg,rgba(155,246,255,0),#9bf6ff);pointer-events:none}
 .ls-pulse.is-back{background:#ffd6a5;box-shadow:0 0 14px 4px rgba(255,170,90,.8)}
-.ls-moon.is-hit{animation:ls-hit .5s ease-out}
+.ls-moon.is-hit,.ls-cliff.is-hit{animation:ls-hit .5s ease-out}
 @keyframes ls-hit{from{box-shadow:0 0 0 0 rgba(155,246,255,.9)}to{box-shadow:0 0 0 22px rgba(155,246,255,0)}}
 .ls-graph__trace{stroke-dasharray:1;stroke-dashoffset:0;animation:ls-draw .9s ease-out backwards}
 @keyframes ls-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}

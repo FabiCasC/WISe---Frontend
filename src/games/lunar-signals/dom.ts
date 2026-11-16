@@ -69,6 +69,54 @@ export class Glide {
   }
 }
 
+/**
+ * Little name labels: when the player touches an object, its name pops up next
+ * to the finger for a moment and then goes away by itself.
+ */
+export interface NameTags {
+  attach(target: Element, label: string): void
+  dispose(): void
+}
+
+export function createNameTags(root: HTMLElement, showMs = 1400): NameTags {
+  const tag = el('div', 'ls-nametag')
+  tag.setAttribute('aria-hidden', 'true')
+  tag.hidden = true
+  root.append(tag)
+  let timer: ReturnType<typeof setTimeout> | undefined
+
+  const show = (label: string, e: PointerEvent) => {
+    tag.textContent = label
+    tag.hidden = false
+    const box = root.getBoundingClientRect()
+    const w = tag.offsetWidth
+    const minX = root.scrollLeft + 4
+    const maxX = Math.max(minX, root.scrollLeft + root.clientWidth - w - 4)
+    const x = Math.min(maxX, Math.max(minX, e.clientX - box.left + root.scrollLeft - w / 2))
+    const y = Math.max(root.scrollTop + 4, e.clientY - box.top + root.scrollTop - 46)
+    tag.style.left = `${x}px`
+    tag.style.top = `${y}px`
+    // Restart the little pop-in animation each time.
+    tag.style.animation = 'none'
+    void tag.offsetWidth
+    tag.style.animation = ''
+    clearTimeout(timer)
+    timer = setTimeout(() => {
+      tag.hidden = true
+    }, showMs)
+  }
+
+  return {
+    attach(target, label) {
+      target.addEventListener('pointerdown', (e) => show(label, e as PointerEvent))
+    },
+    dispose() {
+      clearTimeout(timer)
+      tag.remove()
+    },
+  }
+}
+
 /** What the scene offers to each level. */
 export interface Env {
   stage: HTMLElement
@@ -83,6 +131,8 @@ export interface Env {
   judge(correct: boolean): number
   /** The level has been solved: shows the conclusion and the sealing button. */
   finish(conclusion: string): void
+  /** Touch or click `target` and its name shows for a moment (see createNameTags). */
+  name(target: Element, label: string): void
 }
 
 export interface LevelRun {

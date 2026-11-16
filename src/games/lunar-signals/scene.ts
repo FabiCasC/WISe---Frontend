@@ -1,7 +1,8 @@
 import type { GameContext, GameController } from '../../shared/types'
 import { getMission } from '../../content/missions'
 import { COPY, FICHA_SOURCE_URL } from './copy'
-import { el, type Env } from './dom'
+import { createNameTags, el, type Env, type LevelRun } from './dom'
+import { buildLevel0 } from './level0'
 import { buildLevel1 } from './level1'
 import { buildQuakeLevel } from './level2'
 import { LEVEL2_QUAKE, LEVEL3_QUAKE } from './levels'
@@ -38,7 +39,13 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
   // LevelId pasó a ser number en el contrato v2; este juego tiene los niveles 1 a 3.
   const intro = COPY.intro[ctx.levelId as keyof typeof COPY.intro] ?? COPY.intro[1]
   const head = el('header', 'ls-head')
-  head.append(el('h2', 'ls-title', intro.title), el('p', 'ls-text', intro.text))
+  const headTitle = el('h2', 'ls-title', intro.title)
+  const headText = el('p', 'ls-text', intro.text)
+  head.append(headTitle, headText)
+  const setHead = (h: { title: string; text: string }) => {
+    headTitle.textContent = h.title
+    headText.textContent = h.text
+  }
 
   const stage = el('div', 'ls-stage')
   const end = el('section', 'ls-end')
@@ -49,6 +56,9 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
 
   root.append(style, head, stage, end, pauseLayer)
   container.append(root)
+
+  // Touch an object and its name shows for a moment.
+  const tags = createNameTags(root)
 
   // ── Result ──
   const complete = () => {
@@ -118,14 +128,34 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
       sfx.done()
       closeWith(conclusion, COPY.seal, true)
     },
+    name(target, label) {
+      tags.attach(target, label)
+    },
   }
 
-  const run =
+  const startLevel = (): LevelRun =>
     ctx.levelId === 1
       ? buildLevel1(env)
       : ctx.levelId === 2
         ? buildQuakeLevel(env, LEVEL2_QUAKE, 'guided')
         : buildQuakeLevel(env, LEVEL3_QUAKE, 'free')
+
+  let run: LevelRun = {}
+  /** Swaps the practice screen (or nothing) for the real level. */
+  const begin = () => {
+    setHead(intro)
+    stage.replaceChildren()
+    run = startLevel()
+  }
+
+  // Level 1 opens with the mission briefing and Level 0 (practice). The player
+  // can skip it at any time; it never touches attempts, score or decisions.
+  if (ctx.levelId === 1) {
+    setHead(COPY.l0.head)
+    run = buildLevel0(env, begin)
+  } else {
+    begin()
+  }
 
   // ── Own loop: active ms do not count paused time ──
   let last = performance.now()
@@ -157,6 +187,7 @@ export function mountSignals(container: HTMLElement, ctx: GameContext): GameCont
     destroy() {
       destroyed = true
       sfx.dispose()
+      tags.dispose()
       cancelAnimationFrame(raf)
       root.remove()
       return Promise.resolve()
