@@ -12,7 +12,7 @@ export default {
     { name: 'The grid of tiles', meaning: 'Each tile is one of the rover’s tools. Line up 3 or more of the same tool, in a row or a column, to use it. A swap that makes no match goes back.' },
     { name: 'Camera', meaning: 'Takes pictures. In level 1, every camera you match uncovers a piece of the rock photo.' },
     { name: 'RAT (the orange wheel)', meaning: 'The rock abrasion tool. It grinds off the dust and the weathered surface so you can see fresh rock.' },
-    { name: 'Spectrometer (the purple target)', meaning: 'Reads the chemistry of the rock. If the surface is still dusty, it reads dust instead of rock.' },
+    { name: 'Spectrometer (the purple target)', meaning: 'Reads the chemistry of the rock. From level 2 the right panel draws what it measured: on a dusty rock you get a flat dust reading that tells you nothing; on a ground rock you see a real mineral.' },
     { name: 'Energy (the lightning bolt)', meaning: 'The rover’s power and radio link. Some goals need it.' },
     { name: 'Moves', meaning: 'How many swaps you have left. Tiles that fall and match by themselves give points but do not count toward your goal, so aim your swaps.' },
   ],

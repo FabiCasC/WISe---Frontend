@@ -45,6 +45,16 @@ export class OpportunityScene extends Phaser.Scene {
   private targetCounterTxt: Phaser.GameObjects.Text | null = null
   private ambienteIniciado = false
 
+  // Panel vivo del nivel 2: polvo que queda en la roca y última lectura del espectrómetro.
+  private polvo = 1
+  private lecturaUlt: { limpia: boolean; hallazgo: number } | null = null
+  private lab: { lx: number; rx: number; by: number; boxW: number; boxH: number } | null = null
+  private labGfx: Phaser.GameObjects.Graphics | null = null
+  private labTxtIzq: Phaser.GameObjects.Text | null = null
+  private labTxtDer: Phaser.GameObjects.Text | null = null
+  private pilaresTxt: Partial<Record<Ficha, { txt: Phaser.GameObjects.Text; label: string }>> = {}
+  private notaN3: Phaser.GameObjects.Text | null = null
+
   // Layout dinámico y responsive
   private boardX0 = 24
   private boardY0 = 316
@@ -488,7 +498,8 @@ export class OpportunityScene extends Phaser.Scene {
     this.fotoCont.add(creditoTxt)
   }
 
-  // NIVEL 2: Laboratorio de Desbaste y Análisis con el mismo estilo
+  // NIVEL 2: panel vivo. La roca muestra el polvo que queda (lo quita el RAT)
+  // y el espectrómetro muestra lo que de verdad midió.
   private crearPanelLaboratorioNivel2() {
     this.centroCont?.destroy()
     this.centroCont = this.add.container(0, 0).setDepth(2)
@@ -506,90 +517,132 @@ export class OpportunityScene extends Phaser.Scene {
     this.centroCont.add(panelBg)
 
     const titulo = this.add
-      .text(x + w / 2, y + 16, es ? 'SECUENCIA DE INVESTIGACIÓN' : 'INVESTIGATION SEQUENCE', {
+      .text(x + w / 2, y + 12, es ? 'LA ROCA Y LO QUE MIDE EL ESPECTRÓMETRO' : 'THE ROCK AND WHAT THE SPECTROMETER READS', {
         fontFamily: 'sans-serif',
-        fontSize: '12px',
+        fontSize: '10px',
         fontStyle: 'bold',
         color: css(PALETA.amarilloFicha),
       })
       .setOrigin(0.5, 0)
 
     const boxW = Math.floor((w - 36) / 2)
-    const boxH = Math.max(90, h - 54)
+    const boxH = Math.max(90, h - 44)
+    const by = y + 32
+    const lx = x + 14
+    const rx = x + boxW + 22
+    const cajas = this.add.graphics()
+    cajas.fillStyle(PALETA.superficieElevada, 0.9)
+    cajas.fillRoundedRect(lx, by, boxW, boxH, 12).fillRoundedRect(rx, by, boxW, boxH, 12)
+    cajas.lineStyle(1.8, PALETA.naranjaFicha, 1).strokeRoundedRect(lx, by, boxW, boxH, 12)
+    cajas.lineStyle(1.8, PALETA.purpuraFicha, 1).strokeRoundedRect(rx, by, boxW, boxH, 12)
+    this.centroCont.add([titulo, cajas])
 
-    // Caja Fase 1 (RAT)
-    const ratBox = this.add
-      .graphics()
-      .fillStyle(PALETA.superficieElevada, 0.9)
-      .fillRoundedRect(x + 14, y + 40, boxW, boxH, 12)
-      .lineStyle(1.8, PALETA.naranjaFicha, 1)
-      .strokeRoundedRect(x + 14, y + 40, boxW, boxH, 12)
-
-    const ratIcon = this.add.graphics({ x: x + 34, y: y + 62 }).setScale(0.7)
-    dibujarIcono(ratIcon, 'rat')
-
-    const ratTitle = this.add
-      .text(x + 52, y + 54, es ? '1. Pulido RAT' : '1. RAT Grind', {
+    this.lab = { lx, rx, by, boxW, boxH }
+    this.labGfx = this.add.graphics()
+    this.labTxtIzq = this.add
+      .text(lx + boxW / 2, by + boxH - 8, '', {
         fontFamily: 'sans-serif',
-        fontSize: '11px',
+        fontSize: '10px',
         fontStyle: 'bold',
         color: css(PALETA.naranjaFicha),
+        align: 'center',
       })
-      .setOrigin(0, 0)
-
-    const ratDesc = this.add
-      .text(
-        x + 20,
-        y + 78,
-        es
-          ? 'Raspa polvo y corteza para exponer roca fresca.'
-          : 'Grinds dust to expose fresh rock.',
-        {
-          fontFamily: 'sans-serif',
-          fontSize: '9.5px',
-          color: css(PALETA.blancoCalido),
-          wordWrap: { width: boxW - 14 },
-        },
-      )
-      .setOrigin(0, 0)
-
-    // Caja Fase 2 (Espectrómetro)
-    const espBox = this.add
-      .graphics()
-      .fillStyle(PALETA.superficieElevada, 0.9)
-      .fillRoundedRect(x + boxW + 22, y + 40, boxW, boxH, 12)
-      .lineStyle(1.8, PALETA.purpuraFicha, 1)
-      .strokeRoundedRect(x + boxW + 22, y + 40, boxW, boxH, 12)
-
-    const espIcon = this.add.graphics({ x: x + boxW + 42, y: y + 62 }).setScale(0.7)
-    dibujarIcono(espIcon, 'espectrometro')
-
-    const espTitle = this.add
-      .text(x + boxW + 60, y + 54, es ? '2. Análisis' : '2. Analysis', {
+      .setOrigin(0.5, 1)
+    this.labTxtDer = this.add
+      .text(rx + boxW / 2, by + boxH - 8, '', {
         fontFamily: 'sans-serif',
-        fontSize: '11px',
+        fontSize: '9.5px',
         fontStyle: 'bold',
-        color: css(PALETA.purpuraFicha),
+        color: css(PALETA.blancoCalido),
+        align: 'center',
+        wordWrap: { width: boxW - 10 },
       })
-      .setOrigin(0, 0)
+      .setOrigin(0.5, 1)
+    this.centroCont.add([this.labGfx, this.labTxtIzq, this.labTxtDer])
+    this.pintarLaboratorio()
+  }
 
-    const espDesc = this.add
-      .text(
-        x + boxW + 28,
-        y + 78,
-        es
-          ? 'Analiza minerales internos. Se activa tras pulir.'
-          : 'Analyzes minerals. Activates after grinding.',
-        {
-          fontFamily: 'sans-serif',
-          fontSize: '9.5px',
-          color: css(PALETA.grisSecundario),
-          wordWrap: { width: boxW - 14 },
-        },
-      )
-      .setOrigin(0, 0)
+  /** Dibuja la roca con su polvo y la última lectura del espectrómetro. */
+  private pintarLaboratorio() {
+    if (!this.lab || !this.labGfx) return
+    const { lx, rx, by, boxW, boxH } = this.lab
+    const es = this.cfg.ajustes.lang !== 'en'
+    const g = this.labGfx
+    g.clear()
 
-    this.centroCont.add([titulo, ratBox, ratIcon, ratTitle, ratDesc, espBox, espIcon, espTitle, espDesc])
+    // Roca (izquierda): el polvo la cubre hasta que el RAT lo raspa.
+    const cx = lx + boxW / 2
+    const cy = by + boxH / 2 - 6
+    const rw = boxW * 0.38
+    const rh = Math.max(20, boxH * 0.28)
+    g.fillStyle(0x4a3b36, 1).fillEllipse(cx, cy, rw * 2, rh * 2)
+    g.fillStyle(0x7a8498, 1)
+    ;[
+      [-0.45, -0.1],
+      [-0.1, 0.25],
+      [0.25, -0.2],
+      [0.45, 0.2],
+      [0.05, -0.4],
+    ].forEach(([dx, dy]) => g.fillCircle(cx + dx * rw, cy + dy * rh, 2.4))
+    g.fillStyle(0xc2703d, 0.1 + 0.88 * this.polvo).fillEllipse(cx, cy, rw * 2, rh * 2)
+    g.lineStyle(1.5, PALETA.naranjaFicha, 0.9).strokeEllipse(cx, cy, rw * 2, rh * 2)
+    this.labTxtIzq?.setText(
+      this.polvo > 0.001
+        ? es
+          ? `Polvo: ${Math.round(this.polvo * 100)}%`
+          : `Dust: ${Math.round(this.polvo * 100)}%`
+        : es
+          ? 'Roca fresca'
+          : 'Fresh rock',
+    )
+
+    // Lectura (derecha): barras de un espectro.
+    const bx0 = rx + 12
+    const bw = boxW - 24
+    const base = by + boxH - 38
+    const maxH = boxH - 62
+    const lect = this.lecturaUlt
+    const n = 7
+    const picos: Record<number, number[]> = {
+      0: [0.2, 0.35, 0.95, 0.35, 0.25, 0.2, 0.2],
+      1: [0.2, 0.2, 0.3, 0.9, 0.3, 0.85, 0.2],
+      2: [0.85, 0.25, 0.2, 0.2, 0.8, 0.25, 0.2],
+    }
+    const alturas = !lect
+      ? Array(n).fill(0.08)
+      : lect.limpia
+        ? picos[lect.hallazgo % 3]
+        : Array(n).fill(0.4)
+    const color = !lect ? 0x445068 : lect.limpia ? PALETA.purpuraFicha : 0xc2703d
+    for (let i = 0; i < n; i++) {
+      const bh = Math.max(3, alturas[i] * maxH)
+      g.fillStyle(color, 1).fillRect(bx0 + i * (bw / n) + 1, base - bh, bw / n - 3, bh)
+    }
+    g.lineStyle(1, 0x3d5b88, 0.9).lineBetween(bx0, base + 1, bx0 + bw, base + 1)
+
+    const hallazgos = es
+      ? [
+          'HEMATITA: óxido de hierro. Suele formarse con agua.',
+          'JAROSITA: sulfato de hierro. Se forma en agua ácida.',
+          'YESO: sulfato de calcio. Queda al evaporarse el agua.',
+        ]
+      : [
+          'HEMATITE: iron oxide. Often forms with water.',
+          'JAROSITE: iron sulfate. Forms in acidic water.',
+          'GYPSUM: calcium sulfate. Left when water evaporates.',
+        ]
+    this.labTxtDer?.setText(
+      !lect
+        ? es
+          ? 'Sin lectura todavía'
+          : 'No reading yet'
+        : lect.limpia
+          ? hallazgos[lect.hallazgo % 3]
+          : es
+            ? 'Solo polvo. Eso está en todo Marte, no dice nada de esta roca.'
+            : 'Just dust. It is all over Mars; it says nothing about this rock.',
+    )
+    this.labTxtDer?.setColor(css(lect && !lect.limpia ? PALETA.naranjaFicha : PALETA.blancoCalido))
   }
 
   // NIVEL 3: Panel de Hipótesis de Agua Antigua
@@ -643,6 +696,9 @@ export class OpportunityScene extends Phaser.Scene {
     const pW = Math.floor((w - 36) / 3)
     const boxH = Math.max(70, h - 72)
 
+    this.pilaresTxt = {}
+    this.notaN3 = nota
+    const conteoIni = this.cfg.reglas.progresoInicial().conteo
     pilares.forEach((p, idx) => {
       const px = x + 14 + idx * (pW + 4)
       const pBox = this.add
@@ -656,7 +712,7 @@ export class OpportunityScene extends Phaser.Scene {
       dibujarIcono(ic, p.ficha)
 
       const lb = this.add
-        .text(px + pW / 2, y + 58 + boxH - 18, p.label, {
+        .text(px + pW / 2, y + 58 + boxH - 18, `${p.label} ${Math.min(6, conteoIni[p.ficha] ?? 0)}/6`, {
           fontFamily: 'sans-serif',
           fontSize: '9.5px',
           fontStyle: 'bold',
@@ -664,6 +720,7 @@ export class OpportunityScene extends Phaser.Scene {
         })
         .setOrigin(0.5, 0)
 
+      this.pilaresTxt[p.ficha] = { txt: lb, label: p.label }
       this.centroCont!.add([pBox, ic, lb])
     })
 
@@ -932,12 +989,32 @@ export class OpportunityScene extends Phaser.Scene {
         return
       case 'progreso': {
         this.hud.setProgreso(e.conteo, e.puntos, ajustes.practice)
+        if (levelId === 3) {
+          for (const [f, v] of Object.entries(this.pilaresTxt)) {
+            v?.txt.setText(`${v.label} ${Math.min(6, e.conteo[f as Ficha] ?? 0)}/6`)
+          }
+        }
+        if (levelId === 2) {
+          this.polvo = 1 - Math.min(6, e.conteo.rat ?? 0) / 6
+          this.pintarLaboratorio()
+        }
         if (levelId === 1 && this.targetCounterTxt) {
           const c = Math.min(6, e.conteo.camara ?? 0)
           this.targetCounterTxt.setText(`${c}/6`)
         }
         return
       }
+      case 'lectura':
+        this.lecturaUlt = { limpia: e.limpia, hallazgo: e.hallazgo }
+        if (levelId === 2) this.pintarLaboratorio()
+        if (levelId === 3 && e.limpia && this.notaN3) {
+          const es = ajustes.lang !== 'en'
+          const t = es
+            ? ['Hematita: óxido de hierro, suele formarse con agua.', 'Jarosita: sulfato de hierro, agua ácida.', 'Yeso: queda al evaporarse el agua.']
+            : ['Hematite: iron oxide, often forms with water.', 'Jarosite: iron sulfate, acidic water.', 'Gypsum: left when water evaporates.']
+          this.notaN3.setText(`${es ? 'Lectura' : 'Reading'}: ${t[e.hallazgo % 3]}`)
+        }
+        return
       case 'malaDecision':
         this.sfx.mala()
         this.hud.mensaje(e.mensaje)
@@ -1019,6 +1096,8 @@ export class OpportunityScene extends Phaser.Scene {
     this.terminado = false
     this.entregado = false
     this.cascada = 0
+    this.polvo = 1
+    this.lecturaUlt = null
     this.limpiarSeleccion()
 
     this.hud.setMaxEnergia(this.cfg.reglas.movimientosMax())

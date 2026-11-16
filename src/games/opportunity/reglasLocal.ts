@@ -236,9 +236,15 @@ export function crearReglasLocal(
             tipo: 'malaDecision',
             mensaje: desc,
           })
+          // La lectura se muestra en pantalla: el espectrómetro midió polvo, no roca.
+          ev.push({ tipo: 'lectura', limpia: false, hallazgo: 0 })
           // Las fichas eliminadas puntúan normalmente, pero NO suman al objetivo.
         } else if (esMeta && cuentaParaMeta) {
           conteo[g.ficha] = (conteo[g.ficha] ?? 0) + g.celdas.length
+          // Roca limpia (o nivel 3): la lectura muestra un mineral real.
+          if (g.ficha === 'espectrometro' && levelId >= 2) {
+            ev.push({ tipo: 'lectura', limpia: true, hallazgo: conteo.espectrometro ?? 0 })
+          }
         }
       }
 

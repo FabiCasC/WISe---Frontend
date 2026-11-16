@@ -14,6 +14,7 @@ export type Evento =
   | { tipo: 'energia'; delta: number; restante: number }
   | { tipo: 'progreso'; conteo: Conteo; metas: Conteo; puntos: number }
   | { tipo: 'malaDecision'; mensaje: string }
+  | { tipo: 'lectura'; limpia: boolean; hallazgo: number }
   | { tipo: 'mezcla'; tablero: Ficha[][] }
   | { tipo: 'nivelCompleto'; ganado: boolean };
 
