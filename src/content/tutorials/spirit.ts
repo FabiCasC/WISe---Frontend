@@ -15,6 +15,11 @@ export default {
     { name: 'Soft sand (level 1)', meaning: 'The pale, rippled ground. Wheels spin and drain power, and if you stay too long, Spirit gets stuck for good, like it did in 2009. Jump over it.' },
     { name: 'Bright soil (level 2)', meaning: 'Spirit’s right front wheel was broken and dragged along the ground. Where it scraped, it uncovered bright silica soil, a clue that hot water was once there. Most of it is buried under rocks.' },
     { name: 'Slopes and Solar power (level 3)', meaning: 'Gusev is south of the equator, so in winter the Sun is low in the north. Park on the slope tilted toward it to get the most power.' },
+    { name: 'Silica', meaning: 'A light-colored mineral. On Earth it usually forms where there is hot water.' },
+    { name: 'Hot springs', meaning: 'Springs of hot water coming out of the ground. Silica like Spirit found is a sign that something like that was once there.' },
+    { name: 'Solar panel', meaning: 'A plate that turns sunlight into electricity. The more it faces the Sun, the more power you get.' },
+    { name: 'Home Plate', meaning: 'The area of Mars where Spirit got stuck in sand.' },
+    { name: 'Words with a dotted line', meaning: 'The ? button in the corner lists every word of this game and what it means.' },
   ],
   steps: [
     { text: 'Press Enter (or tap) to start, then drive with → or D.', keys: ['ArrowRight', 'KeyD'], pointer: true },

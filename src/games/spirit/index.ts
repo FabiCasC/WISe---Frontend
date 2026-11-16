@@ -3,6 +3,8 @@ import type { GameContext, GameController, GameResult } from '../../shared/types
 import { getMission } from '../../content/missions'
 import { H, W } from './engine/config'
 import { MainScene } from './engine/MainScene'
+import { createGlossary, el } from '../shared/glossary'
+import { TERMS } from './terms'
 
 export function mountGame(container: HTMLElement, ctx: GameContext): GameController {
   const mission = getMission('spirit')
@@ -43,6 +45,15 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
     render: { antialias: true },
   })
 
+  // The scene draws on a canvas, so the words get their own help button and screen over it.
+  if (getComputedStyle(container).position === 'static') container.style.position = 'relative'
+  const gl = createGlossary(container, TERMS)
+  const helpBtn = el('button', 'gl-help', '?')
+  helpBtn.type = 'button'
+  helpBtn.setAttribute('aria-label', 'Help: what the words mean')
+  helpBtn.addEventListener('click', () => gl.openHelp())
+  container.append(helpBtn)
+
   let destruction: Promise<void> | null = null
   return {
     pause() {
@@ -58,6 +69,8 @@ export function mountGame(container: HTMLElement, ctx: GameContext): GameControl
       game.scene.resume('Main')
     },
     destroy() {
+      gl.destroy()
+      helpBtn.remove()
       return (destruction ??= new Promise<void>((resolve) => {
         game.events.once(Phaser.Core.Events.DESTROY, () => {
           const waitForCanvasRemoval = () => {
