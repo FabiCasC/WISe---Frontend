@@ -2,11 +2,11 @@
  * DESIGN GAME - EDITOR PRINCIPAL
  *
  * Layout inspirado en Scratch:
- *   ┌──────────────────┬────────────────────────────────────────┐
- *   │  Stage (preview) │  Categorías de bloques  │  Canvas script│
- *   │                  ├─────────────────────────┤              │
- *   │  Sprites list    │  Bloques de la cat.      │              │
- *   └──────────────────┴──────────────────────────┴──────────────┘
+ *   +------------------+----------------------------------------+
+ *   |  Stage (preview) |  Categorías de bloques  |  Canvas script|
+ *   |                  +-------------------------+              |
+ *   |  Sprites list    |  Bloques de la cat.      |              |
+ *   +------------------+--------------------------+--------------+
  */
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
@@ -111,7 +111,7 @@ export default function EditorScreen({ project, onBack }: Props) {
 
   return (
     <div className="dg-editor">
-      {/* ── Top bar ──────────────────────────────────────────────────────── */}
+      {/* -- Top bar -------------------------------------------------------- */}
       <header className="dg-editor__topbar">
         <div className="dg-editor__topbar-left">
           <button className="dg-btn dg-btn--quiet dg-btn--sm" onClick={onBack}>
@@ -156,7 +156,7 @@ export default function EditorScreen({ project, onBack }: Props) {
         </div>
       </header>
 
-      {/* ── Mobile tabs ─────────────────────────────────────────────────── */}
+      {/* -- Mobile tabs --------------------------------------------------- */}
       <div className="dg-editor__mobile-tabs" role="tablist">
         {MOBILE_TABS.map((tab) => (
           <button
@@ -171,16 +171,16 @@ export default function EditorScreen({ project, onBack }: Props) {
         ))}
       </div>
 
-      {/* ── Scratch-style workspace ──────────────────────────────────────── */}
+      {/* -- Scratch-style workspace ---------------------------------------- */}
       {/*
           Desktop grid (3 columns):
-            col-1  │  col-2       │  col-3
-            Stage  │  Block lib   │  Script canvas
-            Sprites│  (full-col)  │  (full-col)
+            col-1  |  col-2       |  col-3
+            Stage  |  Block lib   |  Script canvas
+            Sprites|  (full-col)  |  (full-col)
       */}
       <div className="dg-editor__workspace">
 
-        {/* ── Col 1 left: Stage + Sprites ──────────────────────────────── */}
+        {/* -- Col 1 left: Stage + Sprites -------------------------------- */}
         <div className="dg-editor__col-left">
           {/* Stage — simulator */}
           <div
@@ -201,7 +201,7 @@ export default function EditorScreen({ project, onBack }: Props) {
           </div>
         </div>
 
-        {/* ── Col 2 centre: Block library ───────────────────────────────── */}
+        {/* -- Col 2 centre: Block library --------------------------------- */}
         <div
           className={`dg-editor__panel dg-editor__panel--blocks ${activePanel === 'blocks' ? 'dg-editor__panel--active' : ''}`}
           role="tabpanel"
@@ -210,7 +210,7 @@ export default function EditorScreen({ project, onBack }: Props) {
           <BlockLibrary spec={spec} />
         </div>
 
-        {/* ── Col 3 right: Script canvas ───────────────────────────────── */}
+        {/* -- Col 3 right: Script canvas --------------------------------- */}
         <div
           className={`dg-editor__panel dg-editor__panel--scripts ${activePanel === 'editor' ? 'dg-editor__panel--active' : ''}`}
           role="tabpanel"
@@ -220,14 +220,14 @@ export default function EditorScreen({ project, onBack }: Props) {
         </div>
       </div>
 
-      {/* ── AI drawer ───────────────────────────────────────────────────── */}
+      {/* -- AI drawer ----------------------------------------------------- */}
       {showAI && (
         <div className="dg-editor__ai-drawer">
           <AIAssistant spec={spec} onClose={() => setShowAI(false)} />
         </div>
       )}
 
-      {/* ── Review modal ────────────────────────────────────────────────── */}
+      {/* -- Review modal -------------------------------------------------- */}
       {showReview && (
         <ReviewModal
           spec={spec}
