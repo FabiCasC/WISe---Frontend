@@ -17,6 +17,13 @@ export default {
     { name: 'Labeled', meaning: 'How many chunks you have labeled Ice or Salt (tap a chunk to change its label).' },
     { name: 'Ovens left', meaning: 'Phoenix could heat a sample in a small oven to look for water. You only have a few ovens.' },
     { name: 'Water readings', meaning: 'How many times the oven found water. Ice left in the open turns to gas, so use fresh samples.' },
+    { name: 'Sublimation', meaning: 'Changing from ice straight to gas, without becoming liquid. It is why ice chunks shrink and vanish.' },
+    { name: 'Water ice', meaning: 'Frozen water. On Mars it hides under the soil near the poles.' },
+    { name: 'Salt', meaning: 'A mineral that does not shrink or vanish with the days.' },
+    { name: 'Oven', meaning: 'An instrument that heats a sample to see if it releases water.' },
+    { name: 'Trench', meaning: 'A ditch dug by the arm of the lander.' },
+    { name: 'Sol', meaning: 'One day on Mars. Each sol the Sun gives less light as winter comes.' },
+    { name: 'Words with a dotted line', meaning: 'Tap any underlined word to read what it means. The ? button shows all of them.' },
   ],
   steps: [
     { text: 'Press Start digging. Dig a spot: press a number key (1 to 5), or tap a spot.', keys: ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6'], pointer: true },
