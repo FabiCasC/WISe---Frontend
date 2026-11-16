@@ -11,6 +11,8 @@
  *     exige el contrato del portal.
  */
 
+import { createGlossary, el, type Glossary, type HelpOptions, type Term } from './glossary'
+
 export interface StageOptions {
   /** Ancho logico del lienzo. El juego dibuja siempre en esta escala. */
   width: number
@@ -37,6 +39,8 @@ export interface OverlayButton {
 export interface OverlayContent {
   title: string
   text?: string
+  /** Resumen de fin de nivel: 2 a 4 lineas hechas con lo que hizo el jugador. */
+  lines?: string[]
   /** Dato cientifico, en su propia caja. */
   fact?: string
   score?: string
@@ -58,6 +62,8 @@ export interface Stage {
   /** Botonera tactil. Devuelve el elemento para engancharle eventos. */
   addTouchButton: (label: string, ariaLabel: string) => HTMLButtonElement
   setHint: (text: string) => void
+  /** Subraya los terminos en los mensajes y agrega el boton ? con la ayuda. */
+  setGlossary: (terms: Term[], help?: HelpOptions) => void
   destroy: () => void
 }
 
@@ -220,6 +226,20 @@ export function createStage(container: HTMLElement, opts: StageOptions): Stage {
     for (const [key, el] of existing) if (!seen.has(key)) el.remove()
   }
 
+  // --- Glosario ------------------------------------------------------------
+  let glossary: Glossary | null = null
+  let helpBtn: HTMLButtonElement | null = null
+  const setGlossary = (terms: Term[], help?: HelpOptions) => {
+    glossary?.destroy()
+    helpBtn?.remove()
+    glossary = createGlossary(frame, terms)
+    helpBtn = el('button', 'gl-help', '?')
+    helpBtn.type = 'button'
+    helpBtn.setAttribute('aria-label', 'Help: what the words mean')
+    helpBtn.addEventListener('click', () => glossary?.openHelp(help))
+    frame.append(helpBtn)
+  }
+
   // --- Mensajes ------------------------------------------------------------
   const showOverlay = (content: OverlayContent) => {
     if (disposed) return
@@ -245,8 +265,21 @@ export function createStage(container: HTMLElement, opts: StageOptions): Stage {
     if (content.text) {
       const p = document.createElement('p')
       p.className = 'mg__card-text'
-      p.textContent = content.text
+      if (glossary) glossary.decorate(p, content.text)
+      else p.textContent = content.text
       card.append(p)
+    }
+
+    if (content.lines?.length) {
+      const ul = document.createElement('ul')
+      ul.className = 'mg__card-lines'
+      for (const l of content.lines.slice(0, 4)) {
+        const li = document.createElement('li')
+        if (glossary) glossary.decorate(li, l)
+        else li.textContent = l
+        ul.append(li)
+      }
+      card.append(ul)
     }
 
     if (content.fact) {
@@ -335,8 +368,10 @@ export function createStage(container: HTMLElement, opts: StageOptions): Stage {
     flash,
     addTouchButton,
     setHint,
+    setGlossary,
     destroy() {
       disposed = true
+      glossary?.destroy()
       observer.disconnect()
       for (const t of timers) window.clearTimeout(t)
       timers.clear()
