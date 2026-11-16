@@ -55,29 +55,31 @@ export default function BlockLibrary({ spec }: Props) {
         />
       </div>
 
-      <div className="dg-block-lib__cats">
-        {BLOCK_CATEGORIES_ORDER.map(({ key, label }) => (
-          <button
-            key={key}
-            className={`dg-block-lib__cat ${activeCategory === key ? 'dg-block-lib__cat--active' : ''}`}
-            onClick={() => setActiveCategory(key)}
-            style={activeCategory === key ? { borderLeftColor: BLOCK_COLORS[key] } : {}}
-          >
-            <span className="dg-block-lib__cat-dot" style={{ background: BLOCK_COLORS[key] }} />
-            {label}
-          </button>
-        ))}
-      </div>
+      <div className="dg-block-lib__body">
+        <div className="dg-block-lib__cats">
+          {BLOCK_CATEGORIES_ORDER.map(({ key, label }) => (
+            <button
+              key={key}
+              className={`dg-block-lib__cat ${activeCategory === key ? 'dg-block-lib__cat--active' : ''}`}
+              onClick={() => setActiveCategory(key)}
+              style={{ background: BLOCK_COLORS[key] }}
+            >
+              <span className="dg-block-lib__cat-dot" aria-hidden="true" />
+              {label}
+            </button>
+          ))}
+        </div>
 
-      <div className="dg-block-lib__blocks">
-        {defs.length === 0 && (
-          <p className="dg-block-lib__empty">
-            {search ? 'Nothing matches that.' : 'No blocks in this group yet.'}
-          </p>
-        )}
-        {defs.map((def) => (
-          <BlockItem key={def.type} def={def} spec={spec} />
-        ))}
+        <div className="dg-block-lib__blocks">
+          {defs.length === 0 && (
+            <p className="dg-block-lib__empty">
+              {search ? 'Nothing matches that.' : 'No blocks in this group yet.'}
+            </p>
+          )}
+          {defs.map((def) => (
+            <BlockItem key={def.type} def={def} spec={spec} />
+          ))}
+        </div>
       </div>
 
       <div className="dg-block-lib__tip">
