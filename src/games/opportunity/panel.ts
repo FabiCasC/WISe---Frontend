@@ -56,6 +56,17 @@ const CSS = `
 .opp-card p{margin:0;font-size:14px;line-height:1.5}
 .opp-card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5}
 .opp-actions{display:flex;gap:8px;flex-wrap:wrap}
+.opp--compact .opp-panel{padding:6px 8px;gap:4px}
+.opp--compact .opp-goal{font-size:12px;line-height:1.3}
+.opp--compact .opp-rock{padding:4px;gap:4px}
+.opp--compact .opp-spot{padding:3px;gap:1px;min-width:70px}
+.opp--compact .opp-spot svg{width:34px;height:34px}
+.opp--compact .opp-spot b{font-size:12px}
+.opp--compact .opp-info{gap:4px 8px}
+.opp--compact .opp-msg{font-size:12px;line-height:1.3;min-height:0;flex-basis:100%;order:3}
+.opp--compact .opp-btn,.opp--compact .opp-send{min-height:34px;padding:4px 10px;font-size:12px}
+.opp--compact .opp-evid{gap:4px}
+.opp--compact .opp-credit{font-size:9px}
 .opp-credit{font-size:10px;opacity:.65;text-align:right;margin:0}
 `
 
@@ -188,6 +199,7 @@ export class PanelRoca {
   /** Coloca el panel en el hueco que deja el tablero (coordenadas del canvas). */
   colocar(x: number, y: number, w: number, h: number) {
     Object.assign(this.panel.style, { left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px` })
+    this.root.classList.toggle('opp--compact', h < 420)
   }
 
   render(v: VistaRoca) {
