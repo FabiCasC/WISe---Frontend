@@ -96,7 +96,7 @@ export const GAMES: GameEntry[] = [
     concepts: [
       { id: 'observar-primero', label: 'Image the rock with cameras before touching it' },
       { id: 'pulir-antes-de-analizar', label: 'Grind off the dusty crust before you analyze a rock' },
-      { id: 'varias-evidencias', label: 'A conclusion needs several lines of evidence (images, chemistry, power)' },
+      { id: 'varias-evidencias', label: 'A conclusion needs several lines of evidence (a clean photo, a water reading, a second spot that agrees)' },
     ],
     status: 'live',
     art: 'assets/missions/opportunity.webp',

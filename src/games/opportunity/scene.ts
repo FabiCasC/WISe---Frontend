@@ -36,6 +36,7 @@ export class OpportunityScene extends Phaser.Scene {
   private panel!: PanelRoca
   private seleccion: Pos | null = null
   private ocupado = false
+  private pendiente: (() => void) | null = null
   private terminado = false
   private entregado = false
   private cascada = 0
@@ -116,21 +117,10 @@ export class OpportunityScene extends Phaser.Scene {
         elegir: (p) => {
           if (this.terminado) return
           this.panel.render(reglas.elegirPunto(p))
+          if (ajustes.practice) this.emitirPaso('OpportunitySpot')
         },
-        barajar: () => {
-          if (this.ocupado || this.terminado) return
-          this.ocupado = true
-          this.procesar(reglas.barajar()).finally(() => {
-            this.ocupado = false
-          })
-        },
-        enviarInforme: () => {
-          if (this.ocupado || this.terminado) return
-          this.ocupado = true
-          this.procesar(reglas.enviarInforme()).finally(() => {
-            this.ocupado = false
-          })
-        },
+        barajar: () => this.accionDelPanel(() => reglas.barajar()),
+        enviarInforme: () => this.accionDelPanel(() => reglas.enviarInforme()),
       },
     )
     this.panel.render(reglas.roca())
@@ -207,14 +197,14 @@ export class OpportunityScene extends Phaser.Scene {
       this.centroX = panelX
       this.centroY = 68
       this.centroW = panelW
-      this.centroH = Math.max(180, Math.min(340, h - 86))
+      this.centroH = Math.max(180, Math.min(520, h - 86))
     } else {
       // Modo Vertical (Smartphones / Tablets Portrait)
       panelW = Math.min(460, w - 24)
       panelX = Math.round((w - panelW) / 2)
 
       const altoDisponible = Math.floor(h * 0.5)
-      this.celdaSize = Math.max(44, Math.min(60, Math.floor(Math.min(w - 24, altoDisponible) / N)))
+      this.celdaSize = Math.max(44, Math.min(54, Math.floor(Math.min(w - 24, altoDisponible) / N)))
       const tableroSize = this.celdaSize * N
 
       this.boardX0 = Math.round((w - tableroSize) / 2)
@@ -326,6 +316,11 @@ export class OpportunityScene extends Phaser.Scene {
     }
   }
 
+  /** Las etiquetas (CAMERA, RAT...) crecen con la ficha para leerse también en el móvil. */
+  private tamanoEtiqueta() {
+    return Math.max(10, Math.round(this.celdaSize * 0.19))
+  }
+
   private reposicionarFichas() {
     const scaleFactor = this.celdaSize / 52
     for (let f = 0; f < N; f++) {
@@ -346,6 +341,8 @@ export class OpportunityScene extends Phaser.Scene {
           if (ic) {
             ic.setScale(scaleFactor)
           }
+          const et = cont.getData('etiqueta') as Phaser.GameObjects.Text | undefined
+          et?.setFontSize(this.tamanoEtiqueta()).setY(this.celdaSize * 0.33)
         }
       }
     }
@@ -409,14 +406,14 @@ export class OpportunityScene extends Phaser.Scene {
     const etiqueta = this.add
       .text(0, this.celdaSize * 0.33, ETIQUETA_FICHA[tipo], {
         fontFamily: 'sans-serif',
-        fontSize: '9px',
+        fontSize: `${this.tamanoEtiqueta()}px`,
         fontStyle: 'bold',
         color: '#ffffff',
       })
       .setOrigin(0.5)
     const cont = this.add.container(p.x, yInicial ?? p.y, [bg, ic, etiqueta]).setDepth(2)
     cont.setSize(this.celdaSize, this.celdaSize).setInteractive({ useHandCursor: true })
-    cont.setData('tipo', tipo).setData('bg', bg).setData('ic', ic)
+    cont.setData('tipo', tipo).setData('bg', bg).setData('ic', ic).setData('etiqueta', etiqueta)
     cont.on('pointerdown', (ptr: Phaser.Input.Pointer) => this.alPulsar(cont, ptr))
     return cont
   }
@@ -505,13 +502,54 @@ export class OpportunityScene extends Phaser.Scene {
     this.ocupado = true
     this.cascada = 0
     const eventos = this.cfg.reglas.intentarSwap(a, b)
-    this.procesar(eventos).finally(() => {
-      this.ocupado = false
-    })
+    this.procesar(eventos).finally(() => this.liberar())
+  }
+
+  /**
+   * En el Nivel 0 el coach del portal sigue las teclas. Aquí no hay teclas: cuando el jugador
+   * hace de verdad un paso (elige un punto, usa una herramienta, baraja) se emite el código
+   * de ese paso, así cada paso se marca solo cuando se cumple.
+   */
+  private avisarGuia(eventos: Evento[]) {
+    if (!this.cfg.ajustes.practice) return
+    const codigo: Record<Ficha, string> = {
+      camara: 'OpportunityCamera',
+      rat: 'OpportunityGrind',
+      espectrometro: 'OpportunityRead',
+      energia: 'OpportunityBattery',
+    }
+    for (const e of eventos) {
+      if (e.tipo === 'roca' || e.tipo === 'caida') break
+      if (e.tipo === 'match') this.emitirPaso(codigo[e.ficha])
+      if (e.tipo === 'mezcla') this.emitirPaso('OpportunityShuffle')
+    }
+  }
+
+  private emitirPaso(code: string) {
+    document.dispatchEvent(new KeyboardEvent('keydown', { code, bubbles: true }))
+  }
+
+  /** Barajar y enviar el informe: si aún cae una cascada, esperan su turno en vez de perderse. */
+  private accionDelPanel(accion: () => Evento[]) {
+    if (this.terminado) return
+    if (this.ocupado) {
+      this.pendiente = () => this.accionDelPanel(accion)
+      return
+    }
+    this.ocupado = true
+    this.procesar(accion()).finally(() => this.liberar())
+  }
+
+  private liberar() {
+    this.ocupado = false
+    const p = this.pendiente
+    this.pendiente = null
+    p?.()
   }
 
   // ---------- animación de eventos ----------
   procesar(eventos: Evento[]): Promise<void> {
+    this.avisarGuia(eventos)
     this.cola = this.cola.then(async () => {
       for (const e of eventos) await this.animar(e)
     })
@@ -692,6 +730,7 @@ export class OpportunityScene extends Phaser.Scene {
     this.cfg.reiniciarTiempo()
 
     this.ocupado = false
+    this.pendiente = null
     this.terminado = false
     this.entregado = false
     this.cascada = 0

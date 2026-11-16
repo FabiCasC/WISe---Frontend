@@ -46,6 +46,8 @@ export class Hud {
   private bgMensaje: Phaser.GameObjects.Graphics
 
   private lang: Lang
+  private nivelLargo = ''
+  private nivelCorto = ''
 
   constructor(
     private scene: Phaser.Scene,
@@ -83,10 +85,12 @@ export class Hud {
       fontStyle: 'bold',
       color: css(PALETA.blancoPuro),
     })
+    this.nivelCorto = `${es ? 'NIVEL' : 'LEVEL'} ${levelId}`
+    this.nivelLargo = `${this.nivelCorto} • ${nivelNombre.toUpperCase()}`
     this.levelTxt = scene.add.text(
       54,
       22,
-      `${es ? 'NIVEL' : 'LEVEL'} ${levelId} • ${nivelNombre.toUpperCase()}`,
+      this.nivelLargo,
       {
         ...st,
         fontSize: '10.5px',
@@ -288,6 +292,8 @@ export class Hud {
 
     if (esHorizontal) {
       // 1. Mascota y cápsula izquierda
+      this.badgeTxt.setText('OPPORTUNITY MER-B').setFontSize(12.5)
+      this.levelTxt.setText(this.nivelLargo)
       this.mascotCont.setPosition(panelX, yTop)
       const capsuleW = Math.max(180, Math.min(220, panelW - 50))
       this.badgeCapsule.clear()
@@ -316,7 +322,10 @@ export class Hud {
     } else {
       // Modo Vertical (Smartphones)
       this.mascotCont.setPosition(12, yTop)
-      const capsuleW = Math.min(170, w - 190)
+      // En el móvil las píldoras ocupan la derecha: la cápsula se queda con lo justo.
+      const capsuleW = Math.max(88, Math.min(170, w - 298))
+      this.badgeTxt.setText('OPPORTUNITY').setFontSize(10)
+      this.levelTxt.setText(this.nivelCorto)
       this.badgeCapsule.clear()
       this.badgeCapsule
         .fillStyle(PALETA.superficie, 0.95)

@@ -44,6 +44,17 @@ const CSS = `
 .opp-btn{min-height:40px;padding:6px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.4);cursor:pointer;
   background:transparent;color:#eef3ff;font:inherit;font-weight:700}
 .opp-btn--main{background:#78e6a0;color:#0c101c;border-color:#78e6a0}
+.opp--compact .opp-panel{padding:6px 8px;gap:4px}
+.opp--compact .opp-goal{font-size:12px;line-height:1.3}
+.opp--compact .opp-rock{padding:4px;gap:4px}
+.opp--compact .opp-spot{padding:3px;gap:1px;min-width:70px}
+.opp--compact .opp-spot svg{width:34px;height:34px}
+.opp--compact .opp-spot b{font-size:12px}
+.opp--compact .opp-info{gap:4px 8px}
+.opp--compact .opp-msg{font-size:12px;line-height:1.3;min-height:0;flex-basis:100%;order:3}
+.opp--compact .opp-btn,.opp--compact .opp-send{min-height:34px;padding:4px 10px;font-size:12px}
+.opp--compact .opp-evid{gap:4px}
+.opp--compact .opp-credit{font-size:9px}
 .opp-credit{font-size:10px;opacity:.65;text-align:right;margin:0}
 `
 
@@ -143,8 +154,8 @@ export class PanelRoca {
     }
 
     this.info.append(this.msg)
-    if (!cfg.practica) {
-      const bar = el('button', 'opp-btn', 'Shuffle tiles (1 move)')
+    {
+      const bar = el('button', 'opp-btn', cfg.practica ? 'Shuffle tiles (free here)' : 'Shuffle tiles (1 move)')
       bar.type = 'button'
       bar.title = 'Use it when no match on the board is the one you want, so you do not touch the rock by accident.'
       bar.addEventListener('click', () => this.h.barajar())
@@ -167,6 +178,7 @@ export class PanelRoca {
   /** Coloca el panel en el hueco que deja el tablero (coordenadas del canvas). */
   colocar(x: number, y: number, w: number, h: number) {
     Object.assign(this.panel.style, { left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px` })
+    this.root.classList.toggle('opp--compact', h < 420)
   }
 
   render(v: VistaRoca) {
@@ -238,7 +250,7 @@ export class PanelRoca {
       won: r.ganado,
       title: r.titulo,
       lines: r.lineas,
-      points: r.puntos,
+      points: r.ganado ? r.puntos : null,
       practice: r.practica,
       buttons: r.ganado
         ? [{ label: 'Continue', main: true, onClick: r.onContinuar }]

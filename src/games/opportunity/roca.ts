@@ -116,6 +116,8 @@ export function crearRoca(opts: { levelId: number; libre: boolean; rng: () => nu
   const decisiones: Decision[] = []
   const primeraAccion = new Set<Punto>()
   const analizado = new Set<Punto>()
+  /** Puntos donde el espectrómetro midió polvo (aunque luego se pulieran y se leyeran bien). */
+  const leyoPolvo = new Set<Punto>()
   let informesFallidos = 0
 
   const punto = (id: Punto) => puntos.find((p) => p.id === id)!
@@ -174,6 +176,7 @@ export function crearRoca(opts: { levelId: number; libre: boolean; rng: () => nu
       if (!p.fotografiado) p.perturbado = true
       p.lectura = p.pulido ? LECTURA_DE[p.rasgo] : 'polvo'
       ultimo = LECTURA[p.lectura]
+      if (!p.pulido) leyoPolvo.add(p.id)
       if (!p.pulido) mala = `Spot ${p.id} still has dust on it: the reader measured dust, not rock. Grind first.`
       if (levelId === 2 && !libre && !analizado.has(p.id)) {
         decisiones.push({
@@ -190,12 +193,17 @@ export function crearRoca(opts: { levelId: number; libre: boolean; rng: () => nu
     return { mensaje: ultimo, mala }
   }
 
-  function informe() {
+  function faltantes(): string[] {
     const e = evidencias()
     const faltan: string[] = []
     if (!e.imagen) faltan.push('a clean photo of a spot that shows something (taken before you touched it)')
     if (!e.quimica) faltan.push('a chemistry reading of ground rock that points to water')
     if (!e.segundo) faltan.push('a second spot whose ground rock also points to water')
+    return faltan
+  }
+
+  function informe() {
+    const faltan = faltantes()
     const ok = faltan.length === 0
     if (!libre && levelId === 3) {
       decisiones.push({
@@ -235,11 +243,10 @@ export function crearRoca(opts: { levelId: number; libre: boolean; rng: () => nu
         out.push('That is why scientists take pictures first: touching a rock changes it for good.')
       }
     } else if (levelId === 2) {
-      const leidos = puntos.filter((p) => p.lectura !== null)
-      const polvo = leidos.filter((p) => p.lectura === 'polvo')
-      const roca = leidos.find((p) => p.lectura !== null && p.lectura !== 'polvo')
+      const polvo = puntos.filter((p) => leyoPolvo.has(p.id))
+      const roca = puntos.find((p) => p.lectura !== null && p.lectura !== 'polvo')
       if (polvo.length > 0) {
-        out.push(`You read spot ${polvo.map((p) => p.id).join(', ')} while it was still covered in dust, so the reader measured dust.`)
+        out.push(`You read spot ${polvo.map((p) => p.id).join(', ')} while it was still covered in dust, so the reader measured dust, not rock.`)
         out.push('Martian dust is the same on every rock, so that reading tells you nothing about the rock.')
       }
       if (roca && roca.lectura) {
@@ -257,6 +264,7 @@ export function crearRoca(opts: { levelId: number; libre: boolean; rng: () => nu
         out.push('The three ideas of this game: look before you touch, grind before you read, and prove it with several clues.')
       } else {
         out.push(`You ended with ${[e.imagen, e.quimica, e.segundo].filter(Boolean).length} of 3 clues. One or two are not enough to conclude.`)
+        out.push(`Still missing: ${faltantes().join('; ')}.`)
       }
     }
     return out
